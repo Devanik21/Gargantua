@@ -1,32 +1,90 @@
 """
 wormhole_navigator.py — Wormhole Physics & Interstellar Navigation Engine
-ENDURANCE Mission Control | Interstellar Science Platform v1.0.0
+ENDURANCE Mission Control | Interstellar Science Platform v3.0.0
+═══════════════════════════════════════════════════════════════════════════════
+Scientific References:
+  [1]  Morris & Thorne (1988) Am.J.Phys. 56:395  [Traversable wormhole]
+  [2]  Morris, Thorne & Yurtsever (1988) PRL 61:1446  [Wormhole time machines]
+  [3]  Ellis (1973) J.Math.Phys. 14:104  [Ellis drainhole — first exact solution]
+  [4]  Visser (1995) "Lorentzian Wormholes" AIP Press  [Comprehensive review]
+  [5]  Kip Thorne, "The Science of Interstellar" (W.W. Norton, 2014)
+  [6]  Hochberg & Visser (1997) PRL 78:2050  [Energy conditions]
+  [7]  Ford & Roman (1996) PRD 53:5496  [Quantum inequality, exotic matter]
+  [8]  Taylor & Wheeler, "Exploring Black Holes" (Addison Wesley, 2000)
+  [9]  Hohmann (1925); Braeunig (1998)  [Hohmann transfer orbit]
+  [10] Bate, Mueller & White (1971) "Fundamentals of Astrodynamics"
+  [11] Penrose (1965); Hawking (1966)  [Singularity theorems]
+  [12] Alcubierre (1994) Class.Quant.Grav. 11:L73  [Warp drive for comparison]
+  [13] Forward (1984) J.Propulsion 0:415  [Exotic matter propulsion]
 
-Handles: Morris-Thorne traversable wormhole geometry, exotic matter requirements,
-         throat stability conditions, tidal force constraints, wormhole embedding
-         diagrams, Ellis drainhole solution, Saturn approach trajectory, wormhole
-         transit simulation, Lagrange point calculations, planetary system orbital
-         mechanics (Gargantua system: Miller / Mann / Edmunds planets), Kepler
-         orbital elements, Hohmann transfer calculations, gravitational assist,
-         resonance conditions, coordinate transformations (BL ↔ Cartesian ↔
-         Boyer-Lindquist), ENDURANCE trajectory planning, proper time integration
-         along worldlines.
+Module implements:
+  ┌─ WORMHOLE GEOMETRY ─────────────────────────────────────────────────────┐
+  │ Morris-Thorne metric: ds² = −e^{2Φ}c²dt² + dl² + r(l)²dΩ²  [1]       │
+  │ Shape function b(r): determines throat geometry                         │
+  │ Redshift function Φ(r): determines time dilation through wormhole       │
+  │ Throat radius b₀: minimum traversable radius                            │
+  │ Embedding diagram: upper/lower universe sheet connection                │
+  │ Flaring-out condition: b'(r₀) < 1 (required for traversability)        │
+  │ Exotic matter distribution ρ_exotic(r) and tension τ(r)                │
+  │ Ellis drainhole exact solution: Φ=0, b(r)=b₀²/r                       │
+  │ Power-law family: b(r) = b₀(b₀/r)^α, α ∈ [0,1)                       │
+  │ Null energy condition violation quantification                          │
+  │ Geodesic completeness verification                                      │
+  └──────────────────────────────────────────────────────────────────────────┘
+  ┌─ EXOTIC MATTER PHYSICS ─────────────────────────────────────────────────┐
+  │ Negative energy density ρ_exotic = −T^{00}/c² < 0                      │
+  │ Total exotic mass M_exotic = ∫ρ_exotic dV                               │
+  │ Casimir energy density: ρ_C = −π²ħc/(720 d⁴) [7]                      │
+  │ Quantum inequality bound: max |ρ_neg| × τ² ≤ ħ/(12π²c) [7]            │
+  │ Required exotic mass vs throat radius scaling                            │
+  │ Comparison: exotic mass vs Jupiter, Sun, galaxy                         │
+  │ Feasibility metrics per wormhole configuration                          │
+  └──────────────────────────────────────────────────────────────────────────┘
+  ┌─ TRAVERSAL PHYSICS ─────────────────────────────────────────────────────┐
+  │ Transit time for traveller: τ_traveller = ∫ dl / (v_traverse)          │
+  │ Transit time for external observer: t_external = ∫ e^{-Φ} dl/v         │
+  │ Tidal force on traveller: |∂²ξ/∂τ²| < g_max (survivability)           │
+  │ Acceleration felt by traveller: a = c²Φ'(r)  [redshift gradient]       │
+  │ Wormhole stability: perturbation analysis                               │
+  │ Entry/exit conditions: velocity, angle, approach trajectory             │
+  │ Light travel time Saturn → wormhole                                     │
+  └──────────────────────────────────────────────────────────────────────────┘
+  ┌─ INTERSTELLAR NAVIGATION ───────────────────────────────────────────────┐
+  │ Saturn-to-wormhole trajectory (Hohmann + patched conics)               │
+  │ Wormhole location near Saturn (Thorne canon: ~1 AU from Saturn)        │
+  │ Gargantua system arrival: planet survey sequence                        │
+  │ Orbital insertion: Endurance parking orbit parameters                  │
+  │ Miller approach: spiral descent to near-ISCO                           │
+  │ Gravitational slingshot: Gargantua flyby Δv calculations               │
+  │ Plan B trajectory: Edmunds Planet rendezvous                           │
+  │ Δv budgets, fuel mass fractions, engine specific impulse                │
+  └──────────────────────────────────────────────────────────────────────────┘
+  ┌─ ORBITAL MECHANICS ─────────────────────────────────────────────────────┐
+  │ Kepler's laws: period, semi-major axis, velocity                        │
+  │ Vis-viva equation: v² = GM(2/r − 1/a)                                  │
+  │ Hohmann transfer: Δv₁, Δv₂, transfer time                              │
+  │ Gravity assist (slingshot): Δv from flyby geometry                     │
+  │ Patched conics: sphere of influence boundaries                          │
+  │ Lambert's problem: two-point boundary value trajectory                 │
+  │ Hyperbolic escape/capture: v_∞, hyperbolic excess velocity              │
+  │ Three-body: Lagrange points, stability                                  │
+  └──────────────────────────────────────────────────────────────────────────┘
+  ┌─ MISSION TRAJECTORY PLANNER ────────────────────────────────────────────┐
+  │ Full ENDURANCE mission Δv budget: launch → Saturn → wormhole            │
+  │ Propellant mass fraction: Tsiolkovsky for each leg                     │
+  │ Travel time accounting with relativistic corrections                    │
+  │ Optimal launch window: Earth-Saturn synodic period                      │
+  │ Gargantua system gravity map: Miller/Mann/Edmunds orbital data         │
+  └──────────────────────────────────────────────────────────────────────────┘
 
-Canonical Interstellar wormhole (Kip Thorne, The Science of Interstellar, 2014):
-  Location       : Near Saturn (≈ 1 AU from Saturn, ~9.58 AU from Sun)
-  Throat radius  : b₀ ≈ 1 AU (≈ 1.496 × 10¹¹ m)
-  Shape function : b(r) = b₀² / r  (Ellis drainhole)
-  Exotic matter  : ρ_exotic < 0 (negative energy density required)
-  Transit time   : ≈ 1 hour ship-frame (Thorne estimate)
-
-"We didn't run out of time, time ran out on us."
-                        — Cooper
+"The wormhole is not a tunnel. It is a fold — a crease in spacetime itself."
+                                             — Prof. Brand, NASA, 2063
+═══════════════════════════════════════════════════════════════════════════════
 """
-
 from __future__ import annotations
 
 import math
-import time
+import uuid
 import warnings
 from dataclasses import dataclass, field
 from enum import Enum
@@ -35,1392 +93,1799 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 import scipy.integrate as sci_int
-import scipy.optimize as sci_opt
+import scipy.optimize  as sci_opt
+import scipy.special   as sci_sp
+
 import matplotlib
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-from matplotlib.colors import LinearSegmentedColormap
-from matplotlib.patches import FancyArrowPatch, Arc
+import matplotlib.pyplot    as plt
+import matplotlib.gridspec  as gridspec
+import matplotlib.patches   as mpatches
+import matplotlib.colors    as mcolors
+import matplotlib.ticker    as mticker
+from matplotlib.colors      import LinearSegmentedColormap
+from matplotlib.patches     import FancyArrowPatch, Circle, Arc, FancyBboxPatch
+from mpl_toolkits.mplot3d   import Axes3D
+
 import streamlit as st
 
 warnings.filterwarnings("ignore")
 
-# ── Physical constants ────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+# §1  PHYSICAL CONSTANTS
+# ══════════════════════════════════════════════════════════════════════════════
 G_SI      = 6.674_30e-11
 C_SI      = 2.997_924_58e8
-M_SUN     = 1.989e30
-M_EARTH   = 5.972e24
-R_EARTH   = 6.371e6
-M_SATURN  = 5.683e26
-R_SATURN  = 5.832e7
+HBAR      = 1.054_571_817e-34
+K_B       = 1.380_649e-23
+M_SUN     = 1.989_000e30
+M_EARTH   = 5.972_000e24
+M_JUPITER = 1.898_000e27
+M_SAT     = 5.683_000e26
+R_EARTH   = 6.371_000e6
+R_SAT     = 6.033_000e7
 AU        = 1.495_978_707e11
 LY        = 9.460_730_472e15
 PC        = 3.085_677_581e16
-YEAR_S    = 3.156e7
+YEAR_S    = 3.155_760e7
 DAY_S     = 86_400.0
-HBAR      = 1.054_571_817e-34
-K_B       = 1.380_649e-23
+HOUR_S    = 3_600.0
 
-# ── Mission canonical constants ───────────────────────────────────────────────
-SATURN_SEMIMAJOR_AU   = 9.5826          # Saturn orbit
-WORMHOLE_DIST_SAT_AU  = 1.0             # wormhole ~ 1 AU from Saturn (film)
-WORMHOLE_THROAT_M     = 1.0 * AU        # throat radius b₀ (Thorne estimate)
-GARGANTUA_MASS_SOLAR  = 1.0e8
-GARGANTUA_DIST_LY     = 1.0e10          # effectively another galaxy
+# Gargantua
+GARG_MASS_SOLAR = 1.00e8
+GARG_MASS_KG    = GARG_MASS_SOLAR * M_SUN
+GARG_M_GEO      = G_SI * GARG_MASS_KG / C_SI**2
+GARG_RS         = 2.0 * GARG_M_GEO
+GARG_SPIN       = 1.0 - 1e-14
 
-# ─────────────────────────────────────────────────────────────────────────────
-# ENUMERATIONS
-# ─────────────────────────────────────────────────────────────────────────────
+# Interstellar wormhole (Thorne canon [5])
+WORM_THROAT_M   = 1.0e9           # ~1000 km throat radius (Canon: ~1 AU diam)
+WORM_LOC_SAT_AU = 1.0             # wormhole ~1 AU from Saturn (near L1-like)
+SATURN_SMA_AU   = 9.537           # Saturn semi-major axis [AU]
+WORM_SAT_DIST_M = WORM_LOC_SAT_AU * AU
 
-class WormholeType(Enum):
-    MORRIS_THORNE   = "MORRIS_THORNE"    # general traversable
-    ELLIS_DRAINHOLE = "ELLIS_DRAINHOLE"  # b(r) = b₀²/r
-    VISSER_THIN     = "VISSER_THIN"      # thin-shell constructed
-    LORENTZIAN      = "LORENTZIAN"       # general Lorentzian
+# Solar system orbital parameters
+SOL_MASS    = M_SUN
+EARTH_SMA_M = 1.0 * AU
+SAT_SMA_M   = 9.537 * AU
 
-class PlanetID(Enum):
-    MILLER   = "MILLER"     # water world, 1h=7yr, near Gargantua
-    MANN     = "MANN"       # frozen ammonia clouds, betrayal
-    EDMUNDS  = "EDMUNDS"    # Cooper's destination after Tesseract
-    EARTH    = "EARTH"      # Sol III, reference
-    SATURN   = "SATURN"     # wormhole location
+# Endurance parameters (film canon)
+ENDURANCE_MASS_KG   = 5.0e5     # ~500 tonnes
+ENDURANCE_ISP_S     = 9_000.0   # specific impulse (ion engine proxy) [s]
+ENDURANCE_THRUST_N  = 1.5e6     # thrust [N]
+RANGER_MASS_KG      = 1.5e4     # Ranger shuttle
+LANDER_MASS_KG      = 2.0e4     # Lander
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §2  CUSTOM COLORMAPS
+# ══════════════════════════════════════════════════════════════════════════════
+CMAP_WORM = LinearSegmentedColormap.from_list("wormhole",
+    ["#000000","#050020","#100050","#2000a0","#4020e0",
+     "#8060ff","#c0a0ff","#e0d0ff","#ffffff"], N=512)
+
+CMAP_EXOTIC = LinearSegmentedColormap.from_list("exotic_matter",
+    ["#000000","#200030","#600060","#c000c0","#ff00ff",
+     "#ff80ff","#ffffff"], N=256)
+
+CMAP_TRAJ = LinearSegmentedColormap.from_list("trajectory",
+    ["#0a1428","#1040a0","#2080ff","#60c0ff","#E8C46A","#FF8800"], N=512)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §3  ENUMERATIONS
+# ══════════════════════════════════════════════════════════════════════════════
+class ShapeFunction(Enum):
+    ELLIS        = "Ellis drainhole: b(r)=b₀²/r  (exact solution)"
+    POWER_LAW    = "Power-law: b(r)=b₀(b₀/r)^α"
+    EXPONENTIAL  = "Exponential: b(r)=b₀·exp(1−r/b₀)"
+    ASYMPTOTIC   = "Asymptotic flat: b(r)=b₀r₀/(r₀+r−b₀)"
+    CASIMIR      = "Casimir-supported: b(r)=b₀[1−(r−b₀)²/ℓ²]"
+
+class RedshiftFunction(Enum):
+    ZERO         = "Zero redshift: Φ=0  (tidal force from shape only)"
+    CONSTANT     = "Constant: Φ=Φ₀ (uniform blueshift)"
+    POWER        = "Power-law: Φ=−Φ₀(b₀/r)^n"
+    INVERSE      = "Inverse: Φ=−b₀/r"
+    INTERSTELLAR = "Interstellar canonical: Φ≈0 (tidal optimised)"
+
+class TraversalStatus(Enum):
+    VIABLE         = "VIABLE — survivable transit"
+    MARGINAL       = "MARGINAL — extreme but survivable"
+    TIDAL_LETHAL   = "LETHAL — tidal forces exceed human limit"
+    TIME_EXCESSIVE = "EXCESSIVE — transit time too long"
+    UNSTABLE       = "UNSTABLE — perturbation collapses wormhole"
 
 class ManeuverType(Enum):
-    HOHMANN          = "HOHMANN"
-    BI_ELLIPTIC      = "BI_ELLIPTIC"
-    GRAVITATIONAL_ASSIST = "GRAVITATIONAL_ASSIST"
-    POWERED_FLYBY    = "POWERED_FLYBY"
-    ORBITAL_INSERTION = "ORBITAL_INSERTION"
+    HOHMANN        = "Hohmann transfer"
+    BI_ELLIPTIC    = "Bi-elliptic transfer"
+    GRAVITY_ASSIST = "Gravity assist / slingshot"
+    DIRECT         = "Direct insertion"
+    SPIRAL_ION     = "Ion spiral (low-thrust)"
 
-class TrajectoryPhase(Enum):
-    EARTH_ORBIT      = "EARTH_ORBIT"
-    TRANS_SATURN     = "TRANS_SATURN"
-    SATURN_FLYBY     = "SATURN_FLYBY"
-    WORMHOLE_TRANSIT = "WORMHOLE_TRANSIT"
-    GARGANTUA_APPROACH = "GARGANTUA_APPROACH"
-    PLANETARY_DESCENT  = "PLANETARY_DESCENT"
-    ASCENT_RENDEZVOUS  = "ASCENT_RENDEZVOUS"
-    TRANS_EARTH        = "TRANS_EARTH"
-
-# ─────────────────────────────────────────────────────────────────────────────
-# DATA STRUCTURES
-# ─────────────────────────────────────────────────────────────────────────────
-
+# ══════════════════════════════════════════════════════════════════════════════
+# §4  WORMHOLE GEOMETRY ENGINE
+# ══════════════════════════════════════════════════════════════════════════════
 @dataclass
 class WormholeGeometry:
     """
-    Morris-Thorne traversable wormhole parameterisation.
-    Spacetime metric (spherically symmetric, static):
-    ds² = -e^{2Φ(r)} c²dt² + dr²/(1 - b(r)/r) + r²dΩ²
+    Morris-Thorne traversable wormhole spacetime [1].
+    Metric: ds² = −e^{2Φ(l)}c²dt² + dl² + r(l)²(dθ²+sin²θ dφ²)
+    where l is the proper radial distance from throat (l=0 at throat).
+    Shape: r(l) = √(b₀² + l²)  for Ellis; generalised by b(r).
     """
-    throat_radius_m:    float           # b₀ — throat radius (metres)
-    shape_exponent:     float = 2.0     # b(r) = b₀^n / r^(n-1), n=2 → Ellis
-    redshift_fn:        str   = "zero"  # "zero" (Φ=0) or "logarithmic"
-    wormhole_type:      WormholeType = WormholeType.ELLIS_DRAINHOLE
+    throat_radius_m : float = WORM_THROAT_M      # b₀ [m]
+    shape_type      : ShapeFunction = ShapeFunction.ELLIS
+    redshift_type   : RedshiftFunction = RedshiftFunction.ZERO
+    shape_alpha     : float = 0.5     # for power-law family
+    redshift_phi0   : float = 0.0    # for non-zero redshift
+    uid             : str   = field(default_factory=lambda: uuid.uuid4().hex[:8].upper())
 
-    def shape_function(self, r: float) -> float:
-        """b(r): shape function. Ellis drainhole: b(r) = b₀²/r"""
-        b0 = self.throat_radius_m
-        n  = self.shape_exponent
-        return b0**n / r**(n - 1)
+    def __post_init__(self):
+        self.b0 = self.throat_radius_m
 
-    def flare_out_condition(self, r: float) -> float:
+    # ── §4.1  Shape function b(r) ────────────────────────────────────────────
+    def b(self, r: float) -> float:
+        """Shape function b(r) ≥ 0; b(b₀) = b₀ (throat)."""
+        b0 = self.b0
+        r  = max(r, b0)
+        if self.shape_type == ShapeFunction.ELLIS:
+            return b0*b0 / r
+        elif self.shape_type == ShapeFunction.POWER_LAW:
+            a = self.shape_alpha
+            return b0 * (b0/r)**a
+        elif self.shape_type == ShapeFunction.EXPONENTIAL:
+            return b0 * math.exp(1 - r/b0)
+        elif self.shape_type == ShapeFunction.ASYMPTOTIC:
+            r0 = b0
+            return b0*r0 / (r0 + r - b0)
+        elif self.shape_type == ShapeFunction.CASIMIR:
+            ell = b0 * 3.0
+            val = b0 * (1 - (r - b0)**2/ell**2)
+            return max(0.0, val)
+        return b0
+
+    def b_prime(self, r: float, dr: float = 1.0) -> float:
+        """Numerical derivative b'(r) = db/dr."""
+        return (self.b(r + dr) - self.b(r - dr)) / (2*dr)
+
+    def flaring_out_condition(self, r: float) -> float:
         """
-        Flare-out condition (required for traversability):
-        (b - b'r) / (2b²) > 0 at throat.
-        Returns > 0 if satisfied.
+        Flaring-out condition for traversability [1]:
+          (b − rb') / (2b²) > 0  at throat
+        Equivalently: b'(b₀) < 1  (must be satisfied).
+        Returns the value (b − rb')/(2b²); positive → traversable.
         """
-        b0  = self.throat_radius_m
-        b   = self.shape_function(r)
-        eps = r * 1e-6
-        bp  = (self.shape_function(r + eps) - self.shape_function(r - eps)) / (2*eps)
-        return (b - bp * r) / (2 * b**2) if b > 0 else 0.0
+        b_r  = self.b(r)
+        bp   = self.b_prime(r)
+        return (b_r - r*bp) / (2*b_r**2 + 1e-30)
 
-    def redshift_function(self, r: float) -> float:
-        """Φ(r): redshift function. Zero-tidal-force case: Φ = 0."""
-        if self.redshift_fn == "zero":
+    # ── §4.2  Redshift function Φ(r) ────────────────────────────────────────
+    def Phi(self, r: float) -> float:
+        """Redshift function Φ(r); e^{2Φ} = time-time metric component."""
+        b0 = self.b0
+        r  = max(r, b0)
+        if self.redshift_type == RedshiftFunction.ZERO:
             return 0.0
-        elif self.redshift_fn == "logarithmic":
-            b0 = self.throat_radius_m
-            return 0.5 * math.log(1 - b0 / r) if r > b0 else float("-inf")
+        elif self.redshift_type == RedshiftFunction.CONSTANT:
+            return self.redshift_phi0
+        elif self.redshift_type == RedshiftFunction.POWER:
+            return -self.redshift_phi0 * (b0/r)**2
+        elif self.redshift_type == RedshiftFunction.INVERSE:
+            return -b0/r
+        elif self.redshift_type == RedshiftFunction.INTERSTELLAR:
+            return 0.0  # Thorne's Interstellar wormhole: zero tidal forces
         return 0.0
 
-    def proper_radial_distance(self, r: float) -> float:
+    def Phi_prime(self, r: float, dr: float = 1.0) -> float:
+        return (self.Phi(r + dr) - self.Phi(r - dr)) / (2*dr)
+
+    # ── §4.3  Proper radial distance l(r) ───────────────────────────────────
+    def proper_distance_l(self, r: float) -> float:
         """
-        Proper radial coordinate l(r) mapping to/from coordinate r.
-        dl/dr = ±1/sqrt(1 - b(r)/r)
-        Integrate from throat b₀ to r.
+        Proper radial distance from throat:
+          l(r) = ±∫_{b₀}^{r} dr'/√(1 − b(r')/r')
+        Integrated numerically.
         """
-        b0 = self.throat_radius_m
+        b0 = self.b0
         if r <= b0:
             return 0.0
         def integrand(rp):
-            b = self.shape_function(rp)
-            val = 1 - b/rp
-            return 1.0 / math.sqrt(max(val, 1e-12))
-        result, _ = sci_int.quad(integrand, b0 * 1.0001, r,
-                                   limit=200, epsabs=1e-8)
-        return float(result)
+            b_rp = self.b(rp)
+            denom = 1.0 - b_rp/rp
+            return 1.0/math.sqrt(max(denom, 1e-10))
+        result, _ = sci_int.quad(integrand, b0*1.0001, r, limit=200)
+        return result
 
-    def embedding_coordinates(self, r_vals: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-        """
-        Compute the embedding diagram z(r) for the wormhole.
-        dz/dr = ±1/sqrt(r/b(r) - 1)
-        Shows curvature of 2D equatorial slice in flat 3D space.
-        """
-        b0 = self.throat_radius_m
-        z_vals = np.zeros_like(r_vals)
-        for i, r in enumerate(r_vals):
-            if r <= b0 * 1.00001:
-                z_vals[i] = 0.0
-                continue
-            def dz_dr(rp):
-                b = self.shape_function(rp)
-                val = rp / b - 1
-                return 1.0 / math.sqrt(max(val, 1e-10))
-            try:
-                z, _ = sci_int.quad(dz_dr, b0 * 1.0001, r,
-                                     limit=200, epsabs=1e-8)
-                z_vals[i] = z
-            except Exception:
-                z_vals[i] = z_vals[max(0, i-1)]
-        return r_vals, z_vals
-
-    def exotic_matter_density(self, r: float) -> float:
-        """
-        Energy density of exotic matter required at radius r.
-        From Einstein field equations for the wormhole metric:
-        8πG ρ_exotic = -b'(r) / r²
-        (negative → exotic matter required)
-        Returns value in kg/m³.
-        """
-        eps = r * 1e-6
-        bp  = (self.shape_function(r + eps) - self.shape_function(r - eps)) / (2*eps)
-        rho_geo = -bp / (8 * math.pi * r**2)    # in c=G=1 units
-        rho_si  = rho_geo * C_SI**2 / G_SI       # convert to SI
-        return float(rho_si)
-
-    def total_exotic_energy_J(self) -> float:
-        """
-        Total exotic energy integrated over the wormhole volume.
-        E_exotic = ∫ ρ_exotic × 4πr² dr  from b₀ to ∞ (truncated)
-        In practice truncated at 10 b₀.
-        """
-        b0    = self.throat_radius_m
-        r_max = 10 * b0
-        def integrand(r):
-            rho = self.exotic_matter_density(r)
-            return rho * 4 * math.pi * r**2
+    def r_from_l(self, l: float, tol: float = 1.0) -> float:
+        """Invert l(r) to get r given l (numerical root finding)."""
+        if l <= 0:
+            return self.b0
         try:
-            E, _ = sci_int.quad(integrand, b0 * 1.001, r_max,
-                                  limit=500, epsabs=1e-6)
-            return float(E * C_SI**2)  # convert energy density × volume → Joules
+            sol = sci_opt.brentq(
+                lambda r: self.proper_distance_l(r) - l,
+                self.b0*1.0001, self.b0*(1 + l/self.b0 + 1)*10,
+                xtol=tol, maxiter=100)
+            return sol
         except Exception:
-            return float("-inf")
+            return self.b0 + l  # fallback: flat space approximation
 
-    def transit_time_proper(self, v_over_c: float = 0.5) -> float:
+    # ── §4.4  Embedding diagram ──────────────────────────────────────────────
+    def embedding_surface(self, r_max_b0: float = 8.0,
+                           n_r: int = 200) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
-        Proper time for traversal through wormhole at constant velocity v.
-        Δτ = L_total / (γ v)  where L_total = 2 × l(r_max)
-        Use throat length ≈ 2 b₀ for order of magnitude.
+        Upper-universe embedding surface z(r):
+          dz/dr = ±1/√(r/b(r) − 1)
+        Returns (r_arr, l_arr, z_arr) for plotting.
+        Integration from throat outward.
         """
-        b0   = self.throat_radius_m
-        v    = v_over_c * C_SI
-        beta = v_over_c
-        gamma = 1.0 / math.sqrt(1 - beta**2)
-        L_total = 2 * b0     # approximate proper length of wormhole
-        return float(L_total / (gamma * v))
+        b0    = self.b0
+        r_arr = np.geomspace(b0*1.0001, r_max_b0*b0, n_r)
+        z_arr = np.zeros(n_r)
+        for i in range(1, n_r):
+            dr      = r_arr[i] - r_arr[i-1]
+            r_mid   = 0.5*(r_arr[i] + r_arr[i-1])
+            b_mid   = self.b(r_mid)
+            radicand = r_mid/b_mid - 1.0
+            dz_dr   = 1.0/math.sqrt(max(radicand, 1e-8))
+            z_arr[i] = z_arr[i-1] + dz_dr*dr
+        l_arr = np.array([self.proper_distance_l(r) for r in r_arr])
+        return r_arr, l_arr, z_arr
 
-    def tidal_constraint_velocity(self, g_limit_earth: float = 10.0) -> float:
+    # ── §4.5  Metric components ──────────────────────────────────────────────
+    def g_tt(self, r: float) -> float:
+        """g_tt = −e^{2Φ(r)}"""
+        return -math.exp(2*self.Phi(r))
+
+    def g_ll(self, r: float) -> float:
+        """g_ll = 1  (proper radial coordinate)"""
+        return 1.0
+
+    def g_thth(self, r: float) -> float:
+        """g_θθ = r(l)²"""
+        return r**2
+
+    # ── §4.6  Exotic matter ──────────────────────────────────────────────────
+    def stress_energy_tensor(self, r: float) -> Dict[str, float]:
         """
-        Maximum entry velocity for safe traversal (tidal forces ≤ g_limit × g_Earth).
-        For Ellis drainhole: tidal acc ≈ c² b₀² / r³ at throat for radial geodesic.
-        g_tidal = c² / b₀  → limit v such that Δτ × g_tidal ≤ g_limit × g_Earth.
-        Returns maximum v/c for comfortable traversal.
+        Einstein field equations → stress-energy of matter supporting wormhole.
+        For Morris-Thorne metric in orthonormal frame [1]:
+          8πG T^{ôô}/c⁴ = −b'(r)/(r²)                   [energy density]
+          8πG T^{l̂l̂}/c⁴ = (2/r)(1−b/r)Φ' − b'/(r²)    [radial tension]
+          8πG T^{θ̂θ̂}/c⁴ = (1−b/r)[Φ''+(Φ')² + Φ'/r − b'r−b/(2r²(1−b/r)) − Φ'/r]  [lateral]
+        Returns: energy_density [kg/m³], radial_tension [Pa], lateral_pressure [Pa].
         """
-        g_earth = 9.81   # m s⁻²
-        g_max   = g_limit_earth * g_earth
-        b0      = self.throat_radius_m
-        # Tidal acceleration at throat for radial geodesic: a_t ≈ c² Δl / b₀²
-        # For human: Δl ≈ 1.8 m, a_t = C_SI² × 1.8 / b₀²
-        a_tidal = C_SI**2 * 1.8 / b0**2
-        if a_tidal < g_max:
-            return 1.0   # completely comfortable at any speed
-        # v_max such that traversal time gives tolerable impulse
-        # tau_cross = b0 / (v_max) → impulse ~ a_t × tau_cross ≤ g_max × tau
-        v_max = C_SI * math.sqrt(a_tidal / g_max * b0 / C_SI)
-        return float(min(v_max / C_SI, 0.9999))
+        bp  = self.b_prime(r)
+        bv  = self.b(r)
+        Phip= self.Phi_prime(r)
+        G8pi = 8*math.pi*G_SI
+        # Energy density (exotic if negative)
+        rho  = -bp / (G8pi * C_SI**2 * r**2)   # [kg/m³]
+        # Radial tension τ(r) = −T^{rr} (positive = tension, negative = pressure)
+        if r > self.b0:
+            f    = 1.0 - bv/r
+            tau  = -(2.0/r * f * Phip - bp/r**2) * C_SI**4/(G8pi)
+        else:
+            tau  = 0.0
+        # Lateral pressure
+        p_lat = 0.0  # simplified (full expression requires Φ'')
+        return {"rho_kg_m3": rho, "radial_tension_Pa": tau,
+                "lateral_pressure_Pa": p_lat,
+                "is_exotic": rho < 0,
+                "nec_violation": rho + tau/C_SI**2 < 0}
 
-    def quantum_inequality_energy(self) -> float:
+    def exotic_mass_total(self, r_max_b0: float = 100.0) -> float:
         """
-        Ford-Roman quantum inequality: the exotic energy must satisfy
-        |E_exotic| ≤ (ℏ c)/(b₀² τ) for sampling time τ ~ b₀/c.
-        Returns the quantum inequality bound in Joules.
+        Total exotic mass (volume integral of |ρ_exotic|):
+          M_exotic = ∫_{b₀}^{r_max} |ρ(r)| 4πr² dr
+        Units: kg.
         """
-        b0  = self.throat_radius_m
-        tau = b0 / C_SI
-        return float(HBAR * C_SI / (b0**2 * tau))
+        b0 = self.b0
+        def integrand(r):
+            rho = self.stress_energy_tensor(r)["rho_kg_m3"]
+            return abs(rho) * 4*math.pi*r**2
+        r_arr = np.geomspace(b0*1.001, r_max_b0*b0, 500)
+        rho_arr = np.array([abs(self.stress_energy_tensor(r)["rho_kg_m3"])
+                             for r in r_arr])
+        return np.trapz(rho_arr * 4*math.pi*r_arr**2, r_arr)
+
+    def flaring_satisfies(self) -> bool:
+        """Check flaring-out condition at throat."""
+        return self.b_prime(self.b0*1.001) < 1.0
+
+    def summary(self) -> Dict[str, Any]:
+        M_ex  = self.exotic_mass_total()
+        return {
+            "throat_radius_m":   self.b0,
+            "throat_radius_km":  self.b0/1e3,
+            "shape_type":        self.shape_type.value,
+            "redshift_type":     self.redshift_type.value,
+            "b_prime_at_throat": self.b_prime(self.b0*1.001),
+            "flaring_condition": self.flaring_satisfies(),
+            "Phi_at_throat":     self.Phi(self.b0),
+            "g_tt_at_throat":    self.g_tt(self.b0),
+            "exotic_mass_kg":    M_ex,
+            "exotic_mass_Jupiter": M_ex/M_JUPITER,
+            "exotic_mass_Sun":   M_ex/M_SUN,
+        }
 
 
-@dataclass
-class OrbitalElements:
-    """Keplerian orbital elements (J2000 epoch)."""
-    semi_major_axis_m:  float           # a (metres)
-    eccentricity:       float           # e [0,1)
-    inclination_deg:    float           # i (degrees)
-    raan_deg:           float           # Ω — right ascension of ascending node
-    arg_periapsis_deg:  float           # ω — argument of periapsis
-    mean_anomaly_deg:   float           # M₀ — mean anomaly at epoch
-    central_mass_kg:    float           # M_central
-
-    @property
-    def semi_latus_rectum_m(self) -> float:
-        return self.semi_major_axis_m * (1 - self.eccentricity**2)
-
-    @property
-    def period_s(self) -> float:
-        """Keplerian period T = 2π sqrt(a³/μ)"""
-        mu = G_SI * self.central_mass_kg
-        return float(2 * math.pi * math.sqrt(self.semi_major_axis_m**3 / mu))
-
-    @property
-    def period_yr(self) -> float:
-        return self.period_s / YEAR_S
-
-    @property
-    def mean_motion_rad_s(self) -> float:
-        return 2 * math.pi / self.period_s
-
-    @property
-    def periapsis_m(self) -> float:
-        return self.semi_major_axis_m * (1 - self.eccentricity)
-
-    @property
-    def apoapsis_m(self) -> float:
-        return self.semi_major_axis_m * (1 + self.eccentricity)
-
-    @property
-    def orbital_velocity_circular_m_s(self) -> float:
-        """v_c = sqrt(μ/a) for circular approximation."""
-        mu = G_SI * self.central_mass_kg
-        return float(math.sqrt(mu / self.semi_major_axis_m))
-
-    @property
-    def escape_velocity_periapsis_m_s(self) -> float:
-        """v_esc = sqrt(2μ/r_p)"""
-        mu = G_SI * self.central_mass_kg
-        return float(math.sqrt(2 * mu / self.periapsis_m))
-
-    def solve_kepler(self, mean_anomaly_deg: float,
-                      tol: float = 1e-10) -> float:
-        """
-        Solve Kepler's equation M = E - e sin(E) for eccentric anomaly E.
-        Newton-Raphson iteration.
-        """
-        M = math.radians(mean_anomaly_deg)
-        e = self.eccentricity
-        E = M   # initial guess
-        for _ in range(100):
-            dE = (M - E + e * math.sin(E)) / (1 - e * math.cos(E))
-            E += dE
-            if abs(dE) < tol:
-                break
-        return float(E)
-
-    def true_anomaly_rad(self, mean_anomaly_deg: float) -> float:
-        """Convert mean anomaly to true anomaly ν via eccentric anomaly."""
-        E = self.solve_kepler(mean_anomaly_deg)
-        e = self.eccentricity
-        cos_nu = (math.cos(E) - e) / (1 - e * math.cos(E))
-        sin_nu = (math.sqrt(1 - e**2) * math.sin(E)) / (1 - e * math.cos(E))
-        return float(math.atan2(sin_nu, cos_nu))
-
-    def position_velocity(self, mean_anomaly_deg: float
-                           ) -> Tuple[np.ndarray, np.ndarray]:
-        """
-        Return position (m) and velocity (m/s) vectors in inertial frame.
-        Uses perifocal → ECI rotation via Euler angles (Ω, i, ω).
-        """
-        nu  = self.true_anomaly_rad(mean_anomaly_deg)
-        p   = self.semi_latus_rectum_m
-        e   = self.eccentricity
-        mu  = G_SI * self.central_mass_kg
-        r   = p / (1 + e * math.cos(nu))
-        # Perifocal coordinates
-        pos_p = r * np.array([math.cos(nu), math.sin(nu), 0.0])
-        vel_p = math.sqrt(mu / p) * np.array(
-            [-math.sin(nu), e + math.cos(nu), 0.0])
-        # Rotation matrix (ω, i, Ω)
-        omega = math.radians(self.arg_periapsis_deg)
-        inc   = math.radians(self.inclination_deg)
-        Omega = math.radians(self.raan_deg)
-        R = self._rotation_matrix(omega, inc, Omega)
-        return R @ pos_p, R @ vel_p
-
-    @staticmethod
-    def _rotation_matrix(omega: float, inc: float, Omega: float) -> np.ndarray:
-        co, so = math.cos(omega), math.sin(omega)
-        ci, si = math.cos(inc),   math.sin(inc)
-        cO, sO = math.cos(Omega), math.sin(Omega)
-        return np.array([
-            [cO*co - sO*so*ci, -cO*so - sO*co*ci,  sO*si],
-            [sO*co + cO*so*ci, -sO*so + cO*co*ci, -cO*si],
-            [so*si,             co*si,              ci   ],
-        ])
-
-
-@dataclass
-class PlanetData:
-    """Physical and orbital properties of a planet in the Gargantua system or Solar System."""
-    planet_id:          PlanetID
-    name:               str
-    mass_kg:            float
-    radius_m:           float
-    surface_gravity_m_s2: float
-    orbital_elements:   OrbitalElements
-    time_dilation_factor: float = 1.0     # γ_total relative to Earth
-    description:        str = ""
-    surface_conditions: str = ""
-    discovered_by:      str = ""
-
-    @property
-    def escape_velocity_m_s(self) -> float:
-        return math.sqrt(2 * G_SI * self.mass_kg / self.radius_m)
-
-    @property
-    def hill_sphere_m(self) -> float:
-        """Hill sphere approximation: r_H = a (m/(3M))^(1/3)"""
-        M_central = self.orbital_elements.central_mass_kg
-        return (self.orbital_elements.semi_major_axis_m *
-                (self.mass_kg / (3 * M_central))**(1/3))
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# SOLAR SYSTEM REFERENCE DATA
-# ─────────────────────────────────────────────────────────────────────────────
-
-def build_solar_system_planets() -> Dict[str, OrbitalElements]:
-    """Reference orbital elements for solar system bodies (J2000)."""
-    M_sol = 1.989e30
-    planets = {
-        "Earth": OrbitalElements(
-            semi_major_axis_m=1.000 * AU, eccentricity=0.0167,
-            inclination_deg=0.0, raan_deg=0.0, arg_periapsis_deg=102.94,
-            mean_anomaly_deg=100.46, central_mass_kg=M_sol),
-        "Saturn": OrbitalElements(
-            semi_major_axis_m=9.5826 * AU, eccentricity=0.0565,
-            inclination_deg=2.485, raan_deg=113.64, arg_periapsis_deg=339.39,
-            mean_anomaly_deg=317.02, central_mass_kg=M_sol),
-        "Jupiter": OrbitalElements(
-            semi_major_axis_m=5.2044 * AU, eccentricity=0.0489,
-            inclination_deg=1.305, raan_deg=100.46, arg_periapsis_deg=273.87,
-            mean_anomaly_deg=20.02, central_mass_kg=M_sol),
-        "Mars": OrbitalElements(
-            semi_major_axis_m=1.5237 * AU, eccentricity=0.0934,
-            inclination_deg=1.850, raan_deg=49.56, arg_periapsis_deg=286.50,
-            mean_anomaly_deg=19.37, central_mass_kg=M_sol),
-    }
-    return planets
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# GARGANTUA PLANETARY SYSTEM
-# ─────────────────────────────────────────────────────────────────────────────
-
-def build_gargantua_system(bh_mass_solar: float = GARGANTUA_MASS_SOLAR
-                            ) -> List[PlanetData]:
+# ══════════════════════════════════════════════════════════════════════════════
+# §5  EXOTIC MATTER PHYSICS
+# ══════════════════════════════════════════════════════════════════════════════
+class ExoticMatterPhysics:
     """
-    Canonical Gargantua planetary system from Kip Thorne's analysis.
-    All orbits are equatorial (prograde) around Gargantua.
+    Quantitative exotic matter analysis: Casimir energy, quantum inequality
+    bounds, feasibility assessment for wormhole maintenance.
+    References: Ford & Roman [7], Visser [4].
     """
-    M_G    = bh_mass_solar * M_SUN
-    M_G_geo = G_SI * M_G / C_SI**2   # geometric mass in metres
 
-    # Kerr ISCO for a* = 1-1e-14 ≈ 1.0 (prograde)
-    # r_ISCO → M (event horizon) for extreme Kerr
-    # Thorne: Miller r ≈ 1.001 r_H for a*→1
-    r_H_approx = M_G_geo           # r_+ ≈ M for extreme Kerr
-    r_miller   = M_G_geo * 1.0027  # Thorne canonical
-    r_mann     = M_G_geo * 50.0    # much further out
-    r_edmunds  = M_G_geo * 100.0   # furthest, near habitable zone
+    def __init__(self, wormhole: WormholeGeometry):
+        self.wh = wormhole
 
-    planets = [
-        PlanetData(
-            planet_id=PlanetID.MILLER,
-            name="Miller's Planet",
-            mass_kg=5.972e24 * 1.2,      # slightly heavier than Earth
-            radius_m=6.371e6 * 1.3,
-            surface_gravity_m_s2=14.0,   # ~1.4g
-            orbital_elements=OrbitalElements(
-                semi_major_axis_m=r_miller,
-                eccentricity=0.0,          # circular (tidal locking)
-                inclination_deg=0.0,
-                raan_deg=0.0, arg_periapsis_deg=0.0, mean_anomaly_deg=0.0,
-                central_mass_kg=M_G),
-            time_dilation_factor=61_320.0,  # 1 h = 7 yr
-            description=(
-                "Shallow ocean world, ~10 cm average depth. Enormous "
-                "tidal waves (hundreds of metres) driven by Gargantua tidal forces. "
-                "The 1-hour surface mission costs Cooper 23 years aboard Endurance."),
-            surface_conditions="Liquid water, ~1 atm, 1.4g surface gravity. "
-                                "Continuous 100m+ tidal bore waves. No dry land.",
-            discovered_by="Dr. Miller (deceased — wave)"
-        ),
-        PlanetData(
-            planet_id=PlanetID.MANN,
-            name="Mann's Planet",
-            mass_kg=5.972e24 * 0.9,
-            radius_m=6.371e6 * 0.95,
-            surface_gravity_m_s2=8.5,
-            orbital_elements=OrbitalElements(
-                semi_major_axis_m=r_mann,
-                eccentricity=0.02,
-                inclination_deg=3.0,
-                raan_deg=45.0, arg_periapsis_deg=90.0, mean_anomaly_deg=180.0,
-                central_mass_kg=M_G),
-            time_dilation_factor=1.3,    # minimal dilation at large r
-            description=(
-                "Frozen ammonia-methane cloud layers over rocky core. "
-                "Habitable zone only in thin stratospheric layer. "
-                "Dr. Mann falsified viability data to trigger rescue. "
-                "Surface shows banded ice structure, extreme cold."),
-            surface_conditions="Frozen surface, ammonia ice, -40°C average. "
-                                "Stratosphere: 0.8 atm N₂/O₂ mix. ~0.87g.",
-            discovered_by="Dr. Mann"
-        ),
-        PlanetData(
-            planet_id=PlanetID.EDMUNDS,
-            name="Edmunds' Planet",
-            mass_kg=5.972e24 * 1.05,
-            radius_m=6.371e6 * 1.02,
-            surface_gravity_m_s2=10.2,
-            orbital_elements=OrbitalElements(
-                semi_major_axis_m=r_edmunds,
-                eccentricity=0.05,
-                inclination_deg=5.0,
-                raan_deg=120.0, arg_periapsis_deg=200.0, mean_anomaly_deg=60.0,
-                central_mass_kg=M_G),
-            time_dilation_factor=1.1,
-            description=(
-                "Rocky, oxygen-bearing atmosphere. Most Earth-like of the three. "
-                "Where Amelia Brand sets up permanent human colony per Plan B. "
-                "Cooper's data from the tesseract eventually reaches Brand here."),
-            surface_conditions="Rocky terrain, thin O₂ atmosphere, ~1.04g, "
-                                "-5°C mean temperature. Small liquid water bodies.",
-            discovered_by="Dr. Edmunds (deceased — accident)"
-        ),
-    ]
-    return planets
+    def casimir_energy_density(self, plate_sep_m: float) -> float:
+        """
+        Casimir energy density between parallel plates [7]:
+          ρ_C = −π²ħc / (720 d⁴)  [J/m³]
+        Negative energy density — the only known macroscopic source.
+        """
+        return -math.pi**2 * HBAR * C_SI / (720.0 * plate_sep_m**4)
+
+    def casimir_total_energy(self, plate_sep_m: float,
+                              plate_area_m2: float) -> float:
+        """Total Casimir energy E_C = ρ_C × volume  [J]."""
+        return self.casimir_energy_density(plate_sep_m) * plate_sep_m * plate_area_m2
+
+    def quantum_inequality_bound(self, sampling_time_s: float) -> float:
+        """
+        Ford-Roman quantum inequality [7]:
+          ∫ ρ(τ) g(τ) dτ ≥ −ħ/(12π²c·τ₀⁴)
+        Maximum magnitude of negative energy density observable in time τ₀.
+        Returns |ρ_max| [J/m³].
+        """
+        return HBAR / (12.0 * math.pi**2 * C_SI * sampling_time_s**4)
+
+    def required_plate_sep_for_throat(self) -> float:
+        """
+        Plate separation needed for Casimir energy to support wormhole throat.
+        Rough estimate: ρ_C × b₀³ ~ M_exotic × c²
+        → d = (π²ħc b₀³ / (720 M_exotic c²))^{1/4}
+        """
+        M_ex = max(self.wh.exotic_mass_total(), 1e-10)
+        b0   = self.wh.b0
+        num  = math.pi**2 * HBAR * C_SI * b0**3
+        den  = 720.0 * M_ex * C_SI**2
+        return (num/den)**0.25
+
+    def exotic_mass_scaling_table(self) -> pd.DataFrame:
+        """Table of exotic mass vs throat radius for various shape functions."""
+        b0_arr = np.geomspace(1e3, 1e12, 20)   # 1 km to 1 AU
+        rows = []
+        for b0 in b0_arr:
+            for shape in [ShapeFunction.ELLIS, ShapeFunction.POWER_LAW]:
+                wh  = WormholeGeometry(b0, shape_type=shape)
+                M_ex = wh.exotic_mass_total()
+                rows.append({
+                    "b₀ (m)":       b0,
+                    "b₀ (km)":      b0/1e3,
+                    "Shape":        shape.name,
+                    "M_exotic (kg)": M_ex,
+                    "M_exotic/M_Jupiter": M_ex/M_JUPITER,
+                    "M_exotic/M_Sun": M_ex/M_SUN,
+                    "feasible_1e12J": abs(M_ex*C_SI**2) < 1e40,
+                })
+        return pd.DataFrame(rows)
+
+    def feasibility_report(self) -> Dict[str, Any]:
+        M_ex   = self.wh.exotic_mass_total()
+        E_ex   = abs(M_ex) * C_SI**2
+        d_cas  = self.required_plate_sep_for_throat()
+        rho_c  = self.casimir_energy_density(d_cas)
+        qi     = self.quantum_inequality_bound(HOUR_S)
+        return {
+            "throat_km":          self.wh.b0/1e3,
+            "exotic_mass_kg":     M_ex,
+            "exotic_mass_Jupiter":M_ex/M_JUPITER,
+            "exotic_energy_J":    E_ex,
+            "exotic_energy_stars": E_ex / (L_SUN*YEAR_S),
+            "casimir_plate_sep_m": d_cas,
+            "casimir_rho_J_m3":   rho_c,
+            "QI_bound_J_m3":      qi,
+            "ratio_rho_to_QI":    abs(rho_c)/qi if qi > 0 else 0,
+            "feasibility":        ("Theoretically possible"
+                                   if abs(rho_c) < qi * 1e10
+                                   else "Beyond known physics"),
+        }
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# HOHMANN & ORBITAL TRANSFER CALCULATOR
-# ─────────────────────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+# §6  WORMHOLE TRAVERSAL CALCULATOR
+# ══════════════════════════════════════════════════════════════════════════════
+class WormholeTraversalCalculator:
+    """
+    Physics of actually flying through a Morris-Thorne wormhole [1,4,5].
+    Computes transit time, tidal forces, and survivability for the Endurance.
+    """
 
+    HUMAN_TIDAL_LIMIT = 10.0 * 9.81   # 10g per meter [m/s² per m]
+    HUMAN_ACCEL_LIMIT = 5.0  * 9.81   # 5g sustained [m/s²]
+
+    def __init__(self, wormhole: WormholeGeometry):
+        self.wh = wormhole
+
+    def transit_time_traveller(self, v_traverse: float,
+                                n_l: int = 400) -> float:
+        """
+        Proper time for traversal at speed v through wormhole (l from −L to +L):
+          τ = ∫_{-L}^{+L} dl/v(l)
+        For constant v: τ = 2L/v  where L = proper length of wormhole.
+        L estimated as l(r_max) where b(r_max) ≪ b₀.
+        """
+        b0     = self.wh.b0
+        r_max  = b0 * 10.0   # practical outer boundary
+        L_prop = self.wh.proper_distance_l(r_max)   # one-sided proper length
+        total_L = 2.0 * L_prop
+        return total_L / v_traverse
+
+    def transit_time_external(self, v_traverse: float) -> float:
+        """
+        Coordinate time for external observer watching traversal:
+          t_ext = ∫ e^{-Φ(r)} dl / v
+        For Φ=0: t_ext = τ_traveller.
+        """
+        b0    = self.wh.b0
+        r_max = b0 * 10.0
+        r_arr = np.geomspace(b0*1.001, r_max, 200)
+        l_arr = np.array([self.wh.proper_distance_l(r) for r in r_arr])
+        Phi_arr = np.array([self.wh.Phi(r) for r in r_arr])
+        # Integrand: e^{-Φ}/v at each proper-distance point
+        integrand = np.exp(-Phi_arr) / v_traverse
+        # Integrate over l (proper distance)
+        dl_arr = np.gradient(l_arr)
+        t_one_side = np.sum(integrand * dl_arr)
+        return 2.0 * t_one_side
+
+    def tidal_force_at_throat(self) -> float:
+        """
+        Radial tidal force per unit separation at throat [1]:
+          Δa/Δξ = −(e^{−2Φ}/r)(d²r/dl² − r(Φ')²)  (radial component)
+        For Ellis wormhole (Φ=0): Δa/Δξ = b₀²/(r(l))^4  [s⁻²]
+        At throat: = 1/b₀²  × c²  [m/s² per m separation]
+        """
+        b0 = self.wh.b0
+        # Radial geodesic deviation (simplified for Φ=0):
+        # d²ξ^r/dτ² = −R^r_{τrτ} ξ^r = (b₀²/(r⁴) - Φ'²)ξ^r
+        # At r=b₀: R^r_{τrτ} = −b₀''/(2b₀)  (for Morris-Thorne)
+        # Ellis exact: Δa/Δξ = c²/b₀²
+        return C_SI**2 / (b0**2)
+
+    def tidal_force_profile(self, n_l: int = 300
+                             ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """
+        Tidal force profile along wormhole proper distance l.
+        Returns (l_arr_m, tidal_radial_g_per_m, tidal_lateral_g_per_m).
+        """
+        b0     = self.wh.b0
+        r_max  = b0 * 8.0
+        r_arr  = np.geomspace(b0*1.001, r_max, n_l)
+        l_arr  = np.array([self.wh.proper_distance_l(r) for r in r_arr])
+        # Radial tidal: c²/r² × f(b,Φ)
+        tidal_r = C_SI**2 / r_arr**2 * (self.wh.b(r_arr[0]) / r_arr)**1
+        tidal_r = np.array([C_SI**2/r**2*(self.wh.b(r)/r) for r in r_arr])
+        # Lateral tidal (different sign)
+        tidal_l = np.array([C_SI**2/(2*r**2) for r in r_arr])
+        return l_arr, tidal_r/9.81, tidal_l/9.81
+
+    def survivability_check(self, v_traverse: float,
+                             crew_separation_m: float = 1.8
+                             ) -> TraversalStatus:
+        """Check if traversal is survivable for human crew."""
+        tidal_throat = self.tidal_force_at_throat() * crew_separation_m / 9.81
+        accel        = abs(self.wh.Phi_prime(self.wh.b0*1.01)) * C_SI**2 / 9.81
+        tau          = self.transit_time_traveller(v_traverse)
+
+        if tidal_throat > 100.0:
+            return TraversalStatus.TIDAL_LETHAL
+        elif tidal_throat > 10.0 or accel > self.HUMAN_ACCEL_LIMIT/9.81:
+            return TraversalStatus.MARGINAL
+        elif tau > 30.0*DAY_S:
+            return TraversalStatus.TIME_EXCESSIVE
+        else:
+            return TraversalStatus.VIABLE
+
+    def interstellar_wormhole_profile(self) -> Dict[str, Any]:
+        """
+        Profile for the Interstellar canon wormhole near Saturn.
+        Throat ~1 AU in diameter per some interpretations; Thorne [5] uses
+        ~1 km as physically well-motivated for macroscopic traversal.
+        """
+        v_tr  = 0.1 * C_SI   # 10% c traversal
+        tau   = self.transit_time_traveller(v_tr)
+        t_ext = self.transit_time_external(v_tr)
+        tidal = self.tidal_force_at_throat() * 1.8 / 9.81
+        status= self.survivability_check(v_tr)
+        return {
+            "throat_radius_m":      self.wh.b0,
+            "throat_radius_km":     self.wh.b0/1e3,
+            "traversal_speed_c":    0.1,
+            "tau_traveller_s":      tau,
+            "tau_traveller_hr":     tau/HOUR_S,
+            "t_external_s":         t_ext,
+            "t_external_hr":        t_ext/HOUR_S,
+            "tidal_at_throat_g_m":  tidal,
+            "peak_accel_g":         abs(self.wh.Phi_prime(self.wh.b0))*C_SI**2/9.81,
+            "traversal_status":     status.value,
+            "wormhole_viable":      status == TraversalStatus.VIABLE,
+        }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §7  ORBITAL MECHANICS ENGINE
+# ══════════════════════════════════════════════════════════════════════════════
 class OrbitalMechanics:
     """
-    Keplerian orbital mechanics: Hohmann transfers, gravity assists,
-    Lagrange points, escape trajectories, Δv budgets.
+    Keplerian orbital mechanics, Hohmann transfers, gravity assists,
+    vis-viva equation, and escape/capture trajectories.
+    References: Bate-Mueller-White [10], Braeunig [9].
     """
 
-    @staticmethod
-    def hohmann_transfer(r1_m: float, r2_m: float,
-                          central_mass_kg: float
-                          ) -> Dict[str, float]:
+    def __init__(self, central_mass_kg: float = M_SUN):
+        self.M   = central_mass_kg
+        self.mu  = G_SI * central_mass_kg    # gravitational parameter [m³/s²]
+
+    # ── §7.1  Kepler ─────────────────────────────────────────────────────────
+    def orbital_velocity(self, r: float, a: float = None) -> float:
         """
-        Hohmann transfer from circular orbit r₁ to r₂.
-        Δv₁ = v_c1 (sqrt(2r₂/(r₁+r₂)) - 1)
-        Δv₂ = v_c2 (1 - sqrt(2r₁/(r₁+r₂)))
+        Vis-viva equation: v² = μ(2/r − 1/a)  [m/s]
+        For circular orbit (a=r): v_c = √(μ/r).
         """
-        mu    = G_SI * central_mass_kg
-        v_c1  = math.sqrt(mu / r1_m)
-        v_c2  = math.sqrt(mu / r2_m)
-        r_t   = (r1_m + r2_m) / 2         # semi-major axis of transfer ellipse
-        v_t1  = math.sqrt(mu * (2/r1_m - 1/r_t))
-        v_t2  = math.sqrt(mu * (2/r2_m - 1/r_t))
-        dv1   = abs(v_t1 - v_c1)
-        dv2   = abs(v_c2 - v_t2)
-        T_half= math.pi * math.sqrt(r_t**3 / mu)   # half-period = transfer time
+        a = a if a is not None else r
+        return math.sqrt(self.mu * (2.0/r - 1.0/a))
+
+    def orbital_period(self, a: float) -> float:
+        """T = 2π√(a³/μ)  [s]"""
+        return 2*math.pi*math.sqrt(a**3/self.mu)
+
+    def escape_velocity(self, r: float) -> float:
+        """v_esc = √(2μ/r)  [m/s]"""
+        return math.sqrt(2*self.mu/r)
+
+    def circular_orbit_altitude(self, T_s: float) -> float:
+        """Semi-major axis from orbital period: a = (μT²/4π²)^{1/3}"""
+        return (self.mu * T_s**2 / (4*math.pi**2))**(1/3)
+
+    def sphere_of_influence(self, m_planet: float, a_planet: float) -> float:
+        """r_SOI = a (m/M)^{2/5}  (Laplace sphere of influence)"""
+        return a_planet * (m_planet/self.M)**(2/5)
+
+    # ── §7.2  Hohmann transfer ────────────────────────────────────────────────
+    def hohmann_transfer(self, r1: float, r2: float) -> Dict[str, float]:
+        """
+        Hohmann two-impulse transfer between circular orbits [9].
+        r1: initial orbit radius, r2: target orbit radius.
+        a_transfer = (r1+r2)/2.
+        Δv₁ = v_transfer_periapsis − v_circular_1
+        Δv₂ = v_circular_2 − v_transfer_apoapsis
+        """
+        a_tr  = 0.5*(r1 + r2)
+        v1_c  = self.orbital_velocity(r1)
+        v2_c  = self.orbital_velocity(r2)
+        v_per = self.orbital_velocity(r1, a_tr)   # speed at periapsis of transfer
+        v_apo = self.orbital_velocity(r2, a_tr)   # speed at apoapsis of transfer
+        dv1   = abs(v_per - v1_c)
+        dv2   = abs(v2_c  - v_apo)
+        T_tr  = self.orbital_period(a_tr) / 2.0
         return {
-            "dv1_m_s":        float(dv1),
-            "dv2_m_s":        float(dv2),
-            "dv_total_m_s":   float(dv1 + dv2),
-            "transfer_time_s":float(T_half),
-            "transfer_time_yr":float(T_half / YEAR_S),
-            "a_transfer_m":   float(r_t),
-            "v_periapsis_m_s":float(v_t1),
-            "v_apoapsis_m_s": float(v_t2),
-            "v_c1_m_s":       float(v_c1),
-            "v_c2_m_s":       float(v_c2),
+            "r1_m": r1, "r2_m": r2,
+            "a_transfer_m": a_tr,
+            "dv1_ms": dv1, "dv2_ms": dv2,
+            "dv_total_ms": dv1+dv2,
+            "dv_total_kms": (dv1+dv2)/1e3,
+            "transfer_time_s": T_tr,
+            "transfer_time_days": T_tr/DAY_S,
+            "v_periapsis_ms": v_per,
+            "v_apoapsis_ms":  v_apo,
         }
 
-    @staticmethod
-    def gravity_assist_delta_v(v_inf_m_s: float,
-                                 flyby_body_mass_kg: float,
-                                 flyby_radius_m: float,
-                                 deflection_angle_deg: float) -> float:
+    # ── §7.3  Gravity assist ──────────────────────────────────────────────────
+    def gravity_assist_dv(self, v_inf_approach: float,
+                           flyby_body_mass: float,
+                           r_periapsis: float,
+                           turn_angle_rad: float = None) -> Dict[str, float]:
         """
-        Gravity assist Δv: change in heliocentric speed due to flyby.
-        Δv = 2 v_∞ sin(δ/2) where δ is deflection angle.
-        Deflection angle limited by: sin(δ_max/2) = 1/(1 + r_p v_∞²/(GM_planet))
+        Gravity assist (slingshot) Δv calculation.
+        Maximum Δv at periapsis:
+          v_turn = 2·v_∞·sin(δ/2)  where sin(δ/2) = 1/(1+r_p·v_∞²/(μ_body))
+        v_∞: hyperbolic excess velocity at body
         """
-        mu_planet = G_SI * flyby_body_mass_kg
-        v_esc_sq  = 2 * mu_planet / flyby_radius_m
-        # Max deflection
-        eps    = (flyby_radius_m * v_inf_m_s**2) / mu_planet  # hyperbolic excess
-        delta_max = 2 * math.asin(1 / (1 + eps))
-        delta = math.radians(min(deflection_angle_deg,
-                                  math.degrees(delta_max)))
-        return float(2 * v_inf_m_s * math.sin(delta / 2))
-
-    @staticmethod
-    def lagrange_points(r_orbit_m: float, M_primary_kg: float,
-                         M_secondary_kg: float) -> Dict[str, float]:
-        """
-        Lagrange point distances L1–L5 for circular restricted 3-body problem.
-        Returns distances from secondary body.
-        μ = M₂/(M₁+M₂)
-        """
-        mu_r = M_secondary_kg / (M_primary_kg + M_secondary_kg)  # mass ratio
-        r    = r_orbit_m   # orbital radius of secondary
-        # L1: between bodies, distance from secondary ≈ r (μ/3)^(1/3)
-        d_L1 = r * (mu_r / 3)**(1/3)
-        # L2: beyond secondary ≈ same
-        d_L2 = r * (mu_r / 3)**(1/3)
-        # L3: opposite side, distance from primary ≈ r (1 - 5μ/12)
-        d_L3 = r * (1 - 5*mu_r/12)
-        # L4, L5: equilateral triangle (distance = r from both)
-        d_L4 = r
-        d_L5 = r
+        mu_body = G_SI * flyby_body_mass
+        # Eccentricity of hyperbolic trajectory
+        e = 1.0 + r_periapsis * v_inf_approach**2 / mu_body
+        # Half-deflection angle
+        sin_half_delta = 1.0/e
+        sin_half_delta = min(sin_half_delta, 0.9999)
+        delta = 2.0*math.asin(sin_half_delta)
+        # Δv from slingshot (magnitude of velocity vector change)
+        dv_assist = 2.0 * v_inf_approach * math.sin(delta/2.0)
+        # v_periapsis
+        v_peri = math.sqrt(v_inf_approach**2 + 2*mu_body/r_periapsis)
         return {
-            "L1_from_secondary_m":  float(d_L1),
-            "L2_from_secondary_m":  float(d_L2),
-            "L3_from_primary_m":    float(d_L3),
-            "L4_distance_m":        float(d_L4),
-            "L5_distance_m":        float(d_L5),
+            "v_inf_ms":       v_inf_approach,
+            "r_periapsis_m":  r_periapsis,
+            "eccentricity":   e,
+            "deflection_rad": delta,
+            "deflection_deg": math.degrees(delta),
+            "dv_assist_ms":   dv_assist,
+            "dv_assist_kms":  dv_assist/1e3,
+            "v_periapsis_ms": v_peri,
         }
 
-    @staticmethod
-    def tsiolkovsky_rocket(dv_m_s: float,
-                            specific_impulse_s: float,
-                            payload_mass_kg: float) -> Dict[str, float]:
+    def gargantua_slingshot(self, r_periapsis_rs: float,
+                             v_approach_ms: float) -> Dict[str, float]:
         """
-        Tsiolkovsky rocket equation: Δv = v_e ln(m₀/m_f)
-        v_e = Isp × g₀, m₀ = initial mass, m_f = final (dry) mass.
+        Gravity assist around Gargantua at r_peri = r_periapsis_rs × r_s.
+        Includes relativistic correction: actual deflection larger than Newtonian.
+        GR deflection: δ_GR = 4GM/(c²b) × [1 + v²/c²] (approximate).
         """
-        g0   = 9.81   # m/s²
-        v_e  = specific_impulse_s * g0
-        mass_ratio = math.exp(dv_m_s / v_e)
-        propellant_mass = payload_mass_kg * (mass_ratio - 1)
-        total_mass      = payload_mass_kg * mass_ratio
+        r_s  = 2*G_SI*GARG_MASS_KG/C_SI**2
+        r_p  = r_periapsis_rs * r_s
+        # Newtonian
+        newt = self.gravity_assist_dv(v_approach_ms, GARG_MASS_KG, r_p)
+        # GR correction factor (approximate, using post-Newtonian result)
+        b_impact = r_p   # impact parameter ≈ r_peri for nearly parabolic
+        gr_corr  = 1.0 + (v_approach_ms/C_SI)**2 + G_SI*GARG_MASS_KG/(C_SI**2*r_p)
+        dv_gr    = newt["dv_assist_ms"] * gr_corr
+        # Time dilation at periapsis
+        dtr = math.sqrt(max(0, 1 - r_s/r_p - (v_approach_ms/C_SI)**2))
         return {
-            "mass_ratio":        float(mass_ratio),
-            "propellant_mass_kg":float(propellant_mass),
-            "total_initial_kg":  float(total_mass),
-            "v_exhaust_m_s":     float(v_e),
+            **newt,
+            "r_periapsis_rs":   r_periapsis_rs,
+            "GR_correction":    gr_corr,
+            "dv_GR_corrected_ms": dv_gr,
+            "dv_GR_kms":        dv_gr/1e3,
+            "time_dilation_dtr": dtr,
+            "rs_m":             r_s,
         }
 
-    @staticmethod
-    def vis_viva(r_m: float, a_m: float, mu: float) -> float:
-        """Vis-viva equation: v² = μ(2/r - 1/a)"""
-        return float(math.sqrt(abs(mu * (2/r_m - 1/a_m))))
+    # ── §7.4  Hyperbolic trajectory ───────────────────────────────────────────
+    def hyperbolic_trajectory(self, v_inf: float,
+                               r_periapsis: float,
+                               central_mass: float = None,
+                               n_pts: int = 400) -> Dict[str, np.ndarray]:
+        """
+        Full hyperbolic trajectory (r, θ) for flyby.
+          r(θ) = a(e²−1) / (1 + e·cosθ)
+          a = −μ/v_∞²,   e = 1 + r_p v_∞²/μ
+        Returns (x, y, r, theta) arrays in [m].
+        """
+        mu  = self.mu if central_mass is None else G_SI*central_mass
+        a   = -mu / v_inf**2          # negative for hyperbola
+        e   = 1.0 + r_periapsis*v_inf**2/mu
+        # Angular range: from −θ_inf to +θ_inf
+        theta_inf = math.acos(-1.0/e) * 0.98   # asymptotic angle
+        theta_arr = np.linspace(-theta_inf, theta_inf, n_pts)
+        r_arr     = a*(e**2 - 1) / (1 + e*np.cos(theta_arr))
+        x_arr     = r_arr * np.cos(theta_arr)
+        y_arr     = r_arr * np.sin(theta_arr)
+        v_peri    = math.sqrt(v_inf**2 + 2*mu/r_periapsis)
+        return {
+            "theta": theta_arr, "r": r_arr,
+            "x": x_arr, "y": y_arr,
+            "a_m": a, "e": e,
+            "r_periapsis_m": r_periapsis,
+            "v_inf_ms": v_inf, "v_periapsis_ms": v_peri,
+            "theta_asymptote_rad": theta_inf,
+        }
 
-    @staticmethod
-    def orbital_period(a_m: float, central_mass_kg: float) -> float:
-        """T = 2π sqrt(a³/μ)"""
-        mu = G_SI * central_mass_kg
-        return float(2 * math.pi * math.sqrt(a_m**3 / mu))
+    # ── §7.5  Lambert's problem (two-point boundary) ──────────────────────────
+    def lambert_dv(self, r1_vec: np.ndarray, r2_vec: np.ndarray,
+                   tof_s: float, short_way: bool = True) -> Dict[str, float]:
+        """
+        Lambert problem: find Δv to go from r1 to r2 in time tof [10].
+        Uses Izzo's universal variable method (simplified here).
+        Returns approximate Δv magnitudes.
+        """
+        r1 = np.linalg.norm(r1_vec)
+        r2 = np.linalg.norm(r2_vec)
+        # Angle between vectors
+        cos_dnu = np.dot(r1_vec, r2_vec)/(r1*r2)
+        cos_dnu = max(-1, min(1, cos_dnu))
+        dnu     = math.acos(cos_dnu)
+        # Approximate: use Hohmann as proxy for short transfers
+        a_min   = 0.5*(r1 + r2)
+        # Minimum energy transfer velocity
+        v1_ho   = self.orbital_velocity(r1, a_min)
+        v_circ1 = self.orbital_velocity(r1)
+        dv_approx = abs(v1_ho - v_circ1)
+        return {
+            "r1_m": r1, "r2_m": r2, "tof_s": tof_s,
+            "delta_nu_rad": dnu, "delta_nu_deg": math.degrees(dnu),
+            "dv_estimate_ms": dv_approx,
+            "a_minimum_m": a_min,
+        }
 
-    @staticmethod
-    def escape_velocity(r_m: float, mass_kg: float) -> float:
-        """v_esc = sqrt(2GM/r)"""
-        return float(math.sqrt(2 * G_SI * mass_kg / r_m))
+    # ── §7.6  Lagrange points ─────────────────────────────────────────────────
+    def lagrange_L1(self, m_secondary: float, a_secondary: float) -> float:
+        """L1 distance from primary: r_L1 ≈ a(m/(3M))^{1/3}"""
+        return a_secondary * (m_secondary/(3*self.M))**(1/3)
 
-    @staticmethod
-    def circular_orbit_velocity(r_m: float, mass_kg: float) -> float:
-        return float(math.sqrt(G_SI * mass_kg / r_m))
-
-    @staticmethod
-    def synodic_period(T1_yr: float, T2_yr: float) -> float:
-        """Synodic period: 1/T_syn = |1/T1 - 1/T2|"""
-        if abs(T1_yr - T2_yr) < 1e-10:
-            return float("inf")
-        return float(1.0 / abs(1/T1_yr - 1/T2_yr))
+    def lagrange_L2(self, m_secondary: float, a_secondary: float) -> float:
+        """L2 distance from secondary (outside): r_L2 ≈ a(m/(3M))^{1/3}"""
+        return a_secondary + a_secondary*(m_secondary/(3*self.M))**(1/3)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# ENDURANCE MISSION TRAJECTORY
-# ─────────────────────────────────────────────────────────────────────────────
-
+# ══════════════════════════════════════════════════════════════════════════════
+# §8  MISSION TRAJECTORY PLANNER
+# ══════════════════════════════════════════════════════════════════════════════
 @dataclass
-class MissionLeg:
-    phase:          TrajectoryPhase
-    origin:         str
-    destination:    str
-    delta_v_m_s:    float
-    duration_s:     float
-    local_years:    float       # crew experienced time
-    earth_years:    float       # Earth elapsed time
-    dilation_factor: float
-    notes:          str = ""
+class TrajectoryLeg:
+    """A single leg of the Endurance mission."""
+    name:          str
+    maneuver:      ManeuverType
+    dv_ms:         float           # Δv for this leg [m/s]
+    duration_days: float           # travel time [days]
+    r_start_m:     float = 0.0
+    r_end_m:       float = 0.0
+    fuel_fraction: float = 0.0    # propellant fraction used
+    notes:         str   = ""
 
     @property
-    def duration_yr(self) -> float:
-        return self.duration_s / YEAR_S
+    def dv_kms(self) -> float:
+        return self.dv_ms / 1e3
 
 
-class EnduranceMission:
+class MissionTrajectoryPlanner:
     """
-    Reconstructed Endurance mission trajectory with relativistic time accounting.
-    Based on Kip Thorne's canonical timeline (The Science of Interstellar, 2014).
-    """
-
-    # Mission constants
-    ENDURANCE_DRY_MASS_KG    = 2.0e5     # 200 tonnes (estimate)
-    RANGER_MASS_KG           = 3.0e4
-    LANDER_MASS_KG           = 2.0e4
-    ISP_CHEMICAL_S           = 450       # chemical rocket Isp (LOX/LH2)
-    ISP_NUCLEAR_S            = 900       # nuclear thermal Isp
-
-    MISSION_START_YEAR       = 2067      # canonical (film implied ~2067)
-    SATURN_TRANSIT_YR        = 2.0       # Earth-to-Saturn travel time (yr)
-
-    def build_trajectory(self) -> List[MissionLeg]:
-        """
-        Reconstruct the complete Endurance mission trajectory
-        with proper time accounting.
-        """
-        M_sol = M_SUN
-        mu_sun = G_SI * M_sol
-
-        # Leg 1: Earth → Saturn (Hohmann, 2 years)
-        h = OrbitalMechanics.hohmann_transfer(1.0*AU, 9.58*AU, M_sol)
-        leg1 = MissionLeg(
-            phase=TrajectoryPhase.TRANS_SATURN,
-            origin="Earth Orbit (LEO)",
-            destination="Saturn Vicinity",
-            delta_v_m_s=h["dv_total_m_s"],
-            duration_s=h["transfer_time_s"],
-            local_years=h["transfer_time_yr"],
-            earth_years=h["transfer_time_yr"],
-            dilation_factor=1.000_001,   # negligible at v ~ 5 km/s
-            notes=f"Hohmann transfer. Δv={h['dv_total_m_s']/1e3:.2f} km/s"
-        )
-
-        # Leg 2: Wormhole transit (1 hour ship-frame)
-        wh = WormholeGeometry(WORMHOLE_THROAT_M)
-        t_wh = wh.transit_time_proper(v_over_c=0.5)
-        leg2 = MissionLeg(
-            phase=TrajectoryPhase.WORMHOLE_TRANSIT,
-            origin="Saturn Wormhole Entry",
-            destination="Gargantua System",
-            delta_v_m_s=0.0,
-            duration_s=t_wh,
-            local_years=t_wh / YEAR_S,
-            earth_years=t_wh / YEAR_S,   # traversable wormhole: no dilation if Φ=0
-            dilation_factor=1.0,
-            notes=f"Morris-Thorne transit at v=0.5c. τ={t_wh:.0f} s ≈ {t_wh/3600:.2f} h"
-        )
-
-        # Leg 3: Gargantua approach (film timeline: several months ship)
-        leg3 = MissionLeg(
-            phase=TrajectoryPhase.GARGANTUA_APPROACH,
-            origin="Wormhole Exit",
-            destination="Miller's Planet Approach",
-            delta_v_m_s=5e3,
-            duration_s=6 * 30 * DAY_S,
-            local_years=0.5,
-            earth_years=0.5,
-            dilation_factor=1.05,
-            notes="Deceleration into Gargantua system, orbital insertion."
-        )
-
-        # Leg 4: Miller's Planet (1 hour local = 7 years Earth)
-        leg4 = MissionLeg(
-            phase=TrajectoryPhase.PLANETARY_DESCENT,
-            origin="Endurance Parking Orbit",
-            destination="Miller's Planet Surface",
-            delta_v_m_s=8e3,
-            duration_s=1.0 * 3600,          # 1 hour local
-            local_years=1.0 / 8760,
-            earth_years=7.0,                 # 7 years Earth
-            dilation_factor=61_320.0,
-            notes="CATASTROPHIC DILATION: 1 h local = 7 Earth years. Wave event."
-        )
-
-        # Leg 5: Return to Endurance + Mann approach (23 years lost)
-        leg5 = MissionLeg(
-            phase=TrajectoryPhase.ASCENT_RENDEZVOUS,
-            origin="Miller's Planet",
-            destination="Mann's Planet Trajectory",
-            delta_v_m_s=6e3,
-            duration_s=0.5 * YEAR_S,
-            local_years=0.5,
-            earth_years=0.5,
-            dilation_factor=1.1,
-            notes="23 years elapsed on Endurance during Miller mission."
-        )
-
-        # Leg 6: Mann's Planet + betrayal (several weeks)
-        leg6 = MissionLeg(
-            phase=TrajectoryPhase.PLANETARY_DESCENT,
-            origin="En route",
-            destination="Mann's Planet",
-            delta_v_m_s=7e3,
-            duration_s=21 * DAY_S,
-            local_years=21/365,
-            earth_years=21/365 * 1.3,
-            dilation_factor=1.3,
-            notes="Dr. Mann sabotage. Ranger destroyed. Cooper EVA recovery."
-        )
-
-        # Leg 7: Gargantua slingshot (Brand to Edmunds, Cooper into BH)
-        leg7 = MissionLeg(
-            phase=TrajectoryPhase.ASCENT_RENDEZVOUS,
-            origin="Mann's Planet",
-            destination="Gargantua Penrose Slingshot",
-            delta_v_m_s=0.0,
-            duration_s=2 * DAY_S,
-            local_years=2/365,
-            earth_years=2/365,
-            dilation_factor=1.0,
-            notes="Penrose process slingshot: extracts rotational energy from Gargantua."
-        )
-
-        # Leg 8: Cooper into Tesseract (timeless)
-        leg8 = MissionLeg(
-            phase=TrajectoryPhase.PLANETARY_DESCENT,
-            origin="Event Horizon",
-            destination="Tesseract / 5D Bulk",
-            delta_v_m_s=0.0,
-            duration_s=0.0,
-            local_years=0.0,
-            earth_years=0.0,
-            dilation_factor=float("inf"),
-            notes="Cooper crosses event horizon. TARS transmits quantum gravity data. "
-                  "Tesseract constructed by future humans in bulk. Cooper extracts data."
-        )
-
-        return [leg1, leg2, leg3, leg4, leg5, leg6, leg7, leg8]
-
-    def total_earth_elapsed(self, legs: List[MissionLeg]) -> float:
-        return sum(l.earth_years for l in legs if l.earth_years != float("inf"))
-
-    def total_crew_elapsed(self, legs: List[MissionLeg]) -> float:
-        return sum(l.local_years for l in legs if l.local_years != float("inf"))
-
-    def delta_v_budget(self, legs: List[MissionLeg]) -> float:
-        return sum(l.delta_v_m_s for l in legs)
-
-    def trajectory_dataframe(self, legs: List[MissionLeg]) -> pd.DataFrame:
-        rows = []
-        cumulative_earth = 0.0
-        cumulative_crew  = 0.0
-        for i, leg in enumerate(legs):
-            if leg.earth_years != float("inf"):
-                cumulative_earth += leg.earth_years
-                cumulative_crew  += leg.local_years
-            rows.append({
-                "Leg":           i + 1,
-                "Phase":         leg.phase.value.replace("_"," "),
-                "Origin":        leg.origin,
-                "Destination":   leg.destination,
-                "Δv (km/s)":     round(leg.delta_v_m_s / 1e3, 2),
-                "Local (yr)":    f"{leg.local_years:.4f}",
-                "Earth (yr)":    f"{leg.earth_years:.3f}" if leg.earth_years != float("inf") else "∞",
-                "Dilation":      (f"×{leg.dilation_factor:,.0f}"
-                                  if leg.dilation_factor < 1e10 else "∞"),
-                "Cumul. Earth":  round(cumulative_earth, 3),
-                "Cumul. Crew":   round(cumulative_crew, 4),
-                "Notes":         leg.notes[:60],
-            })
-        return pd.DataFrame(rows)
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# WORMHOLE TRANSIT SIMULATOR
-# ─────────────────────────────────────────────────────────────────────────────
-
-class WormholeTransit:
-    """
-    Simulate the traversal trajectory through the wormhole,
-    tracking proper time, tidal forces, and coordinate position.
+    Full Endurance mission trajectory: Earth → Saturn → Wormhole →
+    Gargantua system → Miller/Mann/Edmunds → Plan B delivery.
+    Includes Δv budgets, travel times, and fuel accounting.
     """
 
-    def __init__(self, wh: WormholeGeometry, v_entry_over_c: float = 0.5):
-        self.wh = wh
-        self.v  = v_entry_over_c * C_SI
-        self.beta = v_entry_over_c
-        self.gamma = 1.0 / math.sqrt(1 - v_entry_over_c**2)
+    G_EARTH = G_SI * M_EARTH
 
-    def simulate(self, n_steps: int = 500) -> pd.DataFrame:
+    def __init__(self,
+                 Isp_s: float = ENDURANCE_ISP_S,
+                 m_total_kg: float = ENDURANCE_MASS_KG):
+        self.Isp     = Isp_s
+        self.g0      = 9.80665
+        self.m_total = m_total_kg
+        self.orb_sun = OrbitalMechanics(M_SUN)
+        self.orb_garg= OrbitalMechanics(GARG_MASS_KG)
+
+    def tsiolkovsky(self, dv_ms: float, m_initial_kg: float) -> Dict[str, float]:
         """
-        Simulate proper time, coordinate time, tidal forces along transit.
+        Tsiolkovsky rocket equation:
+          Δv = Isp·g₀·ln(m₀/m_f)  →  m_f = m₀·exp(−Δv/(Isp·g₀))
+        Returns propellant mass and final mass.
         """
-        b0 = self.wh.throat_radius_m
-        # Total coordinate length of wormhole: traverse from -5b₀ to +5b₀
-        r_vals = np.linspace(b0 * 5, b0 * 1.00001, n_steps // 2)
-        r_vals = np.concatenate([r_vals, r_vals[::-1]])   # approach + recede
-        l_vals = np.array([self.wh.proper_radial_distance(r) for r in r_vals])
+        v_e    = self.Isp * self.g0      # effective exhaust velocity [m/s]
+        m_f    = m_initial_kg * math.exp(-dv_ms/v_e)
+        m_prop = m_initial_kg - m_f
+        return {"m_initial": m_initial_kg, "m_final": m_f,
+                "m_propellant": m_prop,
+                "mass_fraction": m_prop/m_initial_kg,
+                "payload_fraction": m_f/m_initial_kg}
 
-        rows = []
-        tau_cumul = 0.0
-        t_cumul   = 0.0
-        for i in range(len(r_vals)):
-            r    = r_vals[i]
-            l    = l_vals[i]
-            dl   = abs(l_vals[i] - l_vals[max(0, i-1)])
-            # Proper time increment
-            dtau = dl / (self.gamma * self.v) if self.v > 0 else 0.0
-            dt   = dl / self.v if self.v > 0 else 0.0
-            tau_cumul += dtau
-            t_cumul   += dt
-            # Tidal acceleration at this r
-            b  = self.wh.shape_function(r)
-            # For Ellis drainhole: radial tidal acc ≈ C² b₀²/r³ × Δl
-            a_tidal = C_SI**2 * b0**2 / max(r,b0)**3 * 1.8 if r > 0 else 0.0
-            rows.append({
-                "proper_radial_m":   float(l),
-                "coord_r_m":         float(r),
-                "proper_time_s":     float(tau_cumul),
-                "coord_time_s":      float(t_cumul),
-                "tidal_acc_m_s2":    float(a_tidal),
-                "b_r_m":             float(b),
-                "phase":             "approach" if i < n_steps//2 else "recede",
-            })
-        return pd.DataFrame(rows)
-
-    def summary(self) -> Dict[str, float]:
-        b0 = self.wh.throat_radius_m
-        t_proper = self.wh.transit_time_proper(self.beta)
-        t_coord  = t_proper * self.gamma
-        a_max    = C_SI**2 * b0**2 / (b0**3) * 1.8
+    def earth_to_saturn_trajectory(self) -> Dict[str, Any]:
+        """
+        Earth → Saturn direct Hohmann transfer (simplified).
+        Actual: gravity assist via Venus+Jupiter (Cassini-Huygens type).
+        Here: direct Hohmann for clear Δv estimate.
+        """
+        r_earth  = EARTH_SMA_M
+        r_saturn = SAT_SMA_M
+        hoh      = self.orb_sun.hohmann_transfer(r_earth, r_saturn)
+        # Add Earth escape Δv
+        v_esc_earth = self.orb_sun.escape_velocity(r_earth)
+        v_park_earth= self.orb_sun.orbital_velocity(r_earth + 400e3)   # 400 km LEO
+        dv_escape   = abs(math.sqrt(v_park_earth**2 + hoh['v_periapsis_ms']**2
+                                     - v_esc_earth**2) - v_park_earth)
+        total_dv = hoh["dv_total_ms"] + dv_escape
+        fuel = self.tsiolkovsky(total_dv, self.m_total)
         return {
-            "proper_time_s":        t_proper,
-            "proper_time_h":        t_proper / 3600,
-            "coordinate_time_s":    t_coord,
-            "coordinate_time_h":    t_coord / 3600,
-            "entry_speed_m_s":      self.v,
-            "lorentz_factor":       self.gamma,
-            "peak_tidal_m_s2":      a_max,
-            "peak_tidal_g":         a_max / 9.81,
-            "exotic_energy_J":      self.wh.total_exotic_energy_J(),
-            "QI_bound_J":           self.wh.quantum_inequality_energy(),
-            "v_safe_max_c":         self.wh.tidal_constraint_velocity(10.0),
+            **hoh,
+            "dv_earth_escape_ms":   dv_escape,
+            "total_dv_ms":          total_dv,
+            "total_dv_kms":         total_dv/1e3,
+            "transfer_time_yr":     hoh["transfer_time_days"]/365.25,
+            "fuel":                 fuel,
         }
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# VISUALISER
-# ─────────────────────────────────────────────────────────────────────────────
-
-class WormholeVisualizer:
-    PAL = {
-        "bg":     "#050508",
-        "fg":     "#e8d5a3",
-        "acc":    "#f5a623",
-        "dim":    "#3a3020",
-        "blue":   "#4a9eff",
-        "orange": "#ff7e3a",
-        "red":    "#ff3a3a",
-        "green":  "#3aff8a",
-        "purple": "#9b59b6",
-        "grid":   "#12100a",
-        "axis":   "#6b5a3a",
-        "gold":   "#ffd700",
-    }
-    _IST_COLOURS = [
-        (0.02, 0.01, 0.04), (0.05, 0.03, 0.12), (0.12, 0.06, 0.30),
-        (0.25, 0.15, 0.55), (0.45, 0.35, 0.80), (0.70, 0.60, 0.95),
-        (0.90, 0.85, 1.00),
-    ]
-    IST_CMAP = LinearSegmentedColormap.from_list("wormhole", _IST_COLOURS)
-
-    def _style(self, ax, title=""):
-        ax.set_facecolor(self.PAL["bg"])
-        for sp in ax.spines.values():
-            sp.set_edgecolor(self.PAL["dim"])
-        ax.tick_params(colors=self.PAL["axis"], labelsize=6)
-        ax.grid(True, color=self.PAL["grid"], alpha=0.4, ls=":")
-        if title:
-            ax.set_title(title, color=self.PAL["fg"], fontsize=8,
-                         loc="left", pad=4, fontfamily="monospace")
-
-    def plot_embedding_diagram(self, wh: WormholeGeometry,
-                                figsize=(10, 5)) -> plt.Figure:
+    def saturn_to_wormhole(self) -> Dict[str, Any]:
         """
-        3D-style embedding diagram of wormhole throat geometry.
-        Shows the spatial curvature of the equatorial slice.
+        Saturn orbit → wormhole (located ~1 AU from Saturn in film canon).
+        Short transfer within Saturn system / nearby space.
         """
-        b0     = wh.throat_radius_m
-        r_vals = np.linspace(b0 * 1.0001, b0 * 8, 300)
-        r_AU   = r_vals / AU
-        b0_AU  = b0 / AU
-        _, z_vals = wh.embedding_coordinates(r_vals)
-        z_AU = z_vals / AU
-
-        fig = plt.figure(figsize=figsize, facecolor=self.PAL["bg"])
-        ax1 = fig.add_subplot(121)
-        ax2 = fig.add_subplot(122, projection="polar")
-
-        # 2D cross-section
-        # Upper universe
-        ax1.plot(r_AU, z_AU,   color=self.PAL["acc"],  lw=1.5, label="Upper universe")
-        ax1.plot(r_AU, -z_AU,  color=self.PAL["blue"], lw=1.5, label="Lower universe")
-        ax1.fill_between(r_AU, z_AU, -z_AU, alpha=0.06, color=self.PAL["purple"])
-        ax1.axvline(b0_AU, color=self.PAL["red"], lw=0.9, ls="--",
-                     label=f"Throat b₀ = {b0_AU:.2f} AU")
-        ax1.axhline(0, color=self.PAL["dim"], lw=0.5)
-        self._style(ax1, "WORMHOLE EMBEDDING DIAGRAM — CROSS-SECTION")
-        ax1.set_xlabel("Radial coord r (AU)", fontsize=6, color=self.PAL["fg"])
-        ax1.set_ylabel("Embedding height z (AU)", fontsize=6, color=self.PAL["fg"])
-        ax1.legend(fontsize=6, facecolor=self.PAL["bg"],
-                   edgecolor=self.PAL["dim"], labelcolor=self.PAL["fg"])
-
-        # Polar view: shape of throat
-        theta_vals = np.linspace(0, 2*math.pi, 300)
-        radii_polar = np.ones(300) * b0_AU + z_AU[0]   # approximate equatorial
-        ax2.plot(theta_vals, np.abs(z_AU[0]) * np.ones(300) + b0_AU,
-                  color=self.PAL["acc"], lw=1.2)
-        ax2.set_facecolor(self.PAL["bg"])
-        ax2.tick_params(colors=self.PAL["axis"], labelsize=5)
-        ax2.set_title("THROAT CROSS-SECTION", color=self.PAL["fg"],
-                       fontsize=7, fontfamily="monospace", pad=8)
-        ax2.spines["polar"].set_edgecolor(self.PAL["dim"])
-        ax2.grid(color=self.PAL["grid"], alpha=0.4)
-
-        plt.tight_layout(pad=0.5)
-        return fig
-
-    def plot_exotic_matter(self, wh: WormholeGeometry,
-                            figsize=(9, 4)) -> plt.Figure:
-        """Plot exotic matter density and cumulative energy vs radius."""
-        b0     = wh.throat_radius_m
-        r_vals = np.linspace(b0 * 1.001, b0 * 15, 400)
-        r_AU   = r_vals / AU
-        rho_vals = np.array([wh.exotic_matter_density(r) for r in r_vals])
-
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize,
-                                        facecolor=self.PAL["bg"])
-        ax1.semilogy(r_AU, np.abs(rho_vals), color=self.PAL["purple"], lw=1.2)
-        ax1.axvline(b0/AU, color=self.PAL["red"], lw=0.8, ls="--",
-                     label=f"Throat b₀ = {b0/AU:.2f} AU")
-        self._style(ax1, "EXOTIC MATTER ENERGY DENSITY |ρ| (kg/m³)")
-        ax1.set_xlabel("r (AU)", fontsize=6, color=self.PAL["fg"])
-        ax1.set_ylabel("|ρ_exotic| (kg m⁻³)", fontsize=6, color=self.PAL["fg"])
-        ax1.legend(fontsize=6, facecolor=self.PAL["bg"],
-                   edgecolor=self.PAL["dim"], labelcolor=self.PAL["fg"])
-
-        # Cumulative energy
-        rho_arr = np.array([abs(wh.exotic_matter_density(r)) for r in r_vals])
-        vol_arr = 4 * math.pi * r_vals**2 * np.gradient(r_vals)
-        cum_E   = np.cumsum(rho_arr * vol_arr) * C_SI**2
-        ax2.semilogy(r_AU, cum_E + 1, color=self.PAL["orange"], lw=1.2)
-        ax2.axhline(wh.quantum_inequality_energy(), color=self.PAL["green"],
-                     lw=0.8, ls="--", label="Quantum inequality bound")
-        self._style(ax2, "CUMULATIVE EXOTIC ENERGY (J)")
-        ax2.set_xlabel("r (AU)", fontsize=6, color=self.PAL["fg"])
-        ax2.set_ylabel("E_exotic (J)", fontsize=6, color=self.PAL["fg"])
-        ax2.legend(fontsize=6, facecolor=self.PAL["bg"],
-                   edgecolor=self.PAL["dim"], labelcolor=self.PAL["fg"])
-        plt.tight_layout(pad=0.5)
-        return fig
-
-    def plot_mission_timeline(self, legs: List[MissionLeg],
-                               figsize=(12, 5)) -> plt.Figure:
-        """
-        Visual timeline comparing Earth time vs crew experienced time
-        for each mission leg.
-        """
-        fig, (ax_e, ax_c) = plt.subplots(2, 1, figsize=figsize,
-                                           facecolor=self.PAL["bg"],
-                                           sharex=False)
-        earth_vals  = [l.earth_years for l in legs if l.earth_years < 1e9]
-        crew_vals   = [l.local_years for l in legs if l.local_years < 1e9]
-        labels      = [f"Leg {i+1}\n{l.phase.value[:8]}"
-                       for i, l in enumerate(legs) if l.earth_years < 1e9]
-        x           = np.arange(len(labels))
-
-        cols_e = [self.PAL["acc"] if v < 1 else
-                  self.PAL["warn"] if v < 5 else
-                  self.PAL["red"] for v in earth_vals]
-        cols_c = [self.PAL["green"] if v < 1 else
-                  self.PAL["blue"] for v in crew_vals]
-
-        ax_e.bar(x, earth_vals, color=cols_e, alpha=0.82, width=0.65)
-        for i, v in enumerate(earth_vals):
-            ax_e.text(i, v + 0.05, f"{v:.2f}", ha="center", va="bottom",
-                       fontsize=6, color=self.PAL["fg"], fontfamily="monospace")
-        self._style(ax_e, "EARTH ELAPSED TIME PER LEG (years)")
-        ax_e.set_xticks(x)
-        ax_e.set_xticklabels(labels, fontsize=5, color=self.PAL["axis"])
-        ax_e.set_ylabel("Earth years", fontsize=6, color=self.PAL["fg"])
-
-        ax_c.bar(x, crew_vals, color=cols_c, alpha=0.82, width=0.65)
-        for i, v in enumerate(crew_vals):
-            ax_c.text(i, v + 0.001, f"{v:.3f}", ha="center", va="bottom",
-                       fontsize=6, color=self.PAL["fg"], fontfamily="monospace")
-        self._style(ax_c, "CREW EXPERIENCED TIME PER LEG (years)")
-        ax_c.set_xticks(x)
-        ax_c.set_xticklabels(labels, fontsize=5, color=self.PAL["axis"])
-        ax_c.set_ylabel("Crew years", fontsize=6, color=self.PAL["fg"])
-
-        plt.tight_layout(pad=0.5)
-        return fig
-
-    def plot_orbital_map(self, planets: List[PlanetData],
-                          figsize=(9, 9)) -> plt.Figure:
-        """Top-down map of Gargantua planetary system."""
-        fig, ax = plt.subplots(figsize=figsize, facecolor=self.PAL["bg"],
-                                subplot_kw={"projection": "polar"})
-        ax.set_facecolor(self.PAL["bg"])
-
-        # Gargantua at centre
-        ax.plot(0, 0, "o", color=self.PAL["acc"], markersize=14,
-                 zorder=5, label="Gargantua")
-
-        planet_colours = {
-            PlanetID.MILLER:  self.PAL["blue"],
-            PlanetID.MANN:    self.PAL["red"],
-            PlanetID.EDMUNDS: self.PAL["green"],
+        r_sat_orbit = R_SAT + 100e3   # low Saturn orbit
+        r_worm      = WORM_SAT_DIST_M
+        # Hohmann in Saturn's gravity well (approximate)
+        orb_sat = OrbitalMechanics(M_SAT)
+        hoh_sat = orb_sat.hohmann_transfer(r_sat_orbit, r_worm)
+        fuel    = self.tsiolkovsky(hoh_sat["dv_total_ms"], self.m_total * 0.7)
+        return {
+            **hoh_sat,
+            "transfer_time_hr":  hoh_sat["transfer_time_days"]*24,
+            "fuel":              fuel,
         }
-        for planet in planets:
-            r_M = planet.orbital_elements.semi_major_axis_m
-            e   = planet.orbital_elements.eccentricity
-            col = planet_colours.get(planet.planet_id, self.PAL["fg"])
-            # Draw orbit ellipse (parametric)
-            nu_vals = np.linspace(0, 2*math.pi, 300)
-            p       = r_M * (1 - e**2)
-            r_orbit = p / (1 + e * np.cos(nu_vals))
-            # Normalise by some reference (Miller radius)
-            r_ref = planets[0].orbital_elements.semi_major_axis_m
-            ax.plot(nu_vals, r_orbit / r_ref, color=col, lw=1.0,
-                     alpha=0.6, ls="--")
-            # Planet position at mean anomaly 0
-            ax.plot(0, r_M / r_ref, "o", color=col, markersize=8, zorder=4,
-                     label=planet.name)
-            ax.text(0.1, r_M / r_ref, f"  {planet.name}", color=col,
-                     fontsize=6, fontfamily="monospace", va="center")
 
-        ax.set_title("GARGANTUA PLANETARY SYSTEM — TOP VIEW",
-                      color=self.PAL["acc"], fontsize=8,
-                      fontfamily="monospace", pad=12)
-        ax.tick_params(colors=self.PAL["axis"], labelsize=5)
-        ax.spines["polar"].set_edgecolor(self.PAL["dim"])
-        ax.grid(color=self.PAL["grid"], alpha=0.4)
-        ax.legend(fontsize=6, facecolor=self.PAL["bg"],
-                  edgecolor=self.PAL["dim"], labelcolor=self.PAL["fg"],
-                  loc="upper right")
-        plt.tight_layout(pad=0.5)
-        return fig
+    def wormhole_transit(self, wormhole: WormholeGeometry,
+                          v_transit: float = 0.1*C_SI) -> Dict[str, Any]:
+        """
+        Transit through wormhole. Effectively instantaneous in Earth frame
+        (wormhole connects to Gargantua system far away).
+        No Δv required during transit (free-fall through wormhole).
+        """
+        traversal = WormholeTraversalCalculator(wormhole)
+        profile   = traversal.interstellar_wormhole_profile()
+        return {
+            **profile,
+            "dv_required_ms": 0.0,   # free fall through wormhole
+            "notes": "No propulsive Δv inside wormhole (free-fall)"
+        }
 
-    def plot_transit_simulation(self, df: pd.DataFrame,
-                                 figsize=(10, 5)) -> plt.Figure:
-        """Visualise the wormhole transit: tidal forces, proper time."""
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize,
-                                        facecolor=self.PAL["bg"])
-        l_vals  = df["proper_radial_m"].values / AU
-        tau_vals= df["proper_time_s"].values
-        a_vals  = df["tidal_acc_m_s2"].values / 9.81   # in g
+    def gargantua_orbit_insertion(self, r_park_rs: float = 10.0) -> Dict[str, Any]:
+        """
+        Capture into Gargantua parking orbit after wormhole exit.
+        Approach at v_∞ ~ few km/s; capture burn at periapsis.
+        """
+        r_s   = GARG_RS
+        r_p   = r_park_rs * r_s
+        v_inf = 5e3   # 5 km/s approach v_∞ (arbitrary)
+        v_peri= math.sqrt(v_inf**2 + 2*G_SI*GARG_MASS_KG/r_p)
+        v_c   = self.orb_garg.orbital_velocity(r_p)
+        dv    = abs(v_peri - v_c)
+        fuel  = self.tsiolkovsky(dv, self.m_total * 0.55)
+        return {
+            "r_parking_rs": r_park_rs,
+            "r_parking_m":  r_p,
+            "v_inf_ms":     v_inf,
+            "v_periapsis_ms": v_peri,
+            "v_circular_ms":  v_c,
+            "dv_capture_ms":  dv,
+            "dv_capture_kms": dv/1e3,
+            "fuel":           fuel,
+            "orbital_period_hr": self.orb_garg.orbital_period(r_p)/HOUR_S,
+        }
 
-        ax1.plot(l_vals, a_vals, color=self.PAL["red"], lw=0.9)
-        ax1.fill_between(l_vals, a_vals, 0, alpha=0.15, color=self.PAL["red"])
-        ax1.axhline(10, color=self.PAL["orange"], lw=0.7, ls="--",
-                     label="10g tidal limit")
-        self._style(ax1, "TIDAL FORCES ALONG TRANSIT (g)")
-        ax1.set_xlabel("Proper radial coord l (AU)", fontsize=6, color=self.PAL["fg"])
-        ax1.set_ylabel("Tidal acc (g)", fontsize=6, color=self.PAL["fg"])
-        ax1.legend(fontsize=6, facecolor=self.PAL["bg"],
-                   edgecolor=self.PAL["dim"], labelcolor=self.PAL["fg"])
+    def miller_approach(self) -> Dict[str, Any]:
+        """
+        Descent from parking orbit to Miller's World near-ISCO orbit.
+        Miller is at r_isco × (1 + 10⁻⁶) — essentially at ISCO.
+        """
+        a   = GARG_SPIN
+        Z1  = 1+(1-a**2)**(1/3)*((1+a)**(1/3)+(1-a)**(1/3))
+        Z2  = math.sqrt(3*a**2+Z1**2)
+        r_isco_M = (3+Z2-math.sqrt((3-Z1)*(3+Z1+2*Z2))) * GARG_M_GEO
+        r_park   = 10.0 * GARG_RS
+        r_miller = r_isco_M * (1+1e-5)
+        v_park   = self.orb_garg.orbital_velocity(r_park)
+        v_miller = math.sqrt(G_SI*GARG_MASS_KG/r_miller)   # Keplerian approx
+        dv_total = abs(v_miller - v_park)
+        # Time dilation at Miller
+        dtr = math.sqrt(max(0, 1-3*GARG_M_GEO/r_miller+2*GARG_SPIN*
+                             math.sqrt(GARG_M_GEO/r_miller**3)))
+        fuel = self.tsiolkovsky(dv_total, self.m_total * 0.50)
+        return {
+            "r_parking_m":    r_park,
+            "r_miller_m":     r_miller,
+            "r_isco_m":       r_isco_M,
+            "v_parking_ms":   v_park,
+            "v_miller_ms":    v_miller,
+            "dv_ms":          dv_total,
+            "dv_kms":         dv_total/1e3,
+            "dilation_dtr":   dtr,
+            "dilation_factor":1/max(dtr,1e-10),
+            "earth_yr_per_ship_hr": HOUR_S/(dtr*YEAR_S) if dtr > 0 else 61320,
+            "fuel":           fuel,
+        }
 
-        ax2.plot(l_vals, tau_vals, color=self.PAL["acc"], lw=1.1)
-        self._style(ax2, "PROPER TIME ACCUMULATION (s)")
-        ax2.set_xlabel("Proper radial coord l (AU)", fontsize=6, color=self.PAL["fg"])
-        ax2.set_ylabel("Proper time τ (s)", fontsize=6, color=self.PAL["fg"])
+    def gargantua_slingshot_plan(self) -> Dict[str, Any]:
+        """
+        Gargantua gravity slingshot for exit trajectory to Plan B planet.
+        Designed to Δv ~10 km/s toward Edmunds via close flyby of Gargantua.
+        """
+        orb = OrbitalMechanics(M_SUN)
+        r_peri_rs = 1.5   # 1.5 Schwarzschild radii
+        v_inf_in  = 3e3   # approach v_∞ 3 km/s
+        sling = self.orb_garg.gargantua_slingshot(r_peri_rs, v_inf_in)
+        fuel  = self.tsiolkovsky(500.0, self.m_total * 0.35)   # small correction burn
+        return {**sling, "fuel": fuel}
 
-        plt.tight_layout(pad=0.5)
-        return fig
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# STREAMLIT PAGE
-# ─────────────────────────────────────────────────────────────────────────────
-
-def wormhole_navigator_page() -> None:
-    st.markdown("""
-    <style>
-    .worm-header {
-        font-family:'Share Tech Mono','Courier New',monospace;
-        color:#9b59b6;
-        font-size:0.80rem;
-        letter-spacing:0.13em;
-        border-bottom:1px solid rgba(155,89,182,0.30);
-        padding-bottom:0.4rem;
-        margin-bottom:1rem;
-        text-transform:uppercase;
-    }
-    .worm-label {
-        font-family:'Share Tech Mono','Courier New',monospace;
-        color:rgba(232,213,163,0.65);
-        font-size:0.65rem;
-        letter-spacing:0.08em;
-        text-transform:uppercase;
-        margin-top:0.5rem;
-        margin-bottom:0.2rem;
-    }
-    .worm-card {
-        background:rgba(10,8,15,0.78);
-        border:1px solid rgba(155,89,182,0.25);
-        border-radius:3px;
-        padding:0.4rem 0.6rem;
-        font-family:'Share Tech Mono','Courier New',monospace;
-        font-size:0.64rem;
-        color:rgba(232,213,163,0.72);
-        margin:0.2rem 0;
-        backdrop-filter:blur(8px);
-    }
-    .planet-card {
-        background:rgba(8,8,18,0.80);
-        border:1px solid rgba(74,158,255,0.25);
-        border-radius:3px;
-        padding:0.45rem 0.65rem;
-        font-family:'Share Tech Mono','Courier New',monospace;
-        font-size:0.62rem;
-        color:rgba(232,213,163,0.70);
-        margin:0.25rem 0;
-        backdrop-filter:blur(8px);
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    st.markdown('<div class="worm-header">🌀 WORMHOLE PHYSICS & INTERSTELLAR NAVIGATION ENGINE</div>',
-                unsafe_allow_html=True)
-
-    viz    = WormholeVisualizer()
-    mech   = OrbitalMechanics()
-    mission= EnduranceMission()
-    planets= build_gargantua_system()
-
-    col_ctrl, col_main = st.columns([1, 2.5])
-
-    with col_ctrl:
-        st.markdown('<div class="worm-label">— WORMHOLE PARAMETERS —</div>',
-                    unsafe_allow_html=True)
-        throat_AU = st.number_input("Throat radius b₀ (AU)", 0.01, 10.0, 1.0, 0.01)
-        shape_exp = st.slider("Shape exponent n (b=b₀ⁿ/rⁿ⁻¹)", 1.5, 4.0, 2.0, 0.1)
-        redshift  = st.selectbox("Redshift function Φ(r)", ["zero", "logarithmic"])
-        wh_type   = st.selectbox("Wormhole type",
-                                  [w.value for w in WormholeType], index=1)
-        v_entry   = st.slider("Entry velocity (v/c)", 0.05, 0.99, 0.50, 0.01)
-
-        wh = WormholeGeometry(
-            throat_radius_m=throat_AU * AU,
-            shape_exponent=shape_exp,
-            redshift_fn=redshift,
-            wormhole_type=WormholeType(wh_type),
-        )
-
-        st.markdown('<div class="worm-label">— WORMHOLE PROPERTIES —</div>',
-                    unsafe_allow_html=True)
-        transit_s = wh.transit_time_proper(v_entry)
-        transit   = WormholeTransit(wh, v_entry)
-        summary   = transit.summary()
-        props = [
-            ("Throat b₀",        f"{wh.throat_radius_m/AU:.3f} AU"),
-            ("Transit τ",        f"{summary['proper_time_h']:.3f} h"),
-            ("Transit t_coord",  f"{summary['coordinate_time_h']:.3f} h"),
-            ("Lorentz γ",        f"{summary['lorentz_factor']:.4f}"),
-            ("Peak tidal",       f"{summary['peak_tidal_g']:.3f} g"),
-            ("Safe v_max",       f"{summary['v_safe_max_c']:.4f} c"),
-            ("Exotic energy",    f"{abs(summary['exotic_energy_J']):.3e} J"),
-            ("QI bound",         f"{summary['QI_bound_J']:.3e} J"),
-            ("Flare-out OK",     "YES" if wh.flare_out_condition(wh.throat_radius_m * 1.01) > 0 else "NO"),
+    def full_dv_budget(self) -> pd.DataFrame:
+        """
+        Complete Δv budget for ENDURANCE mission, leg by leg.
+        """
+        legs = [
+            TrajectoryLeg("Earth LEO → Saturn",
+                          ManeuverType.HOHMANN, 11_200.0, 2.0*365.25,
+                          EARTH_SMA_M, SAT_SMA_M, notes="Hohmann + escape burn"),
+            TrajectoryLeg("Saturn orbit → Wormhole approach",
+                          ManeuverType.DIRECT, 2_800.0, 30.0,
+                          R_SAT, WORM_SAT_DIST_M, notes="Short transfer in Saturn vicinity"),
+            TrajectoryLeg("Wormhole transit",
+                          ManeuverType.DIRECT, 0.0, 0.083,   # ~2 hours
+                          0.0, 0.0, notes="Free-fall; no Δv inside wormhole"),
+            TrajectoryLeg("Wormhole exit → Gargantua parking orbit",
+                          ManeuverType.DIRECT, 4_200.0, 14.0,
+                          0.0, 10*GARG_RS, notes="Capture burn at periapsis"),
+            TrajectoryLeg("Parking orbit → Miller's World",
+                          ManeuverType.SPIRAL_ION, 8_500.0, 90.0,
+                          10*GARG_RS, GARG_M_GEO*(1+1e-5), notes="Near-ISCO spiral descent"),
+            TrajectoryLeg("Miller departure → Mann's Planet",
+                          ManeuverType.DIRECT, 3_100.0, 180.0,
+                          GARG_M_GEO, 1.3*AU, notes="Climb out of gravity well"),
+            TrajectoryLeg("Mann's Planet → Gargantua slingshot",
+                          ManeuverType.GRAVITY_ASSIST, 500.0, 60.0,
+                          1.3*AU, 10*GARG_RS, notes="Use Gargantua to boost speed"),
+            TrajectoryLeg("Gargantua → Edmunds' Planet (Plan B)",
+                          ManeuverType.DIRECT, 2_800.0, 120.0,
+                          10*GARG_RS, 0.88*AU, notes="TARS data crystal trajectory"),
         ]
-        for k, v in props:
-            st.markdown(f'<div class="worm-card">{k:<18} {v}</div>',
+        m_current = self.m_total
+        rows = []
+        cum_dv = 0.0
+        cum_t  = 0.0
+        for leg in legs:
+            fuel  = self.tsiolkovsky(leg.dv_ms, m_current)
+            m_prop= fuel["m_propellant"]
+            m_current -= m_prop
+            cum_dv += leg.dv_ms
+            cum_t  += leg.duration_days
+            rows.append({
+                "Leg":                leg.name,
+                "Maneuver":           leg.maneuver.value[:18],
+                "Δv (m/s)":          round(leg.dv_ms, 1),
+                "Δv (km/s)":         round(leg.dv_ms/1e3, 2),
+                "Duration (days)":    round(leg.duration_days, 1),
+                "Propellant (kg)":    round(m_prop, 1),
+                "Ship mass after (kg)": round(m_current, 1),
+                "Cumulative Δv (m/s)": round(cum_dv, 1),
+                "Cumulative time (days)": round(cum_t, 1),
+                "Notes":              leg.notes,
+            })
+        return pd.DataFrame(rows)
+
+    def planet_orbital_data(self) -> pd.DataFrame:
+        """Orbital parameters for each planet in the Gargantua system."""
+        rows = []
+        planets = [
+            ("Miller's World",  1.0e-5*GARG_RS, 0.0,   3.22/HOUR_S*YEAR_S),
+            ("Mann's Planet",   1.3*AU,          0.07,  None),
+            ("Edmunds' Planet", 0.88*AU,         0.04,  None),
+        ]
+        for name, a, e, period_yr in planets:
+            v_c  = self.orb_garg.orbital_velocity(a) if a > 0 else 0.0
+            T_yr = (self.orb_garg.orbital_period(a)/YEAR_S if a > 0 and period_yr is None
+                    else period_yr)
+            rows.append({
+                "Planet":           name,
+                "SMA (m)":          a,
+                "SMA (AU)":         a/AU,
+                "Eccentricity":     e,
+                "Period (yr)":      round(T_yr, 4) if T_yr else "N/A",
+                "v_circular (m/s)": round(v_c, 1),
+                "v_circular (km/s)":round(v_c/1e3, 3),
+            })
+        return pd.DataFrame(rows)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §9  SESSION STATE
+# ══════════════════════════════════════════════════════════════════════════════
+def init_session_state():
+    D: Dict[str, Any] = {
+        "wh_geometry":       WormholeGeometry(WORM_THROAT_M, ShapeFunction.ELLIS),
+        "wh_throat_km":      WORM_THROAT_M/1e3,
+        "wh_shape":          ShapeFunction.ELLIS.name,
+        "wh_redshift":       RedshiftFunction.ZERO.name,
+        "wh_alpha":          0.5,
+        "wh_embed_data":     None,
+        "wh_traversal":      None,
+        "wh_exotic_report":  None,
+        "wh_tidal_profile":  None,
+        "orb_planner":       MissionTrajectoryPlanner(),
+        "orb_dv_budget":     None,
+        "orb_earth_sat":     None,
+        "orb_garg_sling":    None,
+        "orb_miller":        None,
+        "orb_r_park":        10.0,
+        "orb_v_inf":         3000.0,
+        "orb_flyby_mass":    GARG_MASS_KG,
+        "orb_r_peri":        1.5,
+        "wh_v_transit_c":    0.10,
+    }
+    for k, v in D.items():
+        if k not in st.session_state:
+            st.session_state[k] = v
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §10  MATPLOTLIB STYLE
+# ══════════════════════════════════════════════════════════════════════════════
+MPL_STYLE = {
+    "figure.facecolor":  "#05080f",
+    "axes.facecolor":    "#070a16",
+    "axes.edgecolor":    "#121c35",
+    "axes.labelcolor":   "#E8C46A",
+    "axes.grid":         True,
+    "grid.color":        "#0c1225",
+    "grid.linestyle":    ":",
+    "grid.alpha":        0.55,
+    "xtick.color":       "#364070",
+    "ytick.color":       "#364070",
+    "xtick.labelsize":   6,
+    "ytick.labelsize":   6,
+    "axes.labelsize":    7,
+    "axes.titlesize":    8,
+    "axes.titlecolor":   "#E8C46A",
+    "text.color":        "#E8C46A",
+    "font.family":       "monospace",
+    "legend.facecolor":  "#070a16",
+    "legend.edgecolor":  "#121c35",
+    "legend.fontsize":   6,
+    "figure.dpi":        110,
+    "savefig.facecolor": "#05080f",
+    "axes.spines.top":   False,
+    "axes.spines.right": False,
+}
+def _mpl(): plt.rcParams.update(MPL_STYLE)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §11  PLOTTING FUNCTIONS
+# ══════════════════════════════════════════════════════════════════════════════
+
+# ── §11.1  Wormhole embedding diagram ─────────────────────────────────────────
+def _plot_embedding(wh: WormholeGeometry) -> plt.Figure:
+    _mpl()
+    fig = plt.figure(figsize=(15, 7))
+    gs  = gridspec.GridSpec(1, 3, figure=fig, wspace=0.38)
+
+    ax1 = fig.add_subplot(gs[0, :2])
+    # 2D embedding (cross-section)
+    r_arr, l_arr, z_arr = wh.embedding_surface(r_max_b0=7.0, n_r=300)
+    r_m   = r_arr/wh.b0    # normalised
+    z_u   =  z_arr/wh.b0   # upper universe
+    z_l   = -z_arr/wh.b0   # lower universe
+
+    # Fill upper / lower sheets
+    ax1.fill_between(r_m,  z_u,  0, alpha=0.12, color="#8060ff")
+    ax1.fill_between(r_m,  z_l,  0, alpha=0.12, color="#4020e0")
+    ax1.plot( r_m,  z_u, color="#8060ff", lw=1.5, label="Upper universe")
+    ax1.plot( r_m,  z_l, color="#4020e0", lw=1.5, label="Lower universe")
+    # Mirror for negative x
+    ax1.fill_between(-r_m, z_u, 0, alpha=0.12, color="#8060ff")
+    ax1.fill_between(-r_m, z_l, 0, alpha=0.12, color="#4020e0")
+    ax1.plot(-r_m,  z_u, color="#8060ff", lw=1.5)
+    ax1.plot(-r_m,  z_l, color="#4020e0", lw=1.5)
+    # Throat
+    ax1.axvline(-1.0, color="#CE93D8", lw=0.7, ls=":", alpha=0.5)
+    ax1.axvline(+1.0, color="#CE93D8", lw=0.7, ls=":", alpha=0.5)
+    ax1.annotate("Throat b₀", xy=(1.0, 0.5), color="#CE93D8",
+                 fontsize=7, ha="left")
+    ax1.annotate("Our Universe ↑", xy=(3.0, 1.2), color="#8060ff",
+                 fontsize=7, style="italic")
+    ax1.annotate("Far Universe ↓", xy=(3.0, -1.4), color="#4020e0",
+                 fontsize=7, style="italic")
+    ax1.set_xlabel("r / b₀  (embedding radial coordinate)")
+    ax1.set_ylabel("z / b₀  (embedding height)")
+    ax1.set_title(f"WORMHOLE EMBEDDING DIAGRAM — {wh.shape_type.value[:35]}\n"
+                  f"b₀ = {wh.b0/1e3:.1f} km  ·  Redshift: {wh.redshift_type.value[:20]}")
+    ax1.legend(fontsize=6, loc="upper right")
+    ax1.set_facecolor("#040810")
+    ax1.set_xlim(-8, 8); ax1.set_ylim(-3, 3)
+
+    # Right: shape function
+    ax2 = fig.add_subplot(gs[0, 2])
+    r_plot = np.geomspace(wh.b0, 8*wh.b0, 300) / wh.b0
+    b_vals = np.array([wh.b(r*wh.b0)/wh.b0 for r in r_plot])
+    ax2.plot(r_plot, b_vals, color="#CE93D8", lw=1.3, label="b(r)/b₀")
+    ax2.plot(r_plot, r_plot, color="#3a4a70", lw=0.7, ls="--", label="b=r (flat)")
+    # Flaring condition b' < 1
+    bp_arr = np.array([wh.b_prime(r*wh.b0, wh.b0*0.001) for r in r_plot])
+    ax2.plot(r_plot, bp_arr, color="#81C784", lw=0.8, ls=":",
+             label="b'(r)")
+    ax2.axhline(1.0, color="#EF5350", lw=0.6, ls="--",
+                label="Flaring limit b'=1")
+    ax2.set_xlabel("r / b₀"); ax2.set_ylabel("b(r)/b₀  or  b'(r)")
+    ax2.set_title("SHAPE FUNCTION b(r)\n& Flaring-out condition")
+    ax2.legend(fontsize=6)
+    fig.patch.set_facecolor("#05080f")
+    plt.tight_layout()
+    return fig
+
+
+# ── §11.2  Exotic matter & traversal ──────────────────────────────────────────
+def _plot_exotic_traversal(wh: WormholeGeometry) -> plt.Figure:
+    _mpl()
+    fig, axes = plt.subplots(2, 3, figsize=(16, 9))
+    fig.patch.set_facecolor("#05080f")
+
+    # 1. Energy density ρ(r)
+    ax1 = axes[0,0]
+    r_arr_b0 = np.geomspace(1.001, 8.0, 200)
+    rho_arr  = np.array([wh.stress_energy_tensor(r*wh.b0)["rho_kg_m3"]
+                          for r in r_arr_b0])
+    ax1.semilogy(r_arr_b0, np.abs(rho_arr)+1e-40, color="#CE93D8", lw=1.2)
+    ax1.set_xlabel("r / b₀"); ax1.set_ylabel("|ρ_exotic|  [kg/m³]")
+    ax1.set_title("EXOTIC ENERGY DENSITY |ρ(r)|")
+    ax1.set_facecolor("#070a16")
+
+    # 2. Radial tension τ(r)
+    ax2 = axes[0,1]
+    tau_arr = np.array([wh.stress_energy_tensor(r*wh.b0)["radial_tension_Pa"]
+                         for r in r_arr_b0])
+    ax2.semilogy(r_arr_b0, np.abs(tau_arr)+1e-30, color="#4FC3F7", lw=1.2)
+    ax2.set_xlabel("r / b₀"); ax2.set_ylabel("|τ(r)|  [Pa]")
+    ax2.set_title("RADIAL TENSION τ(r)")
+    ax2.set_facecolor("#070a16")
+
+    # 3. Exotic mass vs throat radius
+    ax3 = axes[0,2]
+    b0_arr  = np.logspace(3, 12, 40)   # 1 km to 10,000 km
+    M_ex_arr= []
+    for b0 in b0_arr:
+        wh_tmp = WormholeGeometry(b0, wh.shape_type)
+        M_ex_arr.append(wh_tmp.exotic_mass_total())
+    M_ex_arr = np.array(M_ex_arr)
+    ax3.loglog(b0_arr/1e3, M_ex_arr/M_JUPITER, color="#E8C46A", lw=1.2,
+               label="M_exotic/M_Jupiter")
+    ax3.loglog(b0_arr/1e3, M_ex_arr/M_SUN, color="#FF8800", lw=1.0, ls="--",
+               label="M_exotic/M_Sun")
+    ax3.axvline(wh.b0/1e3, color="#EF5350", lw=0.8, ls="--",
+                label=f"Current b₀={wh.b0/1e3:.0f}km")
+    ax3.set_xlabel("b₀ [km]"); ax3.set_ylabel("Exotic mass / reference")
+    ax3.set_title("EXOTIC MASS SCALING vs THROAT RADIUS")
+    ax3.legend(fontsize=5.5)
+
+    # 4. Tidal force profile through wormhole
+    ax4 = axes[1,0]
+    trav = WormholeTraversalCalculator(wh)
+    l_a, tidal_r, tidal_l = trav.tidal_force_profile(n_l=200)
+    ax4.semilogy(l_a/wh.b0, tidal_r+1e-30, color="#EF5350", lw=1.2,
+                 label="Radial tidal [g/m]")
+    ax4.semilogy(l_a/wh.b0, tidal_l+1e-30, color="#4FC3F7", lw=1.0, ls="--",
+                 label="Lateral tidal [g/m]")
+    ax4.axhline(10.0, color="#E8C46A", lw=0.7, ls=":", label="10g/m (hazardous)")
+    ax4.set_xlabel("l / b₀  (proper distance from throat)")
+    ax4.set_ylabel("Tidal acceleration [g/m]")
+    ax4.set_title("TIDAL FORCE ALONG WORMHOLE")
+    ax4.legend(fontsize=6)
+
+    # 5. Transit time vs traversal speed
+    ax5 = axes[1,1]
+    v_arr_c  = np.linspace(0.01, 0.99, 200)
+    tau_arr2 = [trav.transit_time_traveller(v*C_SI)/HOUR_S for v in v_arr_c]
+    ax5.plot(v_arr_c, tau_arr2, color="#81C784", lw=1.3)
+    ax5.axhline(24.0, color="#FFB74D", lw=0.7, ls="--",
+                label="24 hours")
+    ax5.axhline(1.0, color="#81C784", lw=0.7, ls=":",
+                label="1 hour")
+    ax5.set_xlabel("Traversal speed  v/c")
+    ax5.set_ylabel("Proper transit time  [hours]")
+    ax5.set_title(f"TRANSIT TIME vs SPEED\nb₀={wh.b0/1e3:.0f} km")
+    ax5.legend(fontsize=6)
+
+    # 6. Casimir energy comparison
+    ax6 = axes[1,2]
+    d_arr    = np.logspace(-9, 0, 200)    # plate sep: 1 nm to 1 m
+    rho_cas  = np.abs([ExoticMatterPhysics(wh).casimir_energy_density(d)
+                        for d in d_arr])
+    qi_bound = np.abs([ExoticMatterPhysics(wh).quantum_inequality_bound(1e-12/d)
+                        for d in d_arr])  # tau ∝ d/c
+    ax6.loglog(d_arr*1e9, rho_cas, color="#CE93D8", lw=1.3,
+               label="Casimir |ρ| [J/m³]")
+    ax6.loglog(d_arr*1e9, qi_bound, color="#E8C46A", lw=1.0, ls="--",
+               label="QI bound")
+    ax6.set_xlabel("Plate separation [nm]")
+    ax6.set_ylabel("Energy density [J/m³]")
+    ax6.set_title("CASIMIR ENERGY vs PLATE SEPARATION\n& Quantum Inequality")
+    ax6.legend(fontsize=6)
+
+    plt.tight_layout()
+    return fig
+
+
+# ── §11.3  Mission trajectory overview ────────────────────────────────────────
+def _plot_mission_trajectory(planner: MissionTrajectoryPlanner) -> plt.Figure:
+    _mpl()
+    fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+    fig.patch.set_facecolor("#05080f")
+
+    # 1. Solar system layout
+    ax1 = axes[0,0]
+    ax1.set_facecolor("#020408")
+    # Sun
+    ax1.scatter([0],[0], color="#FFD700", s=200, zorder=5)
+    ax1.annotate("☉", (0,0), color="#FFD700", fontsize=10, ha="center", va="center")
+    # Orbits
+    for r_au, name, clr in [(1.0,"Earth","#4FC3F7"),
+                              (9.537,"Saturn","#CE93D8"),
+                              (9.537+1.0,"Wormhole","#8060ff")]:
+        theta = np.linspace(0, 2*math.pi, 300)
+        ax1.plot(r_au*np.cos(theta), r_au*np.sin(theta),
+                 color=clr, lw=0.5, alpha=0.3)
+        ax1.scatter([r_au], [0], color=clr, s=60, zorder=5)
+        ax1.annotate(name, (r_au, 0.5), color=clr, fontsize=6)
+    # Hohmann arc
+    r_E = 1.0; r_S = 9.537
+    a_ho = (r_E+r_S)/2
+    theta_ho = np.linspace(0, math.pi, 200)
+    r_ho_arr = a_ho*(1-(a_ho-r_E)**2/a_ho**2) / (1-((a_ho-r_E)/a_ho)*np.cos(theta_ho))
+    # Simple ellipse
+    x_ho = (r_E+r_S)/2 * np.cos(theta_ho) - (r_S-r_E)/2
+    y_ho = math.sqrt(r_E*r_S) * np.sin(theta_ho)
+    ax1.plot(x_ho, y_ho, color="#E8C46A", lw=1.2, ls="--", label="Hohmann transfer")
+    ax1.set_xlim(-12, 12); ax1.set_ylim(-8, 8)
+    ax1.set_aspect("equal"); ax1.set_xlabel("x [AU]"); ax1.set_ylabel("y [AU]")
+    ax1.set_title("EARTH → SATURN → WORMHOLE TRAJECTORY"); ax1.legend(fontsize=6)
+
+    # 2. Gargantua system
+    ax2 = axes[0,1]
+    ax2.set_facecolor("#020408")
+    ax2.scatter([0],[0], color="#FF8800", s=400, zorder=5)
+    ax2.annotate("GARGANTUA", (0.2,0), color="#FF8800", fontsize=6)
+    r_s_au = (GARG_RS/AU)*1e6   # Schwarzschild radius scaled for plot
+    for r_plot, name, clr in [(0.5,"Photon sphere","#CE93D8"),
+                               (1.0,"ISCO","#4FC3F7"),
+                               (5.0,"Endurance park","#81C784"),
+                               (50.0,"Miller's World","#E8C46A")]:
+        theta = np.linspace(0, 2*math.pi, 300)
+        ax2.plot(r_plot*np.cos(theta), r_plot*np.sin(theta),
+                 color=clr, lw=0.6, alpha=0.5)
+        ax2.scatter([r_plot],[0], color=clr, s=40, zorder=5)
+        ax2.annotate(name, (r_plot, r_plot*0.15), color=clr, fontsize=5)
+    ax2.set_xlim(-80, 80); ax2.set_ylim(-80, 80)
+    ax2.set_aspect("equal")
+    ax2.set_xlabel("r [arbitrary geometric units]")
+    ax2.set_title("GARGANTUA SYSTEM — ORBITAL SCHEMATIC")
+
+    # 3. Δv budget bar chart
+    ax3 = axes[1,0]
+    df = planner.full_dv_budget()
+    legs    = [l[:20] for l in df["Leg"].values]
+    dvs     = df["Δv (m/s)"].values
+    colors3 = plt.cm.plasma(np.linspace(0.1, 0.9, len(legs)))
+    bars    = ax3.bar(range(len(legs)), dvs/1e3, color=colors3, alpha=0.85)
+    ax3.set_xticks(range(len(legs)))
+    ax3.set_xticklabels(legs, rotation=45, ha="right", fontsize=5.5)
+    ax3.set_ylabel("Δv  [km/s]")
+    ax3.set_title(f"ENDURANCE Δv BUDGET — Total {df['Δv (m/s)'].sum()/1e3:.1f} km/s")
+    ax3.bar_label(bars, fmt="%.1f", padding=2, fontsize=5.5, color="#fff")
+
+    # 4. Ship mass through mission
+    ax4 = axes[1,1]
+    mass_arr = df["Ship mass after (kg)"].values
+    cum_t    = df["Cumulative time (days)"].values
+    ax4.plot(cum_t, mass_arr/1e3, color="#E8C46A", lw=1.5, marker="o", ms=5)
+    ax4.fill_between(cum_t, mass_arr/1e3, 0, alpha=0.15, color="#E8C46A")
+    for i, (t, m, leg) in enumerate(zip(cum_t, mass_arr/1e3,
+                                         df["Leg"].values)):
+        ax4.annotate(leg[:12], (t, m+2), fontsize=4.5,
+                     color="#E8C46A", rotation=30)
+    ax4.set_xlabel("Mission elapsed time [days]")
+    ax4.set_ylabel("Endurance mass [tonnes]")
+    ax4.set_title("SHIP MASS EVOLUTION (propellant expenditure)")
+
+    plt.tight_layout()
+    return fig
+
+
+# ── §11.4  Gravity assist ──────────────────────────────────────────────────────
+def _plot_gravity_assist(planner: MissionTrajectoryPlanner,
+                          v_inf: float, r_peri_rs: float) -> plt.Figure:
+    _mpl()
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+    fig.patch.set_facecolor("#05080f")
+
+    orb_g = planner.orb_garg
+    r_s   = GARG_RS
+    r_p   = r_peri_rs * r_s
+
+    hyp   = orb_g.hyperbolic_trajectory(v_inf, r_p, GARG_MASS_KG, n_pts=400)
+    sling = orb_g.gargantua_slingshot(r_peri_rs, v_inf)
+
+    # Left: trajectory
+    ax1 = axes[0]
+    ax1.set_facecolor("#020408")
+    scale = r_p
+    x_n   = hyp["x"]/scale; y_n = hyp["y"]/scale
+    # Color by distance to Gargantua
+    r_n   = hyp["r"]/scale
+    points= np.array([x_n, y_n]).T.reshape(-1, 1, 2)
+    segs  = np.concatenate([points[:-1], points[1:]], axis=1)
+    lc    = mcolors.LinearSegmentedColormap.from_list("", ["#8060ff","#E8C46A","#EF5350"])
+    from matplotlib.collections import LineCollection as LC
+    lc_coll = LC(segs, cmap=lc, norm=plt.Normalize(r_n.min(), r_n.max()))
+    lc_coll.set_array(r_n[:-1])
+    lc_coll.set_linewidth(1.5)
+    ax1.add_collection(lc_coll)
+    # Gargantua shadow
+    ax1.add_patch(Circle((0,0), r_s/scale, color="#000", zorder=5))
+    ax1.add_patch(Circle((0,0), r_s/scale*1.5, fill=False, ec="#FF8800",
+                          lw=0.6, ls="--", label="Photon sphere"))
+    ax1.add_patch(Circle((0,0), r_peri_rs, fill=False, ec="#E8C46A",
+                          lw=0.7, ls=":", label="Periapsis"))
+    # Asymptote arrows
+    theta_a = hyp["theta_asymptote_rad"]
+    for sgn, clr, lbl in [(1, "#4FC3F7","Approach"), (-1, "#81C784","Departure")]:
+        ang = sgn * theta_a
+        ax1.annotate("", xy=(8*math.cos(ang), 8*math.sin(ang)),
+                     xytext=(6*math.cos(ang), 6*math.sin(ang)),
+                     arrowprops=dict(arrowstyle="->", color=clr, lw=1.0))
+    ax1.set_xlim(-10, 10); ax1.set_ylim(-8, 8)
+    ax1.set_aspect("equal")
+    ax1.set_xlabel("x / r_periapsis"); ax1.set_ylabel("y / r_periapsis")
+    ax1.set_title(f"GARGANTUA SLINGSHOT TRAJECTORY\n"
+                  f"r_peri={r_peri_rs:.1f}r_s  v_∞={v_inf/1e3:.1f}km/s")
+    ax1.legend(fontsize=5.5)
+
+    # Mid: Δv vs periapsis radius
+    ax2 = axes[1]
+    rp_arr  = np.linspace(1.1, 20.0, 200)
+    dv_arr  = [orb_g.gargantua_slingshot(rp, v_inf)["dv_GR_corrected_ms"]/1e3
+               for rp in rp_arr]
+    dv_new  = [orb_g.gargantua_slingshot(rp, v_inf)["dv_assist_ms"]/1e3
+               for rp in rp_arr]
+    ax2.plot(rp_arr, dv_arr, color="#E8C46A", lw=1.3, label="GR-corrected Δv")
+    ax2.plot(rp_arr, dv_new, color="#4FC3F7", lw=1.0, ls="--", label="Newtonian Δv")
+    ax2.axvline(r_peri_rs, color="#EF5350", lw=0.8, ls=":",
+                label=f"Selected r_peri={r_peri_rs:.1f}r_s")
+    ax2.set_xlabel("Periapsis radius [r_s]")
+    ax2.set_ylabel("Δv from slingshot [km/s]")
+    ax2.set_title("SLINGSHOT Δv vs PERIAPSIS DISTANCE")
+    ax2.legend(fontsize=6)
+
+    # Right: summary table
+    ax3 = axes[2]
+    ax3.axis("off")
+    items = [
+        ("v_∞ approach",       f"{sling['v_inf_ms']/1e3:.2f} km/s"),
+        ("r_periapsis",        f"{r_peri_rs:.2f} r_s  =  {r_p/1e3:.1f} km"),
+        ("Eccentricity",       f"{sling['eccentricity']:.4f}"),
+        ("Deflection angle",   f"{sling['deflection_deg']:.2f}°"),
+        ("Δv (Newtonian)",     f"{sling['dv_assist_ms']/1e3:.3f} km/s"),
+        ("GR correction ×",    f"{sling['GR_correction']:.4f}"),
+        ("Δv (GR corrected)",  f"{sling['dv_GR_kms']:.3f} km/s"),
+        ("v at periapsis",     f"{sling['v_periapsis_ms']/1e3:.2f} km/s"),
+        ("Time dilation dτ/dt",f"{sling['time_dilation_dtr']:.4e}"),
+        ("r_s Gargantua",      f"{GARG_RS/1e3:.3e} km"),
+    ]
+    y = 0.96
+    ax3.text(0.02, y, "GARGANTUA SLINGSHOT REPORT",
+             color="#E8C46A", fontsize=8, fontfamily="monospace",
+             fontweight="bold", transform=ax3.transAxes)
+    y -= 0.09
+    for lbl, val in items:
+        ax3.text(0.02, y, f"  {lbl:<24}", color="#888", fontsize=7,
+                 fontfamily="monospace", transform=ax3.transAxes)
+        ax3.text(0.55, y, val, color="#E8C46A", fontsize=7,
+                 fontfamily="monospace", transform=ax3.transAxes,
+                 fontweight="bold")
+        y -= 0.08
+
+    plt.tight_layout()
+    return fig
+
+
+# ── §11.5  Saturn approach to wormhole ────────────────────────────────────────
+def _plot_saturn_wormhole(planner: MissionTrajectoryPlanner) -> plt.Figure:
+    _mpl()
+    fig, axes = plt.subplots(1, 2, figsize=(13, 6))
+    fig.patch.set_facecolor("#05080f")
+
+    # Left: Saturn system zoom
+    ax1 = axes[0]
+    ax1.set_facecolor("#020408")
+    # Saturn (schematic)
+    saturn_ring = plt.Ellipse((0,0), 3.2, 0.8, fill=False,
+                               ec="#CE93D8", lw=1.0, alpha=0.5)
+    ax1.add_patch(saturn_ring)
+    ax1.scatter([0],[0], color="#CE93D8", s=200)
+    ax1.annotate("Saturn", (0.2, 0.4), color="#CE93D8", fontsize=8)
+    # Wormhole location
+    worm_x = WORM_SAT_DIST_M/R_SAT * 2   # scaled for visibility
+    ax1.scatter([worm_x],[0], color="#8060ff", s=150, marker="*")
+    ax1.annotate("Wormhole", (worm_x+0.3, 0.3), color="#8060ff", fontsize=8)
+    # Endurance trajectory
+    t  = np.linspace(0, 1, 200)
+    x_traj = worm_x * t
+    y_traj = 0.8*np.sin(math.pi*t)
+    ax1.plot(x_traj, y_traj, color="#E8C46A", lw=1.5, ls="--",
+             label="Endurance approach")
+    # Arrow
+    ax1.annotate("", xy=(worm_x*0.95, 0.1), xytext=(worm_x*0.85, 0.3),
+                 arrowprops=dict(arrowstyle="->", color="#E8C46A", lw=1.0))
+    ax1.set_xlim(-2, worm_x+2); ax1.set_ylim(-2, 2)
+    ax1.set_xlabel("Saturn radii"); ax1.set_ylabel("Saturn radii")
+    ax1.set_title("SATURN SYSTEM → WORMHOLE APPROACH")
+    ax1.legend(fontsize=6)
+    ax1.set_aspect("equal")
+
+    # Right: Wormhole cross section (light bending visualization)
+    ax2 = axes[1]
+    ax2.set_facecolor("#020408")
+    b0 = WORM_THROAT_M
+    # Draw wormhole cross section
+    theta_s = np.linspace(0, 2*math.pi, 300)
+    ax2.add_patch(Circle((0,0), b0/1e5, color="#1a0a40", zorder=3))
+    ax2.add_patch(Circle((0,0), b0/1e5, fill=False, ec="#8060ff",
+                          lw=1.5, zorder=4))
+    # Light rays bending around wormhole throat
+    for b_fac in [1.5, 2.0, 3.0, 5.0]:
+        b_impact = b_fac * b0/1e5
+        y_in = np.linspace(-8*b0/1e5, 0, 200)
+        x_in = np.full_like(y_in, -b_impact)
+        # Simple deflection (schematic)
+        defl_angle = 4*G_SI*GARG_MASS_KG/(C_SI**2*b_impact*1e5)
+        x_out_arr  = -b_impact + np.linspace(0, 8*b0/1e5, 200)
+        y_out_arr  = -defl_angle * x_out_arr * 50   # exaggerated
+        clr_r = plt.cm.plasma(0.3 + 0.1*b_fac)
+        ax2.plot(x_in, y_in, color=clr_r, lw=0.7, alpha=0.7)
+        ax2.plot(x_out_arr - b_impact, y_out_arr, color=clr_r, lw=0.7, alpha=0.7)
+    ax2.set_xlim(-10*b0/1e5, 10*b0/1e5)
+    ax2.set_ylim(-10*b0/1e5, 10*b0/1e5)
+    ax2.set_aspect("equal")
+    ax2.set_xlabel("x / throat_scale")
+    ax2.set_ylabel("y / throat_scale")
+    ax2.set_title(f"WORMHOLE THROAT — Light Ray Deflection\nb₀ = {b0/1e3:.0f} km")
+    ax2.annotate("Throat", (0, b0/1e5*1.2), ha="center", color="#8060ff",
+                 fontsize=7)
+
+    plt.tight_layout()
+    return fig
+
+
+# ── §11.6  Wormhole shape comparison ─────────────────────────────────────────
+def _plot_shape_comparison(b0: float) -> plt.Figure:
+    _mpl()
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+    fig.patch.set_facecolor("#05080f")
+
+    r_arr = np.geomspace(b0, 10*b0, 300)
+    r_n   = r_arr/b0
+
+    shape_styles = [
+        (ShapeFunction.ELLIS,       "#8060ff", "-",  "Ellis  b=b₀²/r"),
+        (ShapeFunction.POWER_LAW,   "#E8C46A", "--", "Power-law  b=b₀(b₀/r)^0.5"),
+        (ShapeFunction.EXPONENTIAL, "#81C784", "-.", "Exponential"),
+        (ShapeFunction.ASYMPTOTIC,  "#4FC3F7", ":",  "Asymptotic flat"),
+    ]
+
+    ax1, ax2, ax3 = axes
+
+    for shape, clr, ls, lbl in shape_styles:
+        wh_s = WormholeGeometry(b0, shape_type=shape)
+        b_n  = np.array([wh_s.b(r)/b0 for r in r_arr])
+        l_n  = np.array([wh_s.proper_distance_l(r)/b0 for r in r_arr])
+        z_em = []
+        for r in r_arr:
+            bv  = wh_s.b(r)
+            rad = r/bv - 1.0
+            if rad > 0:
+                z_em.append(1/math.sqrt(rad))
+            else:
+                z_em.append(0.0)
+        ax1.plot(r_n, b_n,   color=clr, lw=1.1, ls=ls, label=lbl)
+        ax2.plot(r_n, l_n,   color=clr, lw=1.1, ls=ls, label=lbl)
+        ax3.semilogy(r_n, np.array(z_em)+1e-10, color=clr, lw=1.1, ls=ls, label=lbl)
+
+    for ax, ylbl, title in [
+        (ax1, "b(r)/b₀",     "SHAPE FUNCTION COMPARISON"),
+        (ax2, "l(r)/b₀  (proper distance)", "PROPER DISTANCE FROM THROAT"),
+        (ax3, "dz/dr (embedding slope)","EMBEDDING SURFACE SLOPE"),
+    ]:
+        ax.set_xlabel("r / b₀"); ax.set_ylabel(ylbl); ax.set_title(title)
+        ax.legend(fontsize=5.5); ax.set_facecolor("#070a16")
+        ax.axvline(1.0, color="#EF5350", lw=0.6, ls=":", label="Throat r=b₀")
+
+    plt.tight_layout()
+    return fig
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §12  MAIN STREAMLIT PAGE
+# ══════════════════════════════════════════════════════════════════════════════
+def wormhole_navigator_page():
+    init_session_state()
+    _mpl()
+    S = st.session_state
+
+    st.markdown("""
+    <div style="border-left:3px solid #8060ff;padding:.55rem 1.2rem;
+                margin-bottom:1.2rem;background:rgba(128,96,255,0.03);
+                font-family:monospace;">
+    <div style="color:#8060ff;font-size:.95rem;letter-spacing:.12em;
+                font-weight:600;">⟳ WORMHOLE NAVIGATOR &amp; ORBITAL MECHANICS ENGINE</div>
+    <div style="color:#5a6a90;font-size:.62rem;margin-top:.2rem;">
+    Morris-Thorne Geometry · Exotic Matter · Traversal Physics · Hohmann Transfers ·
+    Gravity Assist · Gargantua Slingshot · Full Δv Budget · Saturn→Wormhole→Gargantua
+    </div></div>""", unsafe_allow_html=True)
+
+    (tab_geom, tab_exotic, tab_traverse,
+     tab_shapes, tab_orbit,
+     tab_slingshot, tab_mission) = st.tabs([
+        "◎ WORMHOLE GEOMETRY",
+        "⬡ EXOTIC MATTER",
+        "⇌ TRAVERSAL PHYSICS",
+        "∿ SHAPE FAMILIES",
+        "🛸 ORBITAL MECHANICS",
+        "↻ GRAVITY ASSIST",
+        "🚀 MISSION Δv BUDGET",
+    ])
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # TAB 1 — WORMHOLE GEOMETRY
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    with tab_geom:
+        c1, c2, c3 = st.columns([1, 1, 2.5])
+        with c1:
+            st.markdown('<div style="font-family:monospace;font-size:.62rem;color:#8060ff;">[ GEOMETRY PARAMETERS ]</div>',
                         unsafe_allow_html=True)
+            b0_km  = st.slider("Throat radius b₀ [km]",
+                                0.1, 1e6, float(S["wh_throat_km"]), 0.1,
+                                format="%.1f")
+            shape_name = st.selectbox("Shape function",
+                                       [s.name for s in ShapeFunction],
+                                       index=0)
+            redsh_name = st.selectbox("Redshift function",
+                                       [r.name for r in RedshiftFunction],
+                                       index=0)
+            alpha   = st.slider("Power-law α (if applicable)", 0.0, 0.99, 0.5, 0.01)
 
-        st.markdown('<div class="worm-label">— PLANET REFERENCE —</div>',
-                    unsafe_allow_html=True)
-        for planet in planets:
-            st.markdown(
-                f'<div class="planet-card">'
-                f'<b style="color:#4a9eff">{planet.name}</b><br>'
-                f'  Dilation ×{planet.time_dilation_factor:,.0f}<br>'
-                f'  r = {planet.orbital_elements.semi_major_axis_m/AU:.2f} AU<br>'
-                f'  g = {planet.surface_gravity_m_s2:.1f} m/s²<br>'
-                f'  P = {planet.orbital_elements.period_yr:.3f} yr'
-                f'</div>', unsafe_allow_html=True)
+            S["wh_throat_km"] = b0_km
+            S["wh_shape"]     = shape_name
+            S["wh_redshift"]  = redsh_name
+            S["wh_alpha"]     = alpha
 
-    with col_main:
-        tabs = st.tabs(["[ EMBEDDING ]", "[ EXOTIC MATTER ]",
-                        "[ TRANSIT ]", "[ ORBITAL MAP ]",
-                        "[ MISSION TIMELINE ]", "[ Δv BUDGET ]",
-                        "[ PLANET DATA ]"])
+            if st.button("◎ COMPUTE WORMHOLE", use_container_width=True,
+                         type="primary"):
+                wh = WormholeGeometry(
+                    throat_radius_m=b0_km*1e3,
+                    shape_type=ShapeFunction[shape_name],
+                    redshift_type=RedshiftFunction[redsh_name],
+                    shape_alpha=alpha)
+                S["wh_geometry"] = wh
 
-        with tabs[0]:
-            if st.button("▶ RENDER EMBEDDING DIAGRAM", use_container_width=True):
-                with st.spinner("Computing wormhole geometry..."):
-                    fig = viz.plot_embedding_diagram(wh)
-                    st.pyplot(fig, use_container_width=True)
-                    plt.close(fig)
-                b0 = wh.throat_radius_m
-                l_throat = wh.proper_radial_distance(b0 * 5)
-                e1, e2, e3 = st.columns(3)
-                e1.metric("Throat radius", f"{b0/AU:.3f} AU")
-                e2.metric("Proper length (to 5b₀)", f"{l_throat/AU:.3f} AU")
-                e3.metric("Shape function b(2b₀)",
-                           f"{wh.shape_function(2*b0)/b0:.3f} b₀")
+        wh  = S["wh_geometry"]
+        su  = wh.summary()
+        with c2:
+            fl_ok = "✓ SATISFIED" if su["flaring_condition"] else "✗ VIOLATED"
+            st.markdown(f"""
+            <div style="font-family:monospace;font-size:.57rem;color:#c0c8e0;
+                        background:rgba(7,10,22,.92);padding:.75rem;
+                        border:1px solid rgba(128,96,255,.18);
+                        border-top:2px solid #8060ff;border-radius:3px;
+                        line-height:2.05;">
+            <b style="color:#8060ff;">── GEOMETRY ──</b><br>
+            b₀ = <b style="color:#8060ff;">{su['throat_radius_km']:.3f} km</b><br>
+            Shape: <b>{su['shape_type'][:30]}</b><br>
+            Redshift: <b>{su['redshift_type'][:25]}</b><br>
+            b'(b₀) = <b style="color:#E8C46A;">{su['b_prime_at_throat']:.5f}</b><br>
+            Flaring-out: <b style="color:{'#81C784' if su['flaring_condition'] else '#EF5350'}">{fl_ok}</b><br>
+            Φ(b₀) = <b>{su['Phi_at_throat']:.4f}</b><br>
+            g_tt(throat) = <b>{su['g_tt_at_throat']:.4f}</b><br>
+            <b style="color:#8060ff;">── EXOTIC MATTER ──</b><br>
+            M_exotic = <b style="color:#CE93D8;">{su['exotic_mass_kg']:.4e} kg</b><br>
+            = <b style="color:#CE93D8;">{su['exotic_mass_Jupiter']:.4e} M_Jupiter</b><br>
+            = <b>{su['exotic_mass_Sun']:.4e} M_Sun</b>
+            </div>""", unsafe_allow_html=True)
 
-        with tabs[1]:
-            if st.button("▶ ANALYSE EXOTIC MATTER", use_container_width=True):
-                with st.spinner("Computing exotic matter requirements..."):
-                    fig = viz.plot_exotic_matter(wh)
-                    st.pyplot(fig, use_container_width=True)
-                    plt.close(fig)
-                rho_throat = wh.exotic_matter_density(wh.throat_radius_m * 1.001)
-                ex1, ex2, ex3 = st.columns(3)
-                ex1.metric("|ρ| at throat", f"{abs(rho_throat):.3e} kg/m³")
-                ex2.metric("Total exotic E", f"{abs(wh.total_exotic_energy_J()):.3e} J")
-                ex3.metric("QI bound", f"{wh.quantum_inequality_energy():.3e} J")
+        with c3:
+            fig = _plot_embedding(wh)
+            st.pyplot(fig, use_container_width=True); plt.close(fig)
 
-                st.markdown(
-                    f'<div class="worm-card">'
-                    f'For comparison: Solar mass energy = {M_SUN * C_SI**2:.2e} J. '
-                    f'The exotic energy required is '
-                    f'{abs(wh.total_exotic_energy_J()) / (M_SUN * C_SI**2):.3e} solar masses '
-                    f'of negative energy density.</div>',
-                    unsafe_allow_html=True)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # TAB 2 — EXOTIC MATTER
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    with tab_exotic:
+        wh  = S["wh_geometry"]
+        em  = ExoticMatterPhysics(wh)
+        rep = em.feasibility_report()
+        c1, c2 = st.columns([1, 3])
+        with c1:
+            st.markdown(f"""
+            <div style="font-family:monospace;font-size:.57rem;color:#c0c8e0;
+                        background:rgba(7,10,22,.92);padding:.7rem;
+                        border:1px solid rgba(206,147,216,.18);border-radius:3px;
+                        line-height:2.0;">
+            <b style="color:#CE93D8;">── EXOTIC MATTER ──</b><br>
+            M_exotic = <b style="color:#CE93D8;">{rep['exotic_mass_kg']:.4e} kg</b><br>
+            = <b>{rep['exotic_mass_Jupiter']:.4e} M_Jupiter</b><br>
+            E_exotic = <b>{rep['exotic_energy_J']:.4e} J</b><br>
+            = <b>{rep['exotic_energy_stars']:.4e} star-years</b><br>
+            <b style="color:#CE93D8;">── CASIMIR ──</b><br>
+            Plate sep needed = <b>{rep['casimir_plate_sep_m']:.4e} m</b><br>
+            Casimir ρ = <b>{rep['casimir_rho_J_m3']:.4e} J/m³</b><br>
+            QI bound = <b>{rep['QI_bound_J_m3']:.4e} J/m³</b><br>
+            ρ/QI ratio = <b>{rep['ratio_rho_to_QI']:.4e}</b><br>
+            Feasibility: <b style="color:#81C784;">{rep['feasibility'][:25]}</b>
+            </div>""", unsafe_allow_html=True)
+        with c2:
+            fig = _plot_exotic_traversal(wh)
+            st.pyplot(fig, use_container_width=True); plt.close(fig)
 
-        with tabs[2]:
-            if st.button("▶ SIMULATE TRANSIT", use_container_width=True):
-                with st.spinner("Simulating wormhole traversal..."):
-                    df_transit = transit.simulate(n_steps=400)
-                    fig = viz.plot_transit_simulation(df_transit)
-                    st.pyplot(fig, use_container_width=True)
-                    plt.close(fig)
-                t1, t2, t3, t4 = st.columns(4)
-                t1.metric("Proper time τ", f"{summary['proper_time_h']:.3f} h")
-                t2.metric("Coord time",    f"{summary['coordinate_time_h']:.3f} h")
-                t3.metric("Peak tidal",    f"{summary['peak_tidal_g']:.3f} g")
-                t4.metric("Lorentz γ",     f"{summary['lorentz_factor']:.4f}")
-                st.dataframe(df_transit.round(4), use_container_width=True,
-                              hide_index=True)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # TAB 3 — TRAVERSAL PHYSICS
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    with tab_traverse:
+        wh   = S["wh_geometry"]
+        trav = WormholeTraversalCalculator(wh)
+        c1, c2 = st.columns([1, 2])
+        with c1:
+            v_c  = st.slider("Traversal speed v/c", 0.01, 0.99,
+                              float(S["wh_v_transit_c"]), 0.01)
+            S["wh_v_transit_c"] = v_c
+            prof = trav.interstellar_wormhole_profile()
+            v_ms = v_c * C_SI
+            tau_s  = trav.transit_time_traveller(v_ms)
+            t_ext  = trav.transit_time_external(v_ms)
+            surv   = trav.survivability_check(v_ms)
+            tidal_th = trav.tidal_force_at_throat() * 1.8 / 9.81
+            surv_c = {"VIABLE":"#81C784","MARGINAL":"#FFB74D",
+                      "TIDAL_LETHAL":"#EF5350","TIME_EXCESSIVE":"#FF8800",
+                      "UNSTABLE":"#CE93D8"}.get(surv.name, "#fff")
+            st.markdown(f"""
+            <div style="font-family:monospace;font-size:.57rem;color:#c0c8e0;
+                        background:rgba(7,10,22,.92);padding:.75rem;
+                        border:1px solid rgba(128,96,255,.18);border-radius:3px;
+                        line-height:2.05;">
+            <b style="color:#8060ff;">── TRAVERSAL @ v={v_c:.2f}c ──</b><br>
+            τ_traveller = <b style="color:#E8C46A;">{tau_s/HOUR_S:.3f} hr</b>
+            = <b>{tau_s:.1f} s</b><br>
+            t_external = <b style="color:#4FC3F7;">{t_ext/HOUR_S:.3f} hr</b><br>
+            Δt (time shift) = <b>{abs(t_ext-tau_s):.3f} s</b><br>
+            <b style="color:#8060ff;">── FORCES ──</b><br>
+            Tidal @ throat = <b style="color:#EF5350;">{tidal_th:.4e} g/m</b><br>
+            Φ' acceleration = <b>{abs(wh.Phi_prime(wh.b0))*C_SI**2/9.81:.4e} g</b><br>
+            <b style="color:#8060ff;">── VERDICT ──</b><br>
+            Status: <b style="color:{surv_c};font-size:.70rem;">{surv.value}</b>
+            </div>""", unsafe_allow_html=True)
 
-        with tabs[3]:
-            if st.button("▶ RENDER ORBITAL MAP", use_container_width=True):
-                with st.spinner("Computing Gargantua system orbits..."):
-                    fig = viz.plot_orbital_map(planets)
-                    st.pyplot(fig, use_container_width=True)
-                    plt.close(fig)
-                for planet in planets:
-                    orb = planet.orbital_elements
-                    st.markdown(
-                        f'<div class="planet-card">'
-                        f'<b>{planet.name}</b>: '
-                        f'a={orb.semi_major_axis_m/AU:.3f} AU, '
-                        f'e={orb.eccentricity:.3f}, '
-                        f'T={orb.period_yr:.3f} yr, '
-                        f'v_c={orb.orbital_velocity_circular_m_s/1e3:.2f} km/s'
-                        f'</div>', unsafe_allow_html=True)
+        with c2:
+            # Plot traversal profiles
+            _mpl()
+            fig_tr, axes_tr = plt.subplots(1, 2, figsize=(11, 5))
+            fig_tr.patch.set_facecolor("#05080f")
+            l_arr, tidal_r, tidal_l = trav.tidal_force_profile(n_l=200)
+            axes_tr[0].semilogy(l_arr/wh.b0, tidal_r+1e-30, color="#EF5350",
+                                 lw=1.2, label="Radial tidal [g/m]")
+            axes_tr[0].semilogy(l_arr/wh.b0, tidal_l+1e-30, color="#4FC3F7",
+                                 lw=1.0, ls="--", label="Lateral tidal [g/m]")
+            axes_tr[0].axhline(10.0, color="#E8C46A", lw=0.7, ls=":",
+                                label="10 g/m hazardous")
+            axes_tr[0].set_xlabel("l / b₀"); axes_tr[0].set_ylabel("Tidal [g/m]")
+            axes_tr[0].set_title("TIDAL FORCES ALONG WORMHOLE")
+            axes_tr[0].legend(fontsize=6)
+            # Transit time vs speed
+            v_arr2  = np.linspace(0.01, 0.99, 200)
+            tau_arr = [trav.transit_time_traveller(v*C_SI)/HOUR_S for v in v_arr2]
+            axes_tr[1].plot(v_arr2, tau_arr, color="#81C784", lw=1.3)
+            axes_tr[1].axvline(v_c, color="#EF5350", lw=0.8, ls="--",
+                                label=f"v={v_c:.2f}c")
+            axes_tr[1].axhline(tau_s/HOUR_S, color="#E8C46A", lw=0.7, ls=":")
+            axes_tr[1].set_xlabel("v / c")
+            axes_tr[1].set_ylabel("τ_traveller [hours]")
+            axes_tr[1].set_title("TRANSIT TIME vs SPEED")
+            axes_tr[1].legend(fontsize=6)
+            plt.tight_layout()
+            st.pyplot(fig_tr, use_container_width=True); plt.close(fig_tr)
 
-        with tabs[4]:
-            legs = mission.build_trajectory()
-            if st.button("▶ PLOT MISSION TIMELINE", use_container_width=True):
-                with st.spinner("Computing relativistic trajectory..."):
-                    fig = viz.plot_mission_timeline(legs)
-                    st.pyplot(fig, use_container_width=True)
-                    plt.close(fig)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # TAB 4 — SHAPE FAMILIES
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    with tab_shapes:
+        wh  = S["wh_geometry"]
+        fig = _plot_shape_comparison(wh.b0)
+        st.pyplot(fig, use_container_width=True); plt.close(fig)
+        # Comparison table
+        rows = []
+        for shape in ShapeFunction:
+            wh_s = WormholeGeometry(wh.b0, shape_type=shape)
+            su   = wh_s.summary()
+            rows.append({
+                "Shape": shape.value[:40],
+                "b'(b₀)": round(su["b_prime_at_throat"], 5),
+                "Flaring ✓": su["flaring_condition"],
+                "M_exotic (kg)": f"{su['exotic_mass_kg']:.3e}",
+                "M_exotic/M_Jup": f"{su['exotic_mass_Jupiter']:.3e}",
+            })
+        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
 
-            df_legs = mission.trajectory_dataframe(legs)
-            st.dataframe(df_legs, use_container_width=True, hide_index=True)
-
-            s1, s2, s3 = st.columns(3)
-            s1.metric("Total Earth elapsed",
-                       f"{mission.total_earth_elapsed(legs):.2f} yr")
-            s2.metric("Total crew elapsed",
-                       f"{mission.total_crew_elapsed(legs):.3f} yr")
-            s3.metric("Total Δv",
-                       f"{mission.delta_v_budget(legs)/1e3:.1f} km/s")
-
-        with tabs[5]:
-            st.markdown('<div class="worm-label">— HOHMANN TRANSFER CALCULATOR —</div>',
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # TAB 5 — ORBITAL MECHANICS
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    with tab_orbit:
+        planner = S["orb_planner"]
+        c1, c2  = st.columns([1, 2])
+        with c1:
+            st.markdown('<div style="font-family:monospace;font-size:.62rem;color:#8060ff;">[ HOHMANN CALCULATOR ]</div>',
                         unsafe_allow_html=True)
-            c1h, c2h = st.columns(2)
-            with c1h:
-                r1_AU = st.number_input("Origin orbit r₁ (AU)", 0.1, 100.0, 1.0, 0.1)
-                r2_AU = st.number_input("Target orbit r₂ (AU)", 0.1, 100.0, 9.58, 0.1)
-                body  = st.selectbox("Central body", ["Sun", "Earth", "Gargantua"])
-                M_body = {"Sun": M_SUN, "Earth": M_EARTH,
-                           "Gargantua": GARGANTUA_MASS_SOLAR * M_SUN}[body]
+            r1_au = st.slider("Initial orbit r₁ [AU]", 0.1, 40.0, 1.0, 0.1)
+            r2_au = st.slider("Target orbit r₂ [AU]",  0.1, 40.0, 9.537, 0.1)
+            M_body = st.selectbox("Central body",
+                                   ["Sun","Earth","Saturn","Gargantua"])
+            M_map  = {"Sun":M_SUN,"Earth":M_EARTH,
+                      "Saturn":M_SAT,"Gargantua":GARG_MASS_KG}
+            orb    = OrbitalMechanics(M_map[M_body])
+            r1_m   = r1_au*AU; r2_m = r2_au*AU
+            hoh    = orb.hohmann_transfer(r1_m, r2_m)
+            st.markdown(f"""
+            <div style="font-family:monospace;font-size:.57rem;color:#c0c8e0;
+                        background:rgba(7,10,22,.92);padding:.65rem;
+                        border:1px solid rgba(128,96,255,.12);border-radius:3px;
+                        line-height:2.0;">
+            Δv₁ = <b style="color:#E8C46A;">{hoh['dv1_ms']:.2f} m/s</b><br>
+            Δv₂ = <b style="color:#E8C46A;">{hoh['dv2_ms']:.2f} m/s</b><br>
+            Δv_total = <b style="color:#81C784;">{hoh['dv_total_kms']:.4f} km/s</b><br>
+            Transfer time = <b style="color:#4FC3F7;">{hoh['transfer_time_days']:.2f} days</b><br>
+            = <b>{hoh['transfer_time_days']/365.25:.4f} yr</b><br>
+            a_transfer = <b>{hoh['a_transfer_m']/AU:.4f} AU</b><br>
+            v_peri = <b>{hoh['v_periapsis_ms']/1e3:.3f} km/s</b><br>
+            v_apo  = <b>{hoh['v_apoapsis_ms']/1e3:.3f} km/s</b>
+            </div>""", unsafe_allow_html=True)
 
-            if st.button("▶ COMPUTE HOHMANN TRANSFER", use_container_width=True):
-                h = OrbitalMechanics.hohmann_transfer(r1_AU*AU, r2_AU*AU, M_body)
-                st.markdown(
-                    f'<div class="worm-card">'
-                    f'Δv₁ = {h["dv1_m_s"]/1e3:.4f} km/s<br>'
-                    f'Δv₂ = {h["dv2_m_s"]/1e3:.4f} km/s<br>'
-                    f'Δv total = {h["dv_total_m_s"]/1e3:.4f} km/s<br>'
-                    f'Transfer time = {h["transfer_time_yr"]:.4f} yr<br>'
-                    f'v_periapsis = {h["v_periapsis_m_s"]/1e3:.3f} km/s<br>'
-                    f'v_apoapsis  = {h["v_apoapsis_m_s"]/1e3:.3f} km/s'
+            est = planner.earth_to_saturn_trajectory()
+            st.markdown(f"""
+            <div style="font-family:monospace;font-size:.57rem;color:#c0c8e0;
+                        background:rgba(7,10,22,.92);padding:.65rem;
+                        border:1px solid rgba(128,96,255,.12);border-radius:3px;
+                        line-height:1.9;margin-top:.5rem;">
+            <b style="color:#8060ff;">EARTH→SATURN (Endurance)</b><br>
+            Total Δv = <b>{est['total_dv_kms']:.2f} km/s</b><br>
+            Transfer time = <b>{est['transfer_time_yr']:.2f} yr</b><br>
+            Propellant = <b>{est['fuel']['m_propellant']/1e3:.1f} tonnes</b><br>
+            Payload frac = <b>{est['fuel']['payload_fraction']*100:.1f}%</b>
+            </div>""", unsafe_allow_html=True)
+
+        with c2:
+            fig = _plot_saturn_wormhole(planner)
+            st.pyplot(fig, use_container_width=True); plt.close(fig)
+            st.dataframe(planner.planet_orbital_data(),
+                         use_container_width=True, hide_index=True)
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # TAB 6 — GRAVITY ASSIST
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    with tab_slingshot:
+        planner = S["orb_planner"]
+        c1, c2  = st.columns([1, 3])
+        with c1:
+            v_inf_kms = st.slider("v_∞ approach [km/s]", 0.5, 50.0,
+                                   float(S["orb_v_inf"])/1e3, 0.5)
+            r_peri    = st.slider("Periapsis radius [r_s]", 1.05, 20.0,
+                                   float(S["orb_r_peri"]), 0.05)
+            S["orb_v_inf"]  = v_inf_kms*1e3
+            S["orb_r_peri"] = r_peri
+        with c2:
+            fig = _plot_gravity_assist(planner, v_inf_kms*1e3, r_peri)
+            st.pyplot(fig, use_container_width=True); plt.close(fig)
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # TAB 7 — MISSION Δv BUDGET
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    with tab_mission:
+        planner = S["orb_planner"]
+        if st.button("🚀 COMPUTE FULL Δv BUDGET",
+                     use_container_width=True, type="primary"):
+            S["orb_dv_budget"] = planner.full_dv_budget()
+
+        df = S.get("orb_dv_budget")
+        if df is not None:
+            kpis = [
+                ("Total Δv",      f"{df['Δv (m/s)'].sum()/1e3:.2f} km/s",   "#E8C46A"),
+                ("Mission days",  f"{df['Cumulative time (days)'].iloc[-1]:.0f}",   "#4FC3F7"),
+                ("Final mass",    f"{df['Ship mass after (kg)'].iloc[-1]/1e3:.1f} t","#81C784"),
+                ("Prop. used",    f"{(ENDURANCE_MASS_KG - df['Ship mass after (kg)'].iloc[-1])/1e3:.1f} t","#EF5350"),
+            ]
+            cols = st.columns(len(kpis))
+            for col, (lbl, val, clr) in zip(cols, kpis):
+                col.markdown(
+                    f'<div style="background:rgba(7,10,22,.9);border:1px solid {clr}44;'
+                    f'padding:.4rem;text-align:center;border-radius:2px;font-family:monospace;">'
+                    f'<div style="color:#444;font-size:.50rem;">{lbl}</div>'
+                    f'<div style="color:{clr};font-size:.85rem;">{val}</div>'
                     f'</div>', unsafe_allow_html=True)
-
-                st.markdown('<div class="worm-label">— TSIOLKOVSKY PROPELLANT BUDGET —</div>',
-                            unsafe_allow_html=True)
-                isp   = st.number_input("Specific impulse (s)", 200, 100000, 450, 10)
-                m_pay = st.number_input("Payload mass (kg)", 100, 1e7, 2e5, 1000,
-                                         format="%.0f")
-                tz = OrbitalMechanics.tsiolkovsky_rocket(
-                    h["dv_total_m_s"], isp, m_pay)
-                t1, t2, t3 = st.columns(3)
-                t1.metric("Mass ratio m₀/mf", f"{tz['mass_ratio']:.3f}")
-                t2.metric("Propellant (kg)", f"{tz['propellant_mass_kg']:.2e}")
-                t3.metric("Total initial (kg)", f"{tz['total_initial_kg']:.2e}")
-
-        with tabs[6]:
-            st.markdown('<div class="worm-label">— PLANETARY DATA — GARGANTUA SYSTEM —</div>',
-                        unsafe_allow_html=True)
-            for planet in planets:
-                with st.expander(f"◈ {planet.name} (×{planet.time_dilation_factor:,.0f} dilation)"):
-                    c1p, c2p = st.columns(2)
-                    with c1p:
-                        st.markdown(
-                            f'<div class="planet-card">'
-                            f'<b>Physical</b><br>'
-                            f'Mass   = {planet.mass_kg:.3e} kg<br>'
-                            f'Radius = {planet.radius_m/R_EARTH:.3f} R_Earth<br>'
-                            f'g      = {planet.surface_gravity_m_s2:.2f} m/s²<br>'
-                            f'v_esc  = {planet.escape_velocity_m_s/1e3:.2f} km/s<br>'
-                            f'Hill r = {planet.hill_sphere_m/AU:.4f} AU'
-                            f'</div>', unsafe_allow_html=True)
-                        st.markdown(
-                            f'<div class="planet-card">'
-                            f'<b>Orbital</b><br>'
-                            f'a    = {planet.orbital_elements.semi_major_axis_m/AU:.4f} AU<br>'
-                            f'e    = {planet.orbital_elements.eccentricity:.4f}<br>'
-                            f'i    = {planet.orbital_elements.inclination_deg:.2f}°<br>'
-                            f'T    = {planet.orbital_elements.period_yr:.4f} yr<br>'
-                            f'v_c  = {planet.orbital_elements.orbital_velocity_circular_m_s/1e3:.2f} km/s'
-                            f'</div>', unsafe_allow_html=True)
-                    with c2p:
-                        st.markdown(
-                            f'<div class="planet-card">'
-                            f'<b>Description</b><br>'
-                            f'{planet.description}'
-                            f'</div>', unsafe_allow_html=True)
-                        st.markdown(
-                            f'<div class="planet-card">'
-                            f'<b>Surface conditions</b><br>'
-                            f'{planet.surface_conditions}'
-                            f'</div>', unsafe_allow_html=True)
-                        st.markdown(
-                            f'<div class="planet-card">'
-                            f'<b>Discovered by</b><br>'
-                            f'{planet.discovered_by}'
-                            f'</div>', unsafe_allow_html=True)
-
-
-if __name__ == "__main__":
-    wormhole_navigator_page()
+            fig = _plot_mission_trajectory(planner)
+            st.pyplot(fig, use_container_width=True); plt.close(fig)
+            st.dataframe(df, use_container_width=True, hide_index=True)
+        else:
+            st.info("Click button to compute full mission Δv budget.")
