@@ -1413,7 +1413,7 @@ def _plot_crew_vitals(crew_dict: Dict[CrewID, CrewMember]) -> plt.Figure:
         # Alert border
         al = crew.alert_level()
         border_c = {"GREEN":"#81C784","YELLOW":"#FFD700",
-                    "ORANGE":"#FF8800","RED":"#EF5350","CRITICAL":"#CE93D8"}.get(al.name,"#555")
+                    "ORANGE":"#FF8800","RED":"#D154FF","CRITICAL":"#CE93D8"}.get(al.name,"#555")
         for spine in ax.spines.values():
             spine.set_edgecolor(border_c); spine.set_linewidth(1.5)
 
@@ -1446,7 +1446,7 @@ def _plot_physiological_profile(df: pd.DataFrame, crew_name: str) -> plt.Figure:
     specs = [
         ("bone_density_pct", "#E8C46A", "Bone Density [%]",    [80,100], "↓ Osteoporosis risk"),
         ("muscle_mass_pct",  "#FF8800", "Muscle Mass [%]",     [70,100], "↓ Atrophy"),
-        ("radiation_mSv",    "#EF5350", "Cumulative Rad [mSv]",[0,500],  "↑ Cancer risk"),
+        ("radiation_mSv",    "#D154FF", "Cumulative Rad [mSv]",[0,500],  "↑ Cancer risk"),
         ("stress_pct",       "#CE93D8", "Stress Index [%]",    [0,80],   "↑ Psychological"),
         ("morale_pct",       "#81C784", "Morale [%]",          [0,100],  "↓ Mission cohesion"),
     ]
@@ -1458,7 +1458,7 @@ def _plot_physiological_profile(df: pd.DataFrame, crew_name: str) -> plt.Figure:
         ax.set_ylim(ylim)
         ax.set_facecolor("#060a14")
         if col == "radiation_mSv":
-            ax.axhline(500, color="#EF5350", lw=0.7, ls="--",
+            ax.axhline(500, color="#D154FF", lw=0.7, ls="--",
                        label="NASA career limit")
             ax.legend(fontsize=5.5)
 
@@ -1551,7 +1551,7 @@ def _plot_endurance_systems(ship: EnduranceSpacecraft) -> plt.Figure:
     status_colors = {
         SystemStatus.NOMINAL:   "#81C784",
         SystemStatus.DEGRADED:  "#FFB74D",
-        SystemStatus.CRITICAL:  "#EF5350",
+        SystemStatus.CRITICAL:  "#D154FF",
         SystemStatus.STANDBY:   "#4FC3F7",
         SystemStatus.OFFLINE:   "#555555",
         SystemStatus.EMERGENCY: "#CE93D8",
@@ -1597,11 +1597,11 @@ def _plot_endurance_systems(ship: EnduranceSpacecraft) -> plt.Figure:
     resources = ["O₂", "CO₂\nscrub", "H₂O", "Food"]
     days_rem  = [rem["o2_days"], rem["co2_days"],
                  rem["h2o_days"], rem["food_days"]]
-    colors3   = ["#81C784" if d>100 else "#FFB74D" if d>30 else "#EF5350"
+    colors3   = ["#81C784" if d>100 else "#FFB74D" if d>30 else "#D154FF"
                  for d in days_rem]
     bars3     = ax3.bar(resources, days_rem, color=colors3, alpha=0.85, width=0.5)
     ax3.bar_label(bars3, fmt="%.0f d", padding=3, fontsize=7, color="#fff")
-    ax3.axhline(30, color="#EF5350", lw=0.7, ls="--", label="30-day critical")
+    ax3.axhline(30, color="#D154FF", lw=0.7, ls="--", label="30-day critical")
     ax3.set_ylabel("Days remaining")
     ax3.set_title("LIFE SUPPORT RESERVES")
     ax3.legend(fontsize=6)
@@ -1632,7 +1632,7 @@ def _plot_endurance_systems(ship: EnduranceSpacecraft) -> plt.Figure:
     categories  = ["RTG","Solar","Fuel Cell","Demand"]
     values      = [pw.rtg_power_kW, pw.solar_output(),
                    pw.fuel_cell_kW, -pw.total_demand_kW]
-    colors5     = ["#E8C46A","#FF8800","#4FC3F7","#EF5350"]
+    colors5     = ["#E8C46A","#FF8800","#4FC3F7","#D154FF"]
     bars5       = ax5.bar(categories, values, color=colors5, alpha=0.85, width=0.5)
     ax5.bar_label(bars5, fmt="%.1f kW", padding=2, fontsize=7, color="#fff")
     ax5.axhline(0, color="#1a2040", lw=0.5)
@@ -1648,7 +1648,7 @@ def _plot_endurance_systems(ship: EnduranceSpacecraft) -> plt.Figure:
              alpha=0.80, edgecolor="#E8C46A", lw=0.5)
     ax6.axvline(np.mean(integrities), color="#E8C46A", lw=1.0,
                 ls="--", label=f"Mean {np.mean(integrities):.1f}%")
-    ax6.axvline(60, color="#EF5350", lw=0.7, ls=":", label="60% threshold")
+    ax6.axvline(60, color="#D154FF", lw=0.7, ls=":", label="60% threshold")
     ax6.set_xlabel("Module integrity [%]"); ax6.set_ylabel("Count")
     ax6.set_title("MODULE INTEGRITY DISTRIBUTION")
     ax6.legend(fontsize=6)
@@ -1732,7 +1732,7 @@ def _plot_comms(comms: CommunicationsRelay, distance_AU: float) -> plt.Figure:
                      lw=1.1, label=f"{band} ({bw}kbps)")
     ax1.axvline(distance_AU, color="#E8C46A", lw=0.9, ls="--",
                 label=f"Current: {distance_AU:.1f} AU")
-    ax1.axhline(-160, color="#EF5350", lw=0.6, ls=":", label="Noise floor")
+    ax1.axhline(-160, color="#D154FF", lw=0.6, ls=":", label="Noise floor")
     ax1.set_xlabel("Distance [AU]"); ax1.set_ylabel("Received power [dBm]")
     ax1.set_title("SIGNAL STRENGTH vs DISTANCE")
     ax1.legend(fontsize=5.5)
@@ -1776,7 +1776,7 @@ def _plot_tars_decisions(tars: AIRobot) -> plt.Figure:
     if tars.decision_log:
         confs = [d["confidence"] for d in tars.decision_log]
         x_pos = range(len(confs))
-        cols  = ["#81C784" if c>0.8 else "#FFB74D" if c>0.6 else "#EF5350"
+        cols  = ["#81C784" if c>0.8 else "#FFB74D" if c>0.6 else "#D154FF"
                  for c in confs]
         ax1.bar(x_pos, confs, color=cols, alpha=0.85, width=0.7)
         ax1.axhline(0.8, color="#E8C46A", lw=0.7, ls="--",
@@ -1860,7 +1860,7 @@ def crew_telemetry_page():
             al  = crew.alert_level()
             clr = CREW_COLORS.get(crew.crew_id, "#E8C46A")
             al_c= {"GREEN":"#81C784","YELLOW":"#FFD700","ORANGE":"#FF8800",
-                   "RED":"#EF5350","CRITICAL":"#CE93D8"}.get(al.name,"#888")
+                   "RED":"#D154FF","CRITICAL":"#CE93D8"}.get(al.name,"#888")
             col.markdown(
                 f'<div style="background:rgba(6,10,20,.92);border:1px solid {clr}55;'
                 f'border-top:2px solid {clr};padding:.6rem;border-radius:3px;'
@@ -2006,12 +2006,12 @@ def crew_telemetry_page():
                         border:1px solid rgba(129,199,132,.18);border-radius:3px;
                         line-height:2.0;margin-top:.4rem;">
             Mission day: <b style="color:#E8C46A;">{fs['mission_day']}</b><br>
-            Hull integrity: <b style="color:{'#81C784' if fs['hull_integrity_pct']>80 else '#EF5350'};">
+            Hull integrity: <b style="color:{'#81C784' if fs['hull_integrity_pct']>80 else '#D154FF'};">
             {fs['hull_integrity_pct']:.1f}%</b><br>
             Rotation: <b>{fs['rotation_rpm']} RPM → {fs['artificial_g']:.3f} g</b><br>
             Modules nominal: <b style="color:#81C784;">{fs['modules_nominal']}</b><br>
             Modules degraded: <b style="color:#FFB74D;">{fs['modules_degraded']}</b><br>
-            Modules critical: <b style="color:#EF5350;">{fs['modules_critical']}</b><br>
+            Modules critical: <b style="color:#D154FF;">{fs['modules_critical']}</b><br>
             Micromet impacts: <b>{fs['micromet_impacts']}</b><br>
             Tidal events: <b>{fs['tidal_events']}</b>
             </div>""", unsafe_allow_html=True)
@@ -2088,7 +2088,7 @@ def crew_telemetry_page():
             One-way lag: <b style="color:#CE93D8;">{comms.signal_lag_formatted(dist_AU)}</b><br>
             Round-trip: <b>{comms.signal_lag_formatted(dist_AU*2)}</b><br>
             Bandwidth: <b>{bw:.2f} bps</b><br>
-            Signal: <b style="color:{'#81C784' if sig_d>-120 else '#EF5350'};">{sig_d:.1f} dBm</b><br>
+            Signal: <b style="color:{'#81C784' if sig_d>-120 else '#D154FF'};">{sig_d:.1f} dBm</b><br>
             Wormhole relay: <b>{'YES' if comms.wormhole_relay else 'NO'}</b>
             </div>""", unsafe_allow_html=True)
 
@@ -2160,11 +2160,11 @@ def crew_telemetry_page():
             st.dataframe(combined, width='stretch', hide_index=True)
 
         if ship.alert_log:
-            st.markdown('<div style="font-family:monospace;font-size:.60rem;color:#EF5350;margin-top:.5rem;">ALERT LOG</div>',
+            st.markdown('<div style="font-family:monospace;font-size:.60rem;color:#D154FF;margin-top:.5rem;">ALERT LOG</div>',
                         unsafe_allow_html=True)
             for alert in ship.alert_log[-5:]:
                 st.markdown(
-                    f'<div style="font-family:monospace;font-size:.57rem;color:#EF5350;'
-                    f'border-left:2px solid #EF5350;padding:.15rem .4rem;">'
+                    f'<div style="font-family:monospace;font-size:.57rem;color:#D154FF;'
+                    f'border-left:2px solid #D154FF;padding:.15rem .4rem;">'
                     f'Day {alert["day"]:.0f}: {alert["message"]}</div>',
                     unsafe_allow_html=True)

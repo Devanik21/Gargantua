@@ -2079,7 +2079,7 @@ def _plot_disk_panel(bh: KerrBlackHole,
                           ls="--", label="F(r) [W/m²]")
     ax2.axvline(bh.r_isco_pro/bh.r_s, color="#4FC3F7", lw=0.8,
                 ls=":", label="r_ISCO")
-    ax2.axvline(bh.r_photon/bh.r_s, color="#EF5350", lw=0.6,
+    ax2.axvline(bh.r_photon/bh.r_s, color="#D154FF", lw=0.6,
                 ls="--", label="r_ph")
     ax2.set_xlabel("r / r_s"); ax2.set_ylabel("Temperature [K]",
                                                 color="#FF8800")
@@ -2119,8 +2119,8 @@ def _plot_bh_anatomy(bh: KerrBlackHole) -> plt.Figure:
     ax1.fill(np.concatenate([x_h, -x_h[::-1]]),
              np.concatenate([z_h,  z_h[::-1]]),
              color="#050810", label="Outer horizon")
-    ax1.plot(x_h, z_h, color="#EF5350", lw=1.2)
-    ax1.plot(-x_h, z_h, color="#EF5350", lw=1.2)
+    ax1.plot(x_h, z_h, color="#D154FF", lw=1.2)
+    ax1.plot(-x_h, z_h, color="#D154FF", lw=1.2)
 
     # Inner horizon
     r_im = bh.r_minus / bh.M_geo
@@ -2157,7 +2157,7 @@ def _plot_bh_anatomy(bh: KerrBlackHole) -> plt.Figure:
     # Null geodesic (b = b_crit × 0.9, b_crit, 1.1)
     lensing = KerrGeodesicLensing(bh)
     b_crit  = lensing.critical_impact_parameter()
-    for b_fac, clr, lbl in [(0.85, "#EF5350", f"b=0.85b_c (captured)"),
+    for b_fac, clr, lbl in [(0.85, "#D154FF", f"b=0.85b_c (captured)"),
                               (1.00, "#E8C46A", f"b=b_crit={b_crit:.2f}M (critical)"),
                               (1.20, "#81C784", f"b=1.2b_c (scattered)")]:
         b = b_fac*b_crit
@@ -2195,7 +2195,7 @@ def _plot_gw_waveform(wf: Dict[str, Any]) -> plt.Figure:
     gs  = gridspec.GridSpec(3, 3, figure=fig, hspace=0.52, wspace=0.40)
 
     snr_c = ("#81C784" if wf["snr"] > 8 else
-             "#FFB74D" if wf["snr"] > 5 else "#EF5350")
+             "#FFB74D" if wf["snr"] > 5 else "#D154FF")
 
     # ── Row 0: full strain ──────────────────────────────────────────────
     ax0 = fig.add_subplot(gs[0, :])
@@ -2205,7 +2205,7 @@ def _plot_gw_waveform(wf: Dict[str, Any]) -> plt.Figure:
              color="#4FC3F7", lw=0.7, alpha=0.8, label="Inspiral h_+")
     ax0.plot(wf["t"], wf["h_signal"]*1e21,
              color="#E8C46A", lw=1.1, label="Total signal")
-    ax0.axvline(wf["t_merge"], color="#EF5350", lw=0.9, ls="--",
+    ax0.axvline(wf["t_merge"], color="#D154FF", lw=0.9, ls="--",
                 label=f"Merger t₀={wf['t_merge']:.2f}s")
     ax0.set_xlabel("Time  [s]"); ax0.set_ylabel("h(t) × 10²¹")
     ax0.set_title(
@@ -2259,10 +2259,10 @@ def _plot_gw_waveform(wf: Dict[str, Any]) -> plt.Figure:
     if len(h_rd) > 0:
         A0 = abs(h_rd[0]) + 1e-30
         ax3.plot(t_rd, A0*np.exp(-t_rd/wf["tau_qnm"]),
-                 color="#EF5350", lw=0.7, ls="--",
+                 color="#D154FF", lw=0.7, ls="--",
                  label=f"Envelope τ={wf['tau_qnm']*1e3:.1f}ms")
         ax3.plot(t_rd, -A0*np.exp(-t_rd/wf["tau_qnm"]),
-                 color="#EF5350", lw=0.7, ls="--")
+                 color="#D154FF", lw=0.7, ls="--")
     ax3.axhline(0, color="#1a2545", lw=0.5)
     ax3.set_xlabel("t − t_merger  [s]"); ax3.set_ylabel("h_rd × 10²¹")
     ax3.set_title(f"QNM RINGDOWN  f={wf['f_qnm']:.0f}Hz")
@@ -2274,7 +2274,7 @@ def _plot_gw_waveform(wf: Dict[str, Any]) -> plt.Figure:
     post = gwe.chirp_mass_posterior(wf["Mc"], wf["snr"])
     ax4.hist(post["samples"], bins=50, color="#E8C46A",
              alpha=0.75, density=True, edgecolor="none")
-    ax4.axvline(wf["Mc"], color="#EF5350", lw=1.2, ls="--",
+    ax4.axvline(wf["Mc"], color="#D154FF", lw=1.2, ls="--",
                 label=f"True Mc={wf['Mc']:.3f}M☉")
     ax4.axvspan(wf["Mc"]-post["sigma_Mc"],
                 wf["Mc"]+post["sigma_Mc"],
@@ -2292,7 +2292,7 @@ def _plot_gw_waveform(wf: Dict[str, Any]) -> plt.Figure:
              color="#4FC3F7", lw=1.0, label="f_GW(t)  PN")
     ax5.axhline(wf["f_qnm"], color="#E8C46A", lw=0.8, ls=":",
                 label=f"f_QNM={wf['f_qnm']:.0f}Hz")
-    ax5.axvline(wf["t_merge"], color="#EF5350", lw=0.8, ls="--")
+    ax5.axvline(wf["t_merge"], color="#D154FF", lw=0.8, ls="--")
     ax5.set_xlabel("Time  [s]"); ax5.set_ylabel("f_GW  [Hz]")
     ax5.set_title("GW FREQUENCY CHIRP  (PN quadrupole)")
     ax5.legend(fontsize=6)
@@ -2312,14 +2312,14 @@ def _plot_radial_profile(df: pd.DataFrame,
 
     def _add_vlines(ax):
         ax.axvline(rs_isco, color="#E8C46A", lw=0.7, ls=":", label="r_ISCO")
-        ax.axvline(rs_ph,   color="#EF5350", lw=0.6, ls="--", label="r_ph")
+        ax.axvline(rs_ph,   color="#D154FF", lw=0.6, ls="--", label="r_ph")
         ax.axvline(bh.r_plus/bh.r_s, color="#FF8800", lw=0.6,
                    ls="-.", label="r₊")
 
     specs = [
         ("dilation_factor",   "#E8C46A", "Time Dilation Factor (coord/proper)",
          "Coordinate time per unit proper time"),
-        ("tidal_radial_g_m",  "#EF5350", "Tidal Accel Radial  [g/m]",
+        ("tidal_radial_g_m",  "#D154FF", "Tidal Accel Radial  [g/m]",
          "Stretching per meter of object separation"),
         ("ZAMO_omega_rads",   "#CE93D8", "ZAMO Frame Drag Ω  [rad/s]",
          "Zero-Angular-Momentum Observer angular velocity"),
@@ -2358,12 +2358,12 @@ def _plot_tidal(df_t: pd.DataFrame, bh: KerrBlackHole) -> plt.Figure:
 
     # Tidal forces
     ax1.semilogy(df_t["r_rs"], df_t["tidal_radial_g"] + 1e-30,
-                 color="#EF5350", lw=1.2, label="Radial (stretch)")
+                 color="#D154FF", lw=1.2, label="Radial (stretch)")
     ax1.semilogy(df_t["r_rs"], df_t["tidal_trans_g"] + 1e-30,
                  color="#4FC3F7", lw=1.0, label="Transverse (squeeze)")
     ax1.axvline(bh.r_isco_pro/bh.r_s, color="#E8C46A", lw=0.8, ls=":",
                 label="r_ISCO")
-    ax1.axvline(bh.r_photon/bh.r_s, color="#EF5350", lw=0.7, ls="--",
+    ax1.axvline(bh.r_photon/bh.r_s, color="#D154FF", lw=0.7, ls="--",
                 label="r_ph")
     # Spaghettification reference lines
     ax1.axhline(1.0, color="#FF8800", lw=0.6, ls="--",
@@ -2389,7 +2389,7 @@ def _plot_tidal(df_t: pd.DataFrame, bh: KerrBlackHole) -> plt.Figure:
                         for m in m_arr]) / bh.r_s
     r_sp_s = np.array([bh.spaghettification_radius(m, 80, 4e8)
                         for m in m_arr]) / bh.r_s
-    ax3.loglog(m_arr, r_sp_h, color="#EF5350", lw=1.2,
+    ax3.loglog(m_arr, r_sp_h, color="#D154FF", lw=1.2,
                label="Human (σ=1MPa, L=1.8m)")
     ax3.loglog(m_arr, r_sp_s, color="#4FC3F7", lw=1.2,
                label="Endurance (σ=400MPa, L=80m)")
@@ -2416,7 +2416,7 @@ def _plot_miller(mill: Dict[str, Any], bh: KerrBlackHole) -> plt.Figure:
     dtr     = np.array([bh.proper_time_ratio(r) for r in r_range])
     r_rs    = r_range / bh.r_s
     ax1.semilogy(r_rs, dtr, color="#E8C46A", lw=1.3)
-    ax1.axvline(mill["r_miller_rs"], color="#EF5350", lw=1.0, ls="--",
+    ax1.axvline(mill["r_miller_rs"], color="#D154FF", lw=1.0, ls="--",
                 label=f"r_Miller = {mill['r_miller_rs']:.6f} r_s")
     ax1.axhline(mill["target_dtau_dt"], color="#4FC3F7", lw=0.8, ls=":",
                 label=f"Target dτ/dt = {mill['target_dtau_dt']:.3e}")
@@ -2435,7 +2435,7 @@ def _plot_miller(mill: Dict[str, Any], bh: KerrBlackHole) -> plt.Figure:
         "23 ship hours\n(film canon)": 23*yr_per_hr,
         "1 ship day":  24*yr_per_hr,
     }
-    colors = ["#E8C46A", "#FF8800", "#EF5350", "#CE93D8"]
+    colors = ["#E8C46A", "#FF8800", "#D154FF", "#CE93D8"]
     bars = ax2.barh(list(scenarios.keys()),
                     list(scenarios.values()),
                     color=colors, alpha=0.85)
@@ -2517,9 +2517,9 @@ def _plot_penrose(bh: KerrBlackHole) -> plt.Figure:
     ax.plot(s, -s, color="#E8C46A", lw=1.2, ls="--")
 
     # Future singularity (top boundary)
-    ax.axhline(math.pi/2*0.98, color="#EF5350", lw=1.0, ls="-",
+    ax.axhline(math.pi/2*0.98, color="#D154FF", lw=1.0, ls="-",
                label="Singularity (r=0)")
-    ax.axhline(-math.pi/2*0.98, color="#EF5350", lw=0.5, ls=":")
+    ax.axhline(-math.pi/2*0.98, color="#D154FF", lw=0.5, ls=":")
 
     # Spatial infinity
     ax.axvline(math.pi/2*0.98,  color="#555", lw=0.5, ls=":")
@@ -2652,7 +2652,7 @@ def gravity_engine_page():
             = <b style="color:#E8C46A;">{su['M_kg']:.3e} kg</b><br>
             a* = <b style="color:#4FC3F7;">{su['spin_a*']:.10f}</b><br>
             r_s = <b>{su['r_s_km']:.4e} km</b><br>
-            r₊ (outer horizon) = <b style="color:#EF5350;">{su['r_plus_km']:.4e} km</b><br>
+            r₊ (outer horizon) = <b style="color:#D154FF;">{su['r_plus_km']:.4e} km</b><br>
             r₋ (inner horizon) = <b style="color:#FF8800;">{su['r_minus_km']:.4e} km</b><br>
             r_erg (equatorial) = <b style="color:#CE93D8;">{su['r_ergo_eq_km']:.4e} km</b><br>
             r_ph (photon sphere)= <b style="color:#81C784;">{su['r_photon_km']:.4e} km</b><br>
@@ -2667,10 +2667,10 @@ def gravity_engine_page():
             P_H = <b style="color:#666;">{su['L_hawking_W']:.4e} W</b><br>
             t_evap = <b style="color:#666;">{hawk.evaporation_time()/YEAR_S:.4e} yr</b><br>
             <b style="color:#E8C46A;font-size:.62rem;">── MILLER'S WORLD ──</b><br>
-            r_Miller = <b style="color:#EF5350;">
+            r_Miller = <b style="color:#D154FF;">
             {mill['r_miller_risco_ratio']:.8f} r_ISCO</b><br>
-            dτ/dt = <b style="color:#EF5350;">{mill['actual_dtau_dt']:.4e}</b><br>
-            Earth yr/ship hr = <b style="color:#EF5350;">
+            dτ/dt = <b style="color:#D154FF;">{mill['actual_dtau_dt']:.4e}</b><br>
+            Earth yr/ship hr = <b style="color:#D154FF;">
             {mill['earth_yr_per_ship_hr']:.3f}</b><br>
             Tidal class = <b>{mill['tidal_class']}</b><br>
             Wave height ≈ <b style="color:#4FC3F7;">
@@ -2821,7 +2821,7 @@ def gravity_engine_page():
             wf = S.get("grav_wf")
             if wf:
                 sc  = ("#81C784" if wf["snr"] > 8 else
-                       "#FFB74D" if wf["snr"] > 5 else "#EF5350")
+                       "#FFB74D" if wf["snr"] > 5 else "#D154FF")
                 kpis = [
                     ("SNR",     f"{wf['snr']:.2f}",          sc),
                     ("SNR_dB",  f"{wf['snr_db']:.1f} dB",    sc),
@@ -2885,7 +2885,7 @@ def gravity_engine_page():
             heat = bh.tidal_heating_rate(r_m)
 
             risk_col = {"SAFE":"#81C784","MARGINAL":"#FFB74D",
-                        "DANGEROUS":"#FF5722","LETHAL":"#EF5350",
+                        "DANGEROUS":"#FF5722","LETHAL":"#D154FF",
                         "SPAGHETTI":"#CE93D8"}.get(risk.name, "#fff")
             st.markdown(f"""
             <div style="font-family:monospace;font-size:.58rem;color:#c0c8e0;
@@ -2893,8 +2893,8 @@ def gravity_engine_page():
                         border:1px solid rgba(232,196,106,.12);
                         border-radius:3px;line-height:2.0;">
             <b style="color:#E8C46A;">── TIDAL @ r={r_q:.2f}r_s ──</b><br>
-            C_rr  = <b style="color:#EF5350;">{C_rr:.4e} s⁻²</b><br>
-            Δa_r  = <b style="color:#EF5350;">{abs(C_rr)/9.81:.4e} g/m</b><br>
+            C_rr  = <b style="color:#D154FF;">{C_rr:.4e} s⁻²</b><br>
+            Δa_r  = <b style="color:#D154FF;">{abs(C_rr)/9.81:.4e} g/m</b><br>
             C_θθ  = <b style="color:#4FC3F7;">{C_th:.4e} s⁻²</b><br>
             Δa_⊥  = <b style="color:#4FC3F7;">{abs(C_th)/9.81:.4e} g/m</b><br>
             Risk  = <b style="color:{risk_col};">◆ {risk.name}</b><br>
@@ -2940,14 +2940,14 @@ def gravity_engine_page():
                         border:1px solid rgba(232,196,106,.15);
                         border-radius:3px;line-height:2.1;">
             <b style="color:#E8C46A;font-size:.65rem;">── MILLER'S WORLD ──</b><br>
-            r_Miller = <b style="color:#EF5350;">
+            r_Miller = <b style="color:#D154FF;">
             {mill['r_miller_risco_ratio']:.10f} × r_ISCO</b><br>
-            Above ISCO = <b style="color:#EF5350;">
+            Above ISCO = <b style="color:#D154FF;">
             {mill['r_miller_above_isco_m']:.3e} m</b><br>
             dτ/dt actual = <b>{mill['actual_dtau_dt']:.6e}</b><br>
             Dilation factor = <b>{1/mill['actual_dtau_dt']:.3e}</b><br>
             <br>
-            Earth yr/ship hr = <b style="color:#EF5350;font-size:.72rem;">
+            Earth yr/ship hr = <b style="color:#D154FF;font-size:.72rem;">
             {mill['earth_yr_per_ship_hr']:.4f}</b><br>
             Ship min/Earth yr = <b>{mill['ship_min_per_earth_yr']:.4f}</b><br>
             <br>
@@ -2967,7 +2967,7 @@ def gravity_engine_page():
             Stable orbit = <b>{"✓" if mill["is_stable_orbit"] else "✗"}</b><br>
             <br>
             <b style="color:#E8C46A;font-size:.70rem;">── MISSION TIME BUDGET ──</b><br>
-            {ship_hrs:.1f} ship-hours → <b style="color:#EF5350;font-size:.72rem;">
+            {ship_hrs:.1f} ship-hours → <b style="color:#D154FF;font-size:.72rem;">
             {earth_yr_lost:.2f} Earth years lost</b>
             </div>""", unsafe_allow_html=True)
 

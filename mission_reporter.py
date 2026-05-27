@@ -1152,7 +1152,7 @@ PROBE_STATUS_COLORS = {
     ProbeStatus.ACTIVE:        "#81C784",
     ProbeStatus.SILENT:        "#555555",
     ProbeStatus.CONFIRMED_OK:  "#E8C46A",
-    ProbeStatus.CONFIRMED_BAD: "#EF5350",
+    ProbeStatus.CONFIRMED_BAD: "#D154FF",
     ProbeStatus.FALSIFIED:     "#CE93D8",
     ProbeStatus.DESTROYED:     "#FF8800",
     ProbeStatus.UNKNOWN:       "#4FC3F7",
@@ -1195,7 +1195,7 @@ def _plot_lazarus_overview(probes: List[LazarusProbe]) -> plt.Figure:
     clrs2  = [PROBE_STATUS_COLORS.get(p.status,"#888") for p in probes]
     x_pos  = np.arange(len(probes))
     bars2  = ax2.bar(x_pos, snrs, color=clrs2, alpha=0.85, width=0.6)
-    ax2.axhline(0, color="#EF5350", lw=0.7, ls="--", label="Signal lost threshold")
+    ax2.axhline(0, color="#D154FF", lw=0.7, ls="--", label="Signal lost threshold")
     ax2.axhline(15, color="#81C784", lw=0.6, ls=":", label="Good SNR (15dB)")
     ax2.set_xticks(x_pos)
     ax2.set_xticklabels(names, rotation=45, ha="right", fontsize=5.5)
@@ -1229,7 +1229,7 @@ def _plot_plan_ab(plan_a: PlanAStatus, plan_b: PlanBStatus) -> plt.Figure:
     ax1 = axes[0,0]
     frac = plan_a.fraction_complete
     theta= np.linspace(0, 2*math.pi*frac, 300)
-    clr_a= "#81C784" if frac>=1 else "#E8C46A" if frac>0.5 else "#EF5350"
+    clr_a= "#81C784" if frac>=1 else "#E8C46A" if frac>0.5 else "#D154FF"
     ax1.plot(np.cos(theta), np.sin(theta), color=clr_a, lw=10, solid_capstyle="round")
     ax1.add_patch(Circle((0,0), 0.75, color="#060a14", zorder=3))
     ax1.text(0, 0.12, f"{frac*100:.1f}%", ha="center", fontsize=22,
@@ -1240,7 +1240,7 @@ def _plot_plan_ab(plan_a: PlanAStatus, plan_b: PlanBStatus) -> plt.Figure:
              ha="center", fontsize=7, color="#888", fontfamily="monospace")
     ax1.text(0, -0.55, f"SOLVED: {'YES ✓' if plan_a.solved else 'NOT YET'}",
              ha="center", fontsize=7,
-             color="#81C784" if plan_a.solved else "#EF5350",
+             color="#81C784" if plan_a.solved else "#D154FF",
              fontfamily="monospace")
     ax1.set_xlim(-1.2,1.2); ax1.set_ylim(-1.2,1.2)
     ax1.set_aspect("equal"); ax1.axis("off")
@@ -1284,7 +1284,7 @@ def _plot_plan_ab(plan_a: PlanAStatus, plan_b: PlanBStatus) -> plt.Figure:
     ax4.hist(fit_arr, bins=40, color="#CE93D8", alpha=0.80, edgecolor="#0a0a20")
     ax4.axvline(fit_arr.mean(), color="#E8C46A", lw=1.0, ls="--",
                 label=f"Mean={fit_arr.mean():.3f}")
-    ax4.axvline(0.60, color="#EF5350", lw=0.7, ls=":", label="Min threshold")
+    ax4.axvline(0.60, color="#D154FF", lw=0.7, ls=":", label="Min threshold")
     ax4.set_xlabel("Fitness score"); ax4.set_ylabel("Count")
     ax4.set_title(f"EMBRYO FITNESS — {plan_b.embryo_bank.n:,} embryos\n"
                   f"Diversity={plan_b.embryo_bank.diversity_idx:.4f}")
@@ -1296,10 +1296,10 @@ def _plot_plan_ab(plan_a: PlanAStatus, plan_b: PlanBStatus) -> plt.Figure:
     vals5 = [plan_b.embryo_bank.n, plan_b.viable_embryos(),
              plan_b.gen1_population(), plan_b.gen2_population(),
              plan_b.mvp_threshold]
-    cols5 = ["#4FC3F7","#81C784","#E8C46A","#FF8800","#EF5350"]
+    cols5 = ["#4FC3F7","#81C784","#E8C46A","#FF8800","#D154FF"]
     bars5 = ax5.bar(gens, vals5, color=cols5, alpha=0.85)
     ax5.bar_label(bars5, fmt="%d", padding=3, fontsize=7, color="#fff")
-    ax5.axhline(plan_b.mvp_threshold, color="#EF5350", lw=0.8, ls="--",
+    ax5.axhline(plan_b.mvp_threshold, color="#D154FF", lw=0.8, ls="--",
                 label=f"MVP={plan_b.mvp_threshold}")
     ax5.set_ylabel("People"); ax5.set_title("PLAN B — POPULATION PROJECTIONS")
     ax5.legend(fontsize=6)
@@ -1310,7 +1310,7 @@ def _plot_plan_ab(plan_a: PlanAStatus, plan_b: PlanBStatus) -> plt.Figure:
     div_arr   = np.linspace(0.3, 1.0, 200)
     N_eff_arr = n_arr * plan_b.embryo_bank.diversity_idx
     F_arr     = 1.0/(2*N_eff_arr) * 10  # after 10 generations
-    ax6.semilogx(n_arr, np.clip(F_arr, 0, 1), color="#EF5350", lw=1.2,
+    ax6.semilogx(n_arr, np.clip(F_arr, 0, 1), color="#D154FF", lw=1.2,
                  label="Inbreeding F (10 gen)")
     ax6.axvline(plan_b.gen1_population(), color="#E8C46A", lw=0.9, ls="--",
                 label=f"Gen1 N={plan_b.gen1_population()}")
@@ -1333,7 +1333,7 @@ def _plot_blight(blight: BlightSpreadModel) -> plt.Figure:
     ax1 = axes[0,0]
     yr_arr = np.linspace(2048, 2100, 300)
     crop_colors = {"Wheat":"#E8C46A","Corn":"#FF8800","Rice":"#81C784",
-                   "Soy":"#4FC3F7","Okra":"#CE93D8","Potato":"#EF5350","Cassava":"#FFB74D"}
+                   "Soy":"#4FC3F7","Okra":"#CE93D8","Potato":"#D154FF","Cassava":"#FFB74D"}
     for crop, clr in crop_colors.items():
         frac_arr = [blight.blight_fraction(crop, y) for y in yr_arr]
         ax1.plot(yr_arr, frac_arr, color=clr, lw=1.1, label=crop)
@@ -1351,7 +1351,7 @@ def _plot_blight(blight: BlightSpreadModel) -> plt.Figure:
     ax2b = ax2.twinx()
     ax2b.plot(yr_arr, cal_arr, color="#4FC3F7", lw=1.0, ls="--",
               label="Cal/person/day")
-    ax2.axhline(0.5, color="#EF5350", lw=0.7, ls=":", label="Critical 50%")
+    ax2.axhline(0.5, color="#D154FF", lw=0.7, ls=":", label="Critical 50%")
     ax2.axvline(MISSION_START_YR, color="#E8C46A", lw=0.8, ls="--")
     ax2.set_xlabel("Year"); ax2.set_ylabel("FPI [0–1]", color="#E8C46A")
     ax2b.set_ylabel("Calories/person/day", color="#4FC3F7")
@@ -1364,9 +1364,9 @@ def _plot_blight(blight: BlightSpreadModel) -> plt.Figure:
     ax3 = axes[1,0]
     pop_df = blight.population_projection(2060, 2120)
     ax3.fill_between(pop_df["year"], pop_df["population"]/1e9, 0,
-                     alpha=0.25, color="#EF5350")
+                     alpha=0.25, color="#D154FF")
     ax3.plot(pop_df["year"], pop_df["population"]/1e9,
-             color="#EF5350", lw=1.3, label="Carrying capacity")
+             color="#D154FF", lw=1.3, label="Carrying capacity")
     ax3.axhline(EARTH_POP_2067/1e9, color="#555", lw=0.6, ls=":",
                 label=f"2067 pop: {EARTH_POP_2067/1e9:.1f}B")
     ext_yr = blight.extinction_year()
@@ -1386,7 +1386,7 @@ def _plot_blight(blight: BlightSpreadModel) -> plt.Figure:
     ax4.fill_between(yr_plot, urg_arr, 0, alpha=0.25,
                      color="#FF8800")
     ax4.plot(yr_plot, urg_arr, color="#FF8800", lw=1.3)
-    ax4.axhline(0.90, color="#EF5350", lw=0.7, ls="--",
+    ax4.axhline(0.90, color="#D154FF", lw=0.7, ls="--",
                 label="90% urgency — critical deadline")
     ax4.axhline(0.50, color="#FFB74D", lw=0.6, ls=":", label="50% urgency")
     ax4.axvline(MISSION_START_YR, color="#E8C46A", lw=0.9, ls="--",
@@ -1469,7 +1469,7 @@ def _plot_data_drives(mgr: DataDriveManager) -> plt.Figure:
     names1 = [d.drive_id for d in mgr.drives]
     sizes  = [d.size_bits/1e9 for d in mgr.drives]
     clrs1  = ["#c040ff" if d.is_tars_crystal else
-               "#81C784" if d.verified else "#EF5350"
+               "#81C784" if d.verified else "#D154FF"
                for d in mgr.drives]
     bars1  = ax1.barh(names1, sizes, color=clrs1, alpha=0.85)
     ax1.bar_label(bars1, fmt="%.2f Gb", padding=3, fontsize=6, color="#fff")
@@ -1485,7 +1485,7 @@ def _plot_data_drives(mgr: DataDriveManager) -> plt.Figure:
     for d in mgr.drives:
         statuses[d.status.value] = statuses.get(d.status.value,0)+1
     st_c = {DataDriveStatus.VERIFIED.value:   "#81C784",
-            DataDriveStatus.CORRUPTED.value:  "#EF5350",
+            DataDriveStatus.CORRUPTED.value:  "#D154FF",
             DataDriveStatus.TRANSMITTED.value:"#E8C46A",
             DataDriveStatus.PENDING.value:    "#4FC3F7"}
     keys  = [k for k, v in statuses.items() if v > 0]
@@ -1533,11 +1533,11 @@ def _plot_mission_timeline(reporter: MissionReporter) -> plt.Figure:
         "SATURN":      "#CE93D8",
         "GARGANTUA":   "#FF8800",
         "MILLER":      "#4FC3F7",
-        "MANN":        "#EF5350",
+        "MANN":        "#D154FF",
         "TESSERACT":   "#c040ff",
         "EDMUNDS":     "#81C784",
         "COLONY":      "#FFD700",
-        "CRITICAL":    "#EF5350",
+        "CRITICAL":    "#D154FF",
         "DISCOVERY":   "#c040ff",
         "BREAKTHROUGH":"#FFD700",
         "MISSION":     "#E8C46A",
@@ -1649,7 +1649,7 @@ def mission_reporter_page():
             <b style="color:#FFD700;">PLAN A</b><br>
             Eq: <b style="color:#E8C46A;">{su_a['equation_pct']:.1f}%</b>
             ({su_a['coefficients_known']}/42)<br>
-            SOLVED: <b style="color:{'#81C784' if su_a['solved'] else '#EF5350'};">
+            SOLVED: <b style="color:{'#81C784' if su_a['solved'] else '#D154FF'};">
             {'YES ✓' if su_a['solved'] else 'NO'}</b><br>
             Ships: <b>{su_a['colony_ships_ready']}/{R.plan_a.colony_ships_total}</b><br>
             Capacity: <b>{su_a['total_capacity']:,}</b><br>
@@ -1659,7 +1659,7 @@ def mission_reporter_page():
             Viable: <b>{su_b['viable_embryos']:,}</b><br>
             Gen1: <b style="color:#81C784;">{su_b['gen1_population']:,}</b><br>
             MVP: <b>{'✓ YES' if su_b['exceeds_mvp'] else '✗ NO'}</b><br>
-            Bottleneck: <b style="color:#EF5350;">{su_b['bottleneck_risk']:.4f}</b>
+            Bottleneck: <b style="color:#D154FF;">{su_b['bottleneck_risk']:.4f}</b>
             </div>""", unsafe_allow_html=True)
         with c2:
             fig_ab = _plot_plan_ab(R.plan_a, R.plan_b)
@@ -1680,10 +1680,10 @@ def mission_reporter_page():
         <div style="font-family:monospace;font-size:.60rem;color:#c0c0e0;
                     background:rgba(7,10,20,.92);padding:.5rem;
                     border:1px solid rgba(255,215,0,.12);border-radius:3px;">
-        Estimated extinction year: <b style="color:#EF5350;">{ext_yr:.0f}</b>  ·
+        Estimated extinction year: <b style="color:#D154FF;">{ext_yr:.0f}</b>  ·
         FPI at 2097: <b style="color:#FF8800;">{fpi_now:.3f}</b>  ·
         Calories at 2097: <b>{R.blight.calories_per_person_per_day(MISSION_START_YR+30):.0f}/day</b>  ·
-        Mission urgency: <b style="color:#EF5350;">CRITICAL</b>
+        Mission urgency: <b style="color:#D154FF;">CRITICAL</b>
         </div>""", unsafe_allow_html=True)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1745,7 +1745,7 @@ def mission_reporter_page():
                         line-height:2.0;">
             Drives: <b>{rep_d['total_drives']}</b><br>
             Verified: <b style="color:#81C784;">{rep_d['verified']}</b><br>
-            Corrupted: <b style="color:#EF5350;">{rep_d['corrupted']}</b><br>
+            Corrupted: <b style="color:#D154FF;">{rep_d['corrupted']}</b><br>
             Total data: <b>{rep_d['total_GB']:.3f} GB</b><br>
             Murphy coeffs: <b>{rep_d['total_murphy_coeffs']}</b>
             </div>""", unsafe_allow_html=True)
@@ -1768,7 +1768,7 @@ def mission_reporter_page():
                 ("Plan A %",    f"{rpt['plan_a']['equation_pct']:.1f}%",     "#FFD700"),
                 ("Plan B MVP",  "YES" if rpt['plan_b']['exceeds_mvp'] else "NO","#4FC3F7"),
                 ("Best Planet", rpt["best_planet"][:12],                      "#81C784"),
-                ("Extinction",  f"~{rpt['blight_extinction_year']:.0f}",     "#EF5350"),
+                ("Extinction",  f"~{rpt['blight_extinction_year']:.0f}",     "#D154FF"),
                 ("Score",       str(rpt["total_score"]),                       "#E8C46A"),
                 ("Success %",   f"{rpt['success_prob']*100:.0f}%",            "#81C784"),
             ]
@@ -1792,7 +1792,7 @@ def mission_reporter_page():
         st.pyplot(fig_tl, width='stretch'); plt.close(fig_tl)
         tl_df  = R.mission_timeline()
         cat_colors_html = {
-            "CRITICAL":    "#EF5350", "DISCOVERY": "#c040ff",
+            "CRITICAL":    "#D154FF", "DISCOVERY": "#c040ff",
             "BREAKTHROUGH":"#FFD700", "MISSION":   "#E8C46A",
             "PLAN_A":      "#81C784", "PLAN_B":    "#4FC3F7",
             "EARTH":       "#E8C46A", "GARGANTUA": "#FF8800",

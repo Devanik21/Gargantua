@@ -2036,7 +2036,7 @@ def _plot_atmosphere(planet: Planet) -> plt.Figure:
     d     = {sp: v for sp, v in comp.to_dict().items() if v > 1e-5}
     if d:
         clrs_pie = ["#4FC3F7","#81C784","#FF8800","#CE93D8","#E8C46A",
-                    "#EF5350","#FFB74D","#a0a0ff"]
+                    "#D154FF","#FFB74D","#a0a0ff"]
         labs = list(d.keys()); vals = list(d.values())
         wedges, texts, auto = ax3.pie(
             vals, labels=labs, autopct="%1.1f%%",
@@ -2169,7 +2169,7 @@ def _plot_risk_matrix(risk_df: pd.DataFrame,
 
     risk_colors = {
         "SAFE": "#81C784", "CAUTION": "#FFD700",
-        "HAZARDOUS": "#FF8800", "CRITICAL": "#EF5350",
+        "HAZARDOUS": "#FF8800", "CRITICAL": "#D154FF",
         "UNSURVIVABLE": "#CE93D8",
     }
     risk_vals = {"SAFE":0,"CAUTION":1,"HAZARDOUS":2,"CRITICAL":3,"UNSURVIVABLE":4}
@@ -2224,7 +2224,7 @@ def _plot_risk_matrix(risk_df: pd.DataFrame,
         y -= 0.06
     if y > 0:
         ax2.text(0.02, y, f"Limiting factor: {surv.get('limiting_factor','—')}",
-                 fontsize=7, color="#EF5350", transform=ax2.transAxes,
+                 fontsize=7, color="#D154FF", transform=ax2.transAxes,
                  fontfamily="monospace")
 
     plt.tight_layout()
@@ -2250,7 +2250,7 @@ def _plot_miller_special(miller: Planet) -> plt.Figure:
     wave_h   = H_wave * (np.cos(x) + 0.3*np.cos(2*x))
     ax1.plot(x, wave_h/1000, color="#4FC3F7", lw=1.5)
     ax1.fill_between(x, wave_h/1000, 0, alpha=0.2, color="#4FC3F7")
-    ax1.axhline(1.2, color="#EF5350", lw=0.8, ls="--",
+    ax1.axhline(1.2, color="#D154FF", lw=0.8, ls="--",
                 label="Film canon: 1.2 km")
     ax1.set_xlabel("Azimuthal angle [rad]")
     ax1.set_ylabel("Wave height  [km]")
@@ -2266,7 +2266,7 @@ def _plot_miller_special(miller: Planet) -> plt.Figure:
                           2*G_SI**2*garg_M**2*miller.M_kg*miller.R_m**5
                           / (19*1e9*100*r**6) for r in r_arr])
     ax2.semilogy(r_arr/miller.R_m, heat_arr, color="#FF8800", lw=1.2)
-    ax2.axvline(r_miller/miller.R_m, color="#EF5350", lw=0.8, ls="--",
+    ax2.axvline(r_miller/miller.R_m, color="#D154FF", lw=0.8, ls="--",
                 label=f"Miller orbit")
     ax2.set_xlabel("r / R_planet"); ax2.set_ylabel("Tidal heating  [W]")
     ax2.set_title("TIDAL HEATING vs ORBIT RADIUS")
@@ -2283,8 +2283,8 @@ def _plot_miller_special(miller: Planet) -> plt.Figure:
     ax3.plot(ship_hrs, [cooper_age]*len(ship_hrs), color="#E8C46A",
              lw=1.5, label="Cooper (ship)")
     ax3.fill_between(ship_hrs, murph_ages, cooper_age, alpha=0.15,
-                     color="#EF5350", label="Age gap")
-    ax3.axvline(3.22, color="#EF5350", lw=0.8, ls="--",
+                     color="#D154FF", label="Age gap")
+    ax3.axvline(3.22, color="#D154FF", lw=0.8, ls="--",
                 label="Film: 3.22h on Miller")
     ax3.set_xlabel("Ship-hours on Miller")
     ax3.set_ylabel("Age  [yr]")
@@ -2510,7 +2510,7 @@ def planet_analyzer_page():
             (λ>20: stable; <1: blowoff)<br>
             t_atm_life ≈ <b>{atm_life:.2e} yr</b><br>
             <b style="color:#81C784;">── CLIMATE LIMITS ──</b><br>
-            S_runaway = <b style="color:#EF5350;">{rgh_flux:.0f} W/m²</b><br>
+            S_runaway = <b style="color:#D154FF;">{rgh_flux:.0f} W/m²</b><br>
             S_max_GH  = <b>{mgh_flux:.0f} W/m²</b><br>
             Current S = <b>{p2.S_flux:.0f} W/m²</b><br>
             Runaway? <b>{"YES ⚠" if atm2.is_runaway_greenhouse() else "No ✓"}</b><br>
@@ -2589,7 +2589,7 @@ def planet_analyzer_page():
                         line-height:2.0;">
             <b style="color:#81C784;">HZ BOUNDARIES</b><br>
             Recent Venus: <b>{hz['recent_venus']:.3f} AU</b><br>
-            Runaway GH:   <b style="color:#EF5350;">{hz['runaway_greenhouse']:.3f} AU</b><br>
+            Runaway GH:   <b style="color:#D154FF;">{hz['runaway_greenhouse']:.3f} AU</b><br>
             Moist GH:     <b>{hz['moist_greenhouse']:.3f} AU</b><br>
             Max GH:       <b style="color:#4FC3F7;">{hz['max_greenhouse']:.3f} AU</b><br>
             Early Mars:   <b>{hz['early_mars']:.3f} AU</b><br>
@@ -2612,7 +2612,7 @@ def planet_analyzer_page():
         rdf5, ov5 = risk5.full_risk_matrix()
         st.markdown(f"""
         <div style="font-family:monospace;font-size:.80rem;font-weight:600;
-                    color:#EF5350;margin-bottom:.5rem;">
+                    color:#D154FF;margin-bottom:.5rem;">
         Overall Risk: {ov5.value}
         </div>""", unsafe_allow_html=True)
         fig_r5 = _plot_risk_matrix(rdf5, ov5, p5)

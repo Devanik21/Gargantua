@@ -1380,7 +1380,7 @@ def _plot_embedding(wh: WormholeGeometry) -> plt.Figure:
     bp_arr = np.array([wh.b_prime(r*wh.b0, wh.b0*0.001) for r in r_plot])
     ax2.plot(r_plot, bp_arr, color="#81C784", lw=0.8, ls=":",
              label="b'(r)")
-    ax2.axhline(1.0, color="#EF5350", lw=0.6, ls="--",
+    ax2.axhline(1.0, color="#D154FF", lw=0.6, ls="--",
                 label="Flaring limit b'=1")
     ax2.set_xlabel("r / b₀"); ax2.set_ylabel("b(r)/b₀  or  b'(r)")
     ax2.set_title("SHAPE FUNCTION b(r)\n& Flaring-out condition")
@@ -1427,7 +1427,7 @@ def _plot_exotic_traversal(wh: WormholeGeometry) -> plt.Figure:
                label="M_exotic/M_Jupiter")
     ax3.loglog(b0_arr/1e3, M_ex_arr/M_SUN, color="#FF8800", lw=1.0, ls="--",
                label="M_exotic/M_Sun")
-    ax3.axvline(wh.b0/1e3, color="#EF5350", lw=0.8, ls="--",
+    ax3.axvline(wh.b0/1e3, color="#D154FF", lw=0.8, ls="--",
                 label=f"Current b₀={wh.b0/1e3:.0f}km")
     ax3.set_xlabel("b₀ [km]"); ax3.set_ylabel("Exotic mass / reference")
     ax3.set_title("EXOTIC MASS SCALING vs THROAT RADIUS")
@@ -1437,7 +1437,7 @@ def _plot_exotic_traversal(wh: WormholeGeometry) -> plt.Figure:
     ax4 = axes[1,0]
     trav = WormholeTraversalCalculator(wh)
     l_a, tidal_r, tidal_l = trav.tidal_force_profile(n_l=200)
-    ax4.semilogy(l_a/wh.b0, tidal_r+1e-30, color="#EF5350", lw=1.2,
+    ax4.semilogy(l_a/wh.b0, tidal_r+1e-30, color="#D154FF", lw=1.2,
                  label="Radial tidal [g/m]")
     ax4.semilogy(l_a/wh.b0, tidal_l+1e-30, color="#4FC3F7", lw=1.0, ls="--",
                  label="Lateral tidal [g/m]")
@@ -1589,7 +1589,7 @@ def _plot_gravity_assist(planner: MissionTrajectoryPlanner,
     r_n   = hyp["r"]/scale
     points= np.array([x_n, y_n]).T.reshape(-1, 1, 2)
     segs  = np.concatenate([points[:-1], points[1:]], axis=1)
-    lc    = mcolors.LinearSegmentedColormap.from_list("", ["#8060ff","#E8C46A","#EF5350"])
+    lc    = mcolors.LinearSegmentedColormap.from_list("", ["#8060ff","#E8C46A","#D154FF"])
     from matplotlib.collections import LineCollection as LC
     lc_coll = LC(segs, cmap=lc, norm=plt.Normalize(r_n.min(), r_n.max()))
     lc_coll.set_array(r_n[:-1])
@@ -1624,7 +1624,7 @@ def _plot_gravity_assist(planner: MissionTrajectoryPlanner,
                for rp in rp_arr]
     ax2.plot(rp_arr, dv_arr, color="#E8C46A", lw=1.3, label="GR-corrected Δv")
     ax2.plot(rp_arr, dv_new, color="#4FC3F7", lw=1.0, ls="--", label="Newtonian Δv")
-    ax2.axvline(r_peri_rs, color="#EF5350", lw=0.8, ls=":",
+    ax2.axvline(r_peri_rs, color="#D154FF", lw=0.8, ls=":",
                 label=f"Selected r_peri={r_peri_rs:.1f}r_s")
     ax2.set_xlabel("Periapsis radius [r_s]")
     ax2.set_ylabel("Δv from slingshot [km/s]")
@@ -1772,7 +1772,7 @@ def _plot_shape_comparison(b0: float) -> plt.Figure:
     ]:
         ax.set_xlabel("r / b₀"); ax.set_ylabel(ylbl); ax.set_title(title)
         ax.legend(fontsize=5.5); ax.set_facecolor("#070a16")
-        ax.axvline(1.0, color="#EF5350", lw=0.6, ls=":", label="Throat r=b₀")
+        ax.axvline(1.0, color="#D154FF", lw=0.6, ls=":", label="Throat r=b₀")
 
     plt.tight_layout()
     return fig
@@ -1857,7 +1857,7 @@ def wormhole_navigator_page():
             Shape: <b>{su['shape_type'][:30]}</b><br>
             Redshift: <b>{su['redshift_type'][:25]}</b><br>
             b'(b₀) = <b style="color:#E8C46A;">{su['b_prime_at_throat']:.5f}</b><br>
-            Flaring-out: <b style="color:{'#81C784' if su['flaring_condition'] else '#EF5350'}">{fl_ok}</b><br>
+            Flaring-out: <b style="color:{'#81C784' if su['flaring_condition'] else '#D154FF'}">{fl_ok}</b><br>
             Φ(b₀) = <b>{su['Phi_at_throat']:.4f}</b><br>
             g_tt(throat) = <b>{su['g_tt_at_throat']:.4f}</b><br>
             <b style="color:#8060ff;">── EXOTIC MATTER ──</b><br>
@@ -1918,7 +1918,7 @@ def wormhole_navigator_page():
             surv   = trav.survivability_check(v_ms)
             tidal_th = trav.tidal_force_at_throat() * 1.8 / 9.81
             surv_c = {"VIABLE":"#81C784","MARGINAL":"#FFB74D",
-                      "TIDAL_LETHAL":"#EF5350","TIME_EXCESSIVE":"#FF8800",
+                      "TIDAL_LETHAL":"#D154FF","TIME_EXCESSIVE":"#FF8800",
                       "UNSTABLE":"#CE93D8"}.get(surv.name, "#fff")
             st.markdown(f"""
             <div style="font-family:monospace;font-size:.57rem;color:#c0c8e0;
@@ -1931,7 +1931,7 @@ def wormhole_navigator_page():
             t_external = <b style="color:#4FC3F7;">{t_ext/HOUR_S:.3f} hr</b><br>
             Δt (time shift) = <b>{abs(t_ext-tau_s):.3f} s</b><br>
             <b style="color:#8060ff;">── FORCES ──</b><br>
-            Tidal @ throat = <b style="color:#EF5350;">{tidal_th:.4e} g/m</b><br>
+            Tidal @ throat = <b style="color:#D154FF;">{tidal_th:.4e} g/m</b><br>
             Φ' acceleration = <b>{abs(wh.Phi_prime(wh.b0))*C_SI**2/9.81:.4e} g</b><br>
             <b style="color:#8060ff;">── VERDICT ──</b><br>
             Status: <b style="color:{surv_c};font-size:.70rem;">{surv.value}</b>
@@ -1943,7 +1943,7 @@ def wormhole_navigator_page():
             fig_tr, axes_tr = plt.subplots(1, 2, figsize=(11, 5))
             fig_tr.patch.set_facecolor("#05080f")
             l_arr, tidal_r, tidal_l = trav.tidal_force_profile(n_l=200)
-            axes_tr[0].semilogy(l_arr/wh.b0, tidal_r+1e-30, color="#EF5350",
+            axes_tr[0].semilogy(l_arr/wh.b0, tidal_r+1e-30, color="#D154FF",
                                  lw=1.2, label="Radial tidal [g/m]")
             axes_tr[0].semilogy(l_arr/wh.b0, tidal_l+1e-30, color="#4FC3F7",
                                  lw=1.0, ls="--", label="Lateral tidal [g/m]")
@@ -1956,7 +1956,7 @@ def wormhole_navigator_page():
             v_arr2  = np.linspace(0.01, 0.99, 200)
             tau_arr = [trav.transit_time_traveller(v*C_SI)/HOUR_S for v in v_arr2]
             axes_tr[1].plot(v_arr2, tau_arr, color="#81C784", lw=1.3)
-            axes_tr[1].axvline(v_c, color="#EF5350", lw=0.8, ls="--",
+            axes_tr[1].axvline(v_c, color="#D154FF", lw=0.8, ls="--",
                                 label=f"v={v_c:.2f}c")
             axes_tr[1].axhline(tau_s/HOUR_S, color="#E8C46A", lw=0.7, ls=":")
             axes_tr[1].set_xlabel("v / c")
@@ -2071,7 +2071,7 @@ def wormhole_navigator_page():
                 ("Total Δv",      f"{df['Δv (m/s)'].sum()/1e3:.2f} km/s",   "#E8C46A"),
                 ("Mission days",  f"{df['Cumulative time (days)'].iloc[-1]:.0f}",   "#4FC3F7"),
                 ("Final mass",    f"{df['Ship mass after (kg)'].iloc[-1]/1e3:.1f} t","#81C784"),
-                ("Prop. used",    f"{(ENDURANCE_MASS_KG - df['Ship mass after (kg)'].iloc[-1])/1e3:.1f} t","#EF5350"),
+                ("Prop. used",    f"{(ENDURANCE_MASS_KG - df['Ship mass after (kg)'].iloc[-1])/1e3:.1f} t","#D154FF"),
             ]
             cols = st.columns(len(kpis))
             for col, (lbl, val, clr) in zip(cols, kpis):

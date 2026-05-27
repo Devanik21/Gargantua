@@ -1900,7 +1900,7 @@ def _plot_sr_dashboard(v_c: float, m0_kg: float) -> plt.Figure:
     # 1. Lorentz factor γ(v)
     ax1 = axes[0, 0]
     ax1.semilogy(b_arr, g_arr, color="#E8C46A", lw=1.3)
-    ax1.axvline(v_c, color="#EF5350", lw=1.0, ls="--",
+    ax1.axvline(v_c, color="#D154FF", lw=1.0, ls="--",
                 label=f"v={v_c:.3f}c  γ={sr.lorentz_factor(v_c*C_SI):.4f}")
     ax1.axhline(10,    color="#4FC3F7", lw=0.6, ls=":", label="γ=10")
     ax1.axhline(100,   color="#CE93D8", lw=0.6, ls=":", label="γ=100")
@@ -1912,7 +1912,7 @@ def _plot_sr_dashboard(v_c: float, m0_kg: float) -> plt.Figure:
     tau_fraction = 1.0/g_arr   # proper / coordinate time
     ax2.plot(b_arr, tau_fraction, color="#4FC3F7", lw=1.3,
              label="dτ/dt = 1/γ")
-    ax2.axvline(v_c, color="#EF5350", lw=1.0, ls="--")
+    ax2.axvline(v_c, color="#D154FF", lw=1.0, ls="--")
     ax2.fill_between(b_arr, tau_fraction, 1.0, alpha=0.15, color="#4FC3F7")
     ax2.set_xlabel("v/c"); ax2.set_ylabel("dτ/dt  (ship clock rate)")
     ax2.set_title("TIME DILATION — Ship Clock Rate"); ax2.legend(fontsize=6)
@@ -1921,7 +1921,7 @@ def _plot_sr_dashboard(v_c: float, m0_kg: float) -> plt.Figure:
     ax3 = axes[0, 2]
     L_frac = 1.0/g_arr
     ax3.plot(b_arr, L_frac, color="#81C784", lw=1.3, label="L'/L₀ = 1/γ")
-    ax3.axvline(v_c, color="#EF5350", lw=1.0, ls="--",
+    ax3.axvline(v_c, color="#D154FF", lw=1.0, ls="--",
                 label=f"L'={1/sr.lorentz_factor(v_c*C_SI):.4f}L₀")
     ax3.set_xlabel("v/c"); ax3.set_ylabel("L' / L₀")
     ax3.set_title("LENGTH CONTRACTION"); ax3.legend(fontsize=6)
@@ -1935,7 +1935,7 @@ def _plot_sr_dashboard(v_c: float, m0_kg: float) -> plt.Figure:
     ax4.plot(b_arr, E_arr, color="#FF8800", lw=1.1, label="E/(m₀c²)")
     ax4.plot(b_arr, K_arr, color="#CE93D8", lw=1.0, ls="--",
              label="K/(m₀c²)  kinetic")
-    ax4.axvline(v_c, color="#EF5350", lw=0.8, ls="--")
+    ax4.axvline(v_c, color="#D154FF", lw=0.8, ls="--")
     ax4.set_xlabel("v/c"); ax4.set_ylabel("Normalised quantity")
     ax4.set_title("RELATIVISTIC ENERGY & MOMENTUM"); ax4.legend(fontsize=5.5)
 
@@ -1948,7 +1948,7 @@ def _plot_sr_dashboard(v_c: float, m0_kg: float) -> plt.Figure:
                        for v in v_arr])
     f_tra = np.array([sr.doppler_transverse(f0, v) for v in v_arr])
     ax5.semilogy(b_arr, f_app, color="#81C784",  lw=1.1, label="Approaching (blueshift)")
-    ax5.semilogy(b_arr, f_rec, color="#EF5350",  lw=1.1, label="Receding (redshift)")
+    ax5.semilogy(b_arr, f_rec, color="#D154FF",  lw=1.1, label="Receding (redshift)")
     ax5.semilogy(b_arr, f_tra, color="#FFB74D",  lw=1.0, ls="--",
                  label="Transverse (redshift)")
     ax5.axhline(1.0, color="#555", lw=0.5, ls=":")
@@ -1967,8 +1967,8 @@ def _plot_sr_dashboard(v_c: float, m0_kg: float) -> plt.Figure:
              label=f"Relativistic v_rel(v₁={v1_c:.2f}c, v₂)")
     ax6.plot(v2_arr, v_newt, color="#3a4a70", lw=0.8, ls="--",
              label="Newtonian v₁+v₂")
-    ax6.axhline(1.0,  color="#EF5350", lw=0.6, ls=":", label="|v|=c limit")
-    ax6.axhline(-1.0, color="#EF5350", lw=0.6, ls=":")
+    ax6.axhline(1.0,  color="#D154FF", lw=0.6, ls=":", label="|v|=c limit")
+    ax6.axhline(-1.0, color="#D154FF", lw=0.6, ls=":")
     ax6.set_xlabel("v₂/c"); ax6.set_ylabel("v_result/c")
     ax6.set_title("RELATIVISTIC VELOCITY ADDITION"); ax6.legend(fontsize=5.5)
 
@@ -2007,12 +2007,12 @@ def _plot_spacetime_diagram(v_twin: float, d_ly: float) -> plt.Figure:
 
     # Turnaround point annotation
     ax1.scatter([twins["x_turn"]], [twins["t_turn"]],
-                color="#EF5350", s=50, zorder=5)
+                color="#D154FF", s=50, zorder=5)
     ax1.annotate("Turnaround\n(instantaneous)",
                  xy=(twins["x_turn"], twins["t_turn"]),
                  xytext=(twins["x_turn"]*0.6, twins["t_turn"]*1.05),
-                 color="#EF5350", fontsize=6,
-                 arrowprops=dict(arrowstyle="->", color="#EF5350", lw=0.7))
+                 color="#D154FF", fontsize=6,
+                 arrowprops=dict(arrowstyle="->", color="#D154FF", lw=0.7))
 
     # Simultaneity lines at turnaround (two frames)
     x_sim, ct_sim_earth = builder.simultaneity_line(0.0, twins["t_turn"], twins["x_turn"])
@@ -2047,7 +2047,7 @@ def _plot_spacetime_diagram(v_twin: float, d_ly: float) -> plt.Figure:
     # Miller annotation
     summ = wl["summary"]
     ax2.annotate(f"Miller's World\n1h ship = 7yr Earth",
-                 xy=(10.0, 23.0), color="#EF5350", fontsize=5.5,
+                 xy=(10.0, 23.0), color="#D154FF", fontsize=5.5,
                  bbox=dict(boxstyle="round,pad=0.2",
                            facecolor="#1a0808", alpha=0.8))
 
@@ -2074,7 +2074,7 @@ def _plot_gr_profile(df: pd.DataFrame, M_solar: float) -> plt.Figure:
         ("dil_combined",    "#4FC3F7", "Combined GR+SR  dτ/dt = √(1−r_s/r−v²/c²)"),
         ("dil_Kerr",        "#CE93D8", "Kerr Metric  dτ/dt (circular prograde)"),
         ("factor_GR",       "#FF8800", "Dilation Factor (coord/proper)"),
-        ("redshift_z_local","#EF5350", "Gravitational Redshift  z"),
+        ("redshift_z_local","#D154FF", "Gravitational Redshift  z"),
         ("light_bend_rad",  "#81C784", "Light Bending Angle  α  [rad]"),
     ]
     rs_col = df["r_rs"].values
@@ -2128,7 +2128,7 @@ def _plot_mission_timeline(cooper_df: pd.DataFrame,
     ax2.plot(leg_idx, murph_age_end, "s-", color="#4FC3F7", lw=1.3,
              ms=5, label="Murph age")
     ax2.fill_between(leg_idx, coop_age_end, murph_age_end,
-                     alpha=0.12, color="#EF5350",
+                     alpha=0.12, color="#D154FF",
                      label=f"Age gap → {div['age_gap_yr']:.1f} yr")
     ax2.set_xticks(leg_idx)
     ax2.set_xticklabels([l[:14] for l in legs],
@@ -2160,7 +2160,7 @@ def _plot_mission_timeline(cooper_df: pd.DataFrame,
     dilation_miller = 61_320.0   # 7yr/hr in seconds/second
     earth_yr = ship_hrs * dilation_miller / (YEAR_S/HOUR_S)
     ax4.plot(ship_hrs, earth_yr, color="#E8C46A", lw=1.5)
-    ax4.axvline(MISSION_MILLER_SHIP_HRS, color="#EF5350", lw=1.0, ls="--",
+    ax4.axvline(MISSION_MILLER_SHIP_HRS, color="#D154FF", lw=1.0, ls="--",
                 label=f"Film: {MISSION_MILLER_SHIP_HRS}h → "
                        f"{MISSION_MILLER_SHIP_HRS*dilation_miller/YEAR_S*HOUR_S:.1f}yr")
     ax4.axhline(7.0, color="#4FC3F7", lw=0.8, ls=":",
@@ -2205,7 +2205,7 @@ def _plot_geodesic(geo: Dict[str, np.ndarray], r_s: float) -> plt.Figure:
     r_arr = geo["r"]/r_s
     t_arr = geo["t"]
     ax2.plot(t_arr, r_arr, color="#E8C46A", lw=1.0)
-    ax2.axhline(1.0, color="#EF5350", lw=0.7, ls="--", label="r = r_s")
+    ax2.axhline(1.0, color="#D154FF", lw=0.7, ls="--", label="r = r_s")
     ax2.set_xlabel("Coordinate time t  [M_geo units]")
     ax2.set_ylabel("r / r_s")
     ax2.set_title("RADIAL EVOLUTION r(t)")
@@ -2394,15 +2394,15 @@ def relativity_calculator_page():
             <b style="color:#4FC3F7;">Instant turnaround:</b><br>
             Earth twin ages: <b style="color:#4FC3F7;">{twin_inst['t_earth_yr']:.4f} yr</b><br>
             Traveller ages:  <b style="color:#E8C46A;">{twin_inst['tau_ship_yr']:.4f} yr</b><br>
-            Age diff: <b style="color:#EF5350;">{twin_inst['age_diff_yr']:.4f} yr</b><br>
-            = <b style="color:#EF5350;">{twin_inst['age_diff_yr']*365.25:.1f} days</b><br>
+            Age diff: <b style="color:#D154FF;">{twin_inst['age_diff_yr']:.4f} yr</b><br>
+            = <b style="color:#D154FF;">{twin_inst['age_diff_yr']*365.25:.1f} days</b><br>
             <br>
             <b style="color:#4FC3F7;">With acceleration a={a_tw:.1f} m/s²:</b><br>
             τ_acc phase = <b>{twin_acc['tau_acc_yr']:.4f} yr</b><br>
             d_acc = <b>{twin_acc['d_acc_ly']:.4f} ly</b><br>
             Ship total = <b style="color:#E8C46A;">{twin_acc['tau_ship_total_yr']:.4f} yr</b><br>
             Earth total = <b style="color:#4FC3F7;">{twin_acc['t_earth_total_yr']:.4f} yr</b><br>
-            Age diff = <b style="color:#EF5350;">{twin_acc['age_diff_yr']:.4f} yr</b>
+            Age diff = <b style="color:#D154FF;">{twin_acc['age_diff_yr']:.4f} yr</b>
             </div>""", unsafe_allow_html=True)
 
         with c2:
@@ -2504,7 +2504,7 @@ def relativity_calculator_page():
             ("Earth coordinate time", f"{div['total_earth_time_yr']:.1f} yr", "#4FC3F7"),
             ("Cooper final age", f"{div['cooper_age_end']:.1f} yr", "#E8C46A"),
             ("Murph final age", f"{div['murph_age_end']:.1f} yr", "#4FC3F7"),
-            ("Age gap", f"{div['age_gap_yr']:.1f} yr", "#EF5350"),
+            ("Age gap", f"{div['age_gap_yr']:.1f} yr", "#D154FF"),
             ("Miller Earth years", f"{div['dominance_miller']:.1f} yr", "#FF8800"),
         ]
         cols_k = st.columns(len(kpis))
@@ -2560,14 +2560,14 @@ def relativity_calculator_page():
             <b style="color:#4FC3F7;font-size:.67rem;">── MILLER'S WORLD ──</b><br>
             Ship time  = <b style="color:#E8C46A;">{m_hrs:.2f} ship-hours</b><br>
             Ship time  = <b>{m_hrs/24:.3f} ship-days</b><br>
-            Dilation   = <b style="color:#EF5350;">{m_dil:,.0f} ×</b><br>
-            Earth years lost = <b style="color:#EF5350;font-size:.75rem;">
+            Dilation   = <b style="color:#D154FF;">{m_dil:,.0f} ×</b><br>
+            Earth years lost = <b style="color:#D154FF;font-size:.75rem;">
             {calc['earth_years_lost']:.3f} yr</b><br>
             Earth decades = <b>{calc['earth_decades']:.4f}</b><br>
             Earth days    = <b>{calc['earth_years_lost']*365.25:.1f}</b><br>
             <br>
             Film canon ({MISSION_MILLER_SHIP_HRS:.2f} hrs) →<br>
-            <b style="color:#EF5350;"> {MISSION_MILLER_SHIP_HRS*7:.2f} Earth years</b>
+            <b style="color:#D154FF;"> {MISSION_MILLER_SHIP_HRS*7:.2f} Earth years</b>
             </div>""", unsafe_allow_html=True)
 
             # Custom dilation sensitivity
@@ -2580,7 +2580,7 @@ def relativity_calculator_page():
             dil_arr = np.logspace(3, 6, 300)
             yr_arr  = m_hrs * dil_arr / (YEAR_S/HOUR_S)
             ax_m.loglog(dil_arr, yr_arr, color="#E8C46A", lw=1.2)
-            ax_m.axvline(m_dil, color="#EF5350", lw=0.8, ls="--",
+            ax_m.axvline(m_dil, color="#D154FF", lw=0.8, ls="--",
                          label=f"{m_dil:.0f}×")
             ax_m.axhline(7.0, color="#4FC3F7", lw=0.7, ls=":",
                          label="7 yr/hr")
@@ -2609,7 +2609,7 @@ def relativity_calculator_page():
             ax_k1.semilogy(r_arr_m/GARG_M_GEO, dtr_arr + 1e-30,
                             color="#E8C46A", lw=1.2)
             target = HOUR_S/(7*YEAR_S)
-            ax_k1.axhline(target, color="#EF5350", lw=1.0, ls="--",
+            ax_k1.axhline(target, color="#D154FF", lw=1.0, ls="--",
                            label=f"dτ/dt = 1h/7yr = {target:.2e}")
             ax_k1.set_xlabel("r / M_geo"); ax_k1.set_ylabel("dτ/dt (prograde circular)")
             ax_k1.set_title("PROPER TIME RATIO NEAR ISCO — Kerr (a*=1−10⁻¹⁴)")
@@ -2619,7 +2619,7 @@ def relativity_calculator_page():
             ax_k2 = axes_k[1]
             ax_k2.semilogy(r_arr_m/GARG_M_GEO, dil_arr2 + 1e-30,
                             color="#4FC3F7", lw=1.2)
-            ax_k2.axhline(MILLER_RATIO, color="#EF5350", lw=1.0, ls="--",
+            ax_k2.axhline(MILLER_RATIO, color="#D154FF", lw=1.0, ls="--",
                            label=f"Target: {MILLER_RATIO:.0f}×")
             ax_k2.set_xlabel("r / M_geo"); ax_k2.set_ylabel("Time dilation factor")
             ax_k2.set_title("MILLER DILATION FACTOR vs ORBITAL RADIUS")
@@ -2732,7 +2732,7 @@ def relativity_calculator_page():
             <b style="color:#4FC3F7;font-size:.63rem;">── MISSION to {d_dest:.2f} ly ──</b><br>
             Ship time = <b style="color:#E8C46A;">{twin_rkt['tau_ship_total_yr']:.4f} yr</b><br>
             Earth time = <b style="color:#4FC3F7;">{twin_rkt['t_earth_total_yr']:.4f} yr</b><br>
-            Age diff = <b style="color:#EF5350;">{twin_rkt['age_diff_yr']:.4f} yr</b>
+            Age diff = <b style="color:#D154FF;">{twin_rkt['age_diff_yr']:.4f} yr</b>
             </div>""", unsafe_allow_html=True)
 
         with c2:
@@ -2751,7 +2751,7 @@ def relativity_calculator_page():
                                 for R in R_arr])
                 ax_r1.semilogx(R_arr, vf, color=clr, lw=1.1,
                                 label=f"v_e={ve}c")
-            ax_r1.axhline(0.9999, color="#EF5350", lw=0.7, ls=":")
+            ax_r1.axhline(0.9999, color="#D154FF", lw=0.7, ls=":")
             ax_r1.set_xlabel("Mass ratio R"); ax_r1.set_ylabel("v_final/c")
             ax_r1.set_title("FINAL VELOCITY vs MASS RATIO")
             ax_r1.legend(fontsize=5.5)

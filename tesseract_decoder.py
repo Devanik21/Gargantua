@@ -1464,7 +1464,7 @@ def _plot_encoding(encoded: Dict, scheme_name: str) -> plt.Figure:
     ax1.set_title(f"BOOKSHELF DUST DISPLACEMENT\n"
                   f"Message: '{encoded['message']}'  "
                   f"({encoded['n_bits_encoded']} bits)")
-    ax1.axhline(2.5, color="#EF5350", lw=0.7, ls="--",
+    ax1.axhline(2.5, color="#D154FF", lw=0.7, ls="--",
                 label="Detection threshold (2.5cm)")
     ax1.legend(fontsize=6)
 
@@ -1485,7 +1485,7 @@ def _plot_encoding(encoded: Dict, scheme_name: str) -> plt.Figure:
     watch_d = enc2.encode_watch_hand(key_bits, tick_duration_s=0.3)
     ax3.plot(watch_d["t"], watch_d["signal"], color="#4FC3F7", lw=0.8)
     for tt, tb in zip(watch_d["tick_times"], watch_d["tick_bits"]):
-        ax3.axvline(tt, color="#81C784" if tb else "#EF5350",
+        ax3.axvline(tt, color="#81C784" if tb else "#D154FF",
                     lw=0.5, alpha=0.5)
     ax3.set_xlabel("Time [s]"); ax3.set_ylabel("Gravity pulse amplitude")
     ax3.set_title(f"WATCH-HAND GRAVITY SIGNAL  (32 bits → time encoding)\n"
@@ -1504,7 +1504,7 @@ def _plot_encoding(encoded: Dict, scheme_name: str) -> plt.Figure:
     for i, b in enumerate(key_bits[:16]):
         x0 = i*0.5; x1 = x0+0.5
         ax4.axvspan(x0, x1, alpha=0.08,
-                    color="#81C784" if b=='1' else "#EF5350")
+                    color="#81C784" if b=='1' else "#D154FF")
 
     plt.tight_layout()
     return fig
@@ -1543,7 +1543,7 @@ def _plot_wdw(result: Dict) -> plt.Figure:
     ax3 = axes[0,2]
     ax3.plot(a, V, color="#FF8800", lw=1.2, label="V(a,φ)")
     ax3.axhline(0, color="#1a1a3a", lw=0.5)
-    ax3.fill_between(a, V, 0, where=(V<0), alpha=0.2, color="#EF5350",
+    ax3.fill_between(a, V, 0, where=(V<0), alpha=0.2, color="#D154FF",
                      label="V<0 (classically allowed)")
     ax3.fill_between(a, V, 0, where=(V>0), alpha=0.15, color="#4FC3F7",
                      label="V>0 (quantum tunnelling)")
@@ -1568,7 +1568,7 @@ def _plot_wdw(result: Dict) -> plt.Figure:
     solver2 = MurphyEquationSolver()
     mcoeffs = solver2.murphy_coefficients_from_tars(42)
     c_arr   = mcoeffs["coefficients"]
-    colors5 = ["#c040ff" if v>0 else "#EF5350" for v in c_arr]
+    colors5 = ["#c040ff" if v>0 else "#D154FF" for v in c_arr]
     ax5.bar(range(42), c_arr/np.abs(c_arr).max(), color=colors5, alpha=0.85)
     ax5.axhline(0, color="#1a1a3a", lw=0.5)
     ax5.set_xlabel("Coefficient index"); ax5.set_ylabel("Normalised value")
@@ -1617,7 +1617,7 @@ def _plot_tars_crystal(crystal: Dict, decoded: Dict) -> plt.Figure:
     ws  = crystal["watch_signal"]
     ax1.plot(ws["t"], ws["signal"], color="#4FC3F7", lw=0.7, alpha=0.9)
     for tt, tb in zip(ws["tick_times"][:40], ws["tick_bits"][:40]):
-        ax1.axvline(tt, color="#81C784" if tb else "#EF5350",
+        ax1.axvline(tt, color="#81C784" if tb else "#D154FF",
                     lw=0.4, alpha=0.6)
     ax1.set_xlabel("Time [s]"); ax1.set_ylabel("Gravity pulse")
     ax1.set_title("TARS WATCH-HAND SIGNAL\n(Cooper's second-hand gravity message)")
@@ -1694,7 +1694,7 @@ def _plot_tars_crystal(crystal: Dict, decoded: Dict) -> plt.Figure:
     y -= 0.10
     for lbl, val in items_dec:
         clr = "#81C784" if "True" in str(val) or "YES" in str(val) else (
-              "#EF5350" if "False" in str(val) or "NO" in str(val) else "#E8C46A")
+              "#D154FF" if "False" in str(val) or "NO" in str(val) else "#E8C46A")
         ax6.text(0.05, y, f"  {lbl}:", fontsize=6.5, color="#888",
                  fontfamily="monospace", transform=ax6.transAxes)
         ax6.text(0.05, y-0.06, f"    {val}", fontsize=6.5, color=clr,
@@ -1740,7 +1740,7 @@ def _plot_bulk_channel(bulk: BulkCommunicationChannel) -> plt.Figure:
     r_arr = np.logspace(-10, -5, 200)
     corr  = np.array([bulk.newton_5d_correction(r) for r in r_arr])
     ax3.loglog(r_arr*1e6, corr, color="#FF8800", lw=1.2)
-    ax3.axhline(0.01, color="#EF5350", lw=0.7, ls="--",
+    ax3.axhline(0.01, color="#D154FF", lw=0.7, ls="--",
                 label="1% deviation threshold")
     ax3.set_xlabel("Range r [μm]"); ax3.set_ylabel("ΔU/U (5D correction)")
     ax3.set_title("5D NEWTON LAW CORRECTION\n(observable if ℓ_RS large enough)")
@@ -1991,7 +1991,7 @@ def tesseract_decoder_page():
             if result:
                 c1, c2 = st.columns([1, 2])
                 with c1:
-                    state_c = {"DECODED":"#81C784","ERROR":"#EF5350",
+                    state_c = {"DECODED":"#81C784","ERROR":"#D154FF",
                                "AUTHENTICATED":"#E8C46A"}.get(
                                    result["state"].split()[0], "#888")
                     st.markdown(f"""
@@ -2018,14 +2018,14 @@ def tesseract_decoder_page():
                         fig_d.patch.set_facecolor("#04060e")
                         axes_d[0].plot(ws["t"], ws["signal"], color="#4FC3F7", lw=0.7)
                         for tt, tb in zip(ws["tick_times"][:30], ws["tick_bits"][:30]):
-                            axes_d[0].axvline(tt, color="#81C784" if tb else "#EF5350",
+                            axes_d[0].axvline(tt, color="#81C784" if tb else "#D154FF",
                                               lw=0.4, alpha=0.6)
                         axes_d[0].set_xlabel("Time [s]"); axes_d[0].set_ylabel("Pulse")
                         axes_d[0].set_title("Watch-hand signal")
                         bits_disp = np.array([int(b) for b in wd["bits"][:64]])
                         if len(bits_disp) > 0:
                             axes_d[1].bar(range(len(bits_disp)), bits_disp,
-                                          color=["#81C784" if b else "#EF5350"
+                                          color=["#81C784" if b else "#D154FF"
                                                  for b in bits_disp], alpha=0.8)
                         axes_d[1].set_xlabel("Bit index"); axes_d[1].set_ylabel("Bit")
                         axes_d[1].set_title(f"Decoded: '{wd['decoded_text'][:20]}'")
@@ -2058,7 +2058,7 @@ def tesseract_decoder_page():
             plan = S.get("murphy_plan_a")
             if plan:
                 pct   = plan["pct_complete"]
-                p_clr = "#81C784" if pct>=100 else "#E8C46A" if pct>50 else "#EF5350"
+                p_clr = "#81C784" if pct>=100 else "#E8C46A" if pct>50 else "#D154FF"
                 st.markdown(f"""
                 <div style="font-family:monospace;font-size:.58rem;color:#c0c0e0;
                             background:rgba(6,8,16,.92);padding:.6rem;
@@ -2102,7 +2102,7 @@ def tesseract_decoder_page():
         decoded = S.get("tars_decoded")
         if crystal and decoded:
             state_clr = ("#81C784" if "AUTH" in decoded["state"]
-                         else "#EF5350" if "ERROR" in decoded["state"]
+                         else "#D154FF" if "ERROR" in decoded["state"]
                          else "#E8C46A")
             kpis = [
                 ("Crystal bits",   str(crystal["crystal_size_bits"]),  "#c040ff"),
