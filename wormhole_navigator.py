@@ -1673,7 +1673,7 @@ def _plot_saturn_wormhole(planner: MissionTrajectoryPlanner) -> plt.Figure:
     ax1 = axes[0]
     ax1.set_facecolor("#020408")
     # Saturn (schematic)
-    saturn_ring = plt.Ellipse((0,0), 3.2, 0.8, fill=False,
+    saturn_ring = mpatches.Ellipse((0,0), 3.2, 0.8, fill=False,
                                ec="#CE93D8", lw=1.0, alpha=0.5)
     ax1.add_patch(saturn_ring)
     ax1.scatter([0],[0], color="#CE93D8", s=200)
