@@ -226,9 +226,35 @@ html, body, [data-testid="stAppViewContainer"] {
 }
 
 /* ── Hide Streamlit chrome ── */
-#MainMenu, footer, header,
-[data-testid="stDecoration"],
-[data-testid="stHeader"] { display: none !important; }
+#MainMenu, footer, [data-testid="stDecoration"] { display: none !important; }
+[data-testid="stHeader"] {
+  background: transparent !important;
+  pointer-events: none;
+}
+[data-testid="collapsedControl"] {
+  pointer-events: auto;
+}
+
+/* ── Sidebar Toggle / Collapse Buttons ── */
+[data-testid="collapsedControl"] button,
+[data-testid="stSidebarCollapseButton"] button {
+  color: var(--gold) !important;
+  background-color: rgba(232, 196, 106, 0.05) !important;
+  border: 1px solid rgba(232, 196, 106, 0.20) !important;
+  border-radius: 3px !important;
+  transition: all 0.2s ease !important;
+}
+[data-testid="collapsedControl"] button:hover,
+[data-testid="stSidebarCollapseButton"] button:hover {
+  background-color: rgba(232, 196, 106, 0.15) !important;
+  border-color: var(--gold) !important;
+  box-shadow: var(--glow-gold) !important;
+}
+[data-testid="collapsedControl"] button svg,
+[data-testid="stSidebarCollapseButton"] button svg {
+  fill: var(--gold) !important;
+  color: var(--gold) !important;
+}
 
 .block-container {
   padding: 0.5rem 1.2rem 2rem 1.2rem !important;
