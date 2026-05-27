@@ -2224,14 +2224,14 @@ def _plot_twin_summary(twin: Dict[str, float]) -> plt.Figure:
     # Left: age comparison
     ax1 = axes[0]
     categories = ["Earth twin", "Traveller"]
-    ages       = [twin["tau_earth"], twin["tau_traveller"]]
+    ages       = [twin["t_earth_yr"], twin["tau_ship_yr"]]
     colors     = ["#4FC3F7", "#E8C46A"]
     bars = ax1.bar(categories, ages, color=colors, alpha=0.85, width=0.4)
     ax1.bar_label(bars, fmt="%.2f yr", padding=4, fontsize=8, color="#fff")
     ax1.set_ylabel("Proper time elapsed  [yr]")
     ax1.set_title(f"TWIN PARADOX — v={twin['v_ms']/C_SI:.3f}c  "
                   f"d={twin['distance_ly']:.2f} ly\n"
-                  f"γ={twin['gamma']:.3f}  Age difference={twin['age_diff']:.3f} yr")
+                  f"γ={twin['gamma']:.3f}  Age difference={twin['age_diff_yr']:.3f} yr")
     ax1.set_facecolor("#080c18")
 
     # Right: SR parameters summary
