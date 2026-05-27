@@ -773,7 +773,8 @@ class GeneralRelativity:
         x_a   = r_a*np.cos(phi_a); y_a = r_a*np.sin(phi_a)
         return {"r": r_a, "phi": phi_a, "t": t_a,
                 "x": x_a, "y": y_a,
-                "captured": bool(r_a[-1] < rs*1.1)}
+                "captured": bool(r_a[-1] < rs*1.1),
+                "n_steps": len(r_a)}
 
     # ── §4.5  Orbital precession ──────────────────────────────────────────────
     def perihelion_precession(self, a_orbit: float,
@@ -2672,7 +2673,7 @@ def relativity_calculator_page():
                 Steps computed: {geo_res['n_steps']}<br>
                 r_min: {geo_res['r'].min()/S['rel_gr'].r_s:.3f} r_s<br>
                 r_max: {geo_res['r'].max()/S['rel_gr'].r_s:.3f} r_s<br>
-                Captured: <b style="color:#{'EF5350' if geo_res['captured'] else '81C784'}">
+                Captured: <b style="color:#{'D154FF' if geo_res['captured'] else '81C784'}">
                 {"YES — fell into BH" if geo_res["captured"] else "NO — orbiting/escaping"}</b>
                 </div>""", unsafe_allow_html=True)
 

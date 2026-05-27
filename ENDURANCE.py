@@ -169,7 +169,7 @@ MASTER_CSS = """
   --green:       #81C784;
   --green2:      #4CAF50;
   --orange:      #FF8800;
-  --red:         #EF5350;
+  --red:         #D154FF;
   --bg0:         #020408;
   --bg1:         #04060c;
   --bg2:         #060a14;
@@ -589,8 +589,8 @@ div[data-baseweb="notification"] {
 }
 
 .backend-unavailable {
-  background: rgba(239,83,80,0.06);
-  border: 1px solid rgba(239,83,80,0.20);
+  background: rgba(209,84,255,0.06);
+  border: 1px solid rgba(209,84,255,0.20);
   border-radius: 3px;
   padding: 1.5rem;
   text-align: center;
@@ -969,7 +969,7 @@ def backend_error_card(name: str, error: str):
       <div style="font-size:0.75rem;font-weight:600;margin-bottom:0.3rem;">
         MODULE OFFLINE: {name.upper()}
       </div>
-      <div style="font-size:0.58rem;color:rgba(239,83,80,0.6);
+      <div style="font-size:0.58rem;color:rgba(209,84,255,0.6);
                   max-width:500px;margin:0 auto;">
         {error[:200]}
       </div>
@@ -1220,7 +1220,7 @@ def render_boot_sequence():
                 if "NOMINAL" in bl or "ONLINE" in bl:
                     clr = "#81C784"
                 elif "ERROR" in bl or "FAILED" in bl:
-                    clr = "#EF5350"
+                    clr = "#D154FF"
                 elif "Loading" in bl or "Initialising" in bl or "Calibrating" in bl:
                     clr = "#4FC3F7"
                 elif "TARS" in bl or "CASE" in bl:
@@ -1274,7 +1274,7 @@ def render_overview():
         ("Earth Year",       str(MISSION_START_YEAR),   "#4FC3F7", "coordinate time"),
         ("Plan A Progress",  f"{PLAN_A_PCT:.1f}%",      "#FF8800", "Murphy's equation"),
         ("Wormhole",         WORMHOLE_STATUS,            "#81C784", "Saturn vicinity"),
-        ("Blight Severity",  BLIGHT_SEVERITY,            "#EF5350", "global food supply"),
+        ("Blight Severity",  BLIGHT_SEVERITY,            "#D154FF", "global food supply"),
         ("TARS Status",      "NOMINAL",                  "#81C784", "all systems green"),
     ])
 
@@ -1373,7 +1373,7 @@ def render_overview():
             ("Probes launched",   "12", "#E8C46A"),
             ("Active signals",    "1",  "#81C784"),
             ("Confirmed OK",      "1",  "#E8C46A"),
-            ("Confirmed bad",     "4",  "#EF5350"),
+            ("Confirmed bad",     "4",  "#D154FF"),
             ("Data falsified",    "1",  "#CE93D8"),
             ("Silent",            "5",  "#555"),
             ("Unknown",           "1",  "#4FC3F7"),
@@ -1399,8 +1399,8 @@ def render_overview():
         </div>""", unsafe_allow_html=True)
 
         crops_status = [
-            ("Wheat",   0.85, "#EF5350"),
-            ("Corn",    0.92, "#EF5350"),
+            ("Wheat",   0.85, "#D154FF"),
+            ("Corn",    0.92, "#D154FF"),
             ("Rice",    0.72, "#FF8800"),
             ("Soy",     0.66, "#FF8800"),
             ("Okra",    0.45, "#FFB74D"),
@@ -1485,7 +1485,7 @@ def render_overview():
         col = cols_m[i % 4]
         loaded = BACKENDS_LOADED.get(backend, True)
         st_txt = ("🟢 ONLINE" if loaded else "🔴 OFFLINE")
-        st_clr = ("#81C784" if loaded else "#EF5350")
+        st_clr = ("#81C784" if loaded else "#D154FF")
         with col:
             st.markdown(f"""
             <div class="module-card" style="border-top:2px solid {clr}44;">
@@ -1619,7 +1619,7 @@ def _render_plan_progress():
                 border:1px solid rgba(232,196,106,0.08);
                 border-radius:3px;padding:0.5rem 0.6rem;
                 margin-top:0.4rem;line-height:1.8;color:#5a6a80;">
-      <span style="color:#EF5350;">BLIGHT EXTINCTION:</span>
+      <span style="color:#D154FF;">BLIGHT EXTINCTION:</span>
       ~2095 at current spread rate  ·
       <span style="color:#FF8800;">URGENCY: CRITICAL</span><br>
       Extinction: ~{2095}  ·  Population: 3.5B → {0.8:.1f}B by 2090
@@ -1644,7 +1644,7 @@ def render_system_status():
         ("Online",          str(sum(1 for v in BACKENDS_LOADED.values() if v)),
          "#81C784", "operational"),
         ("Offline",         str(sum(1 for v in BACKENDS_LOADED.values() if not v)),
-         "#EF5350", "import failed"),
+         "#D154FF", "import failed"),
         ("Python",          f"{sys.version_info.major}.{sys.version_info.minor}",
          "#4FC3F7", "interpreter"),
     ])
@@ -1674,12 +1674,12 @@ def render_system_status():
         loaded = BACKENDS_LOADED.get(mod, False)
         err    = BACKEND_ERRORS.get(mod, "")
         with col:
-            status_clr = "#81C784" if loaded else "#EF5350"
+            status_clr = "#81C784" if loaded else "#D154FF"
             status_txt = "ONLINE" if loaded else "OFFLINE"
             st.markdown(f"""
             <div style="background:rgba(6,10,20,0.90);
                         border:1px solid rgba(232,196,106,0.08);
-                        border-left:2px solid {clr if loaded else '#EF5350'};
+                        border-left:2px solid {clr if loaded else '#D154FF'};
                         border-radius:3px;padding:0.6rem 0.8rem;
                         margin-bottom:0.4rem;font-family:monospace;">
               <div style="display:flex;justify-content:space-between;
@@ -1695,7 +1695,7 @@ def render_system_status():
                 </span>
               </div>
               <div style="font-size:0.54rem;color:#5a6a80;">{desc}</div>
-              {"" if not err else f'<div style="font-size:0.52rem;color:#EF5350;margin-top:0.2rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{err}">Error: {err[:80]}...</div>'}
+              {"" if not err else f'<div style="font-size:0.52rem;color:#D154FF;margin-top:0.2rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{err}">Error: {err[:80]}...</div>'}
             </div>""", unsafe_allow_html=True)
 
     section_rule()
@@ -1720,7 +1720,7 @@ def render_system_status():
             ver = getattr(mod, "__version__", "?")
             status_c = "#81C784"; status_t = "✓ OK"
         except ImportError:
-            ver = "MISSING"; status_c = "#EF5350"; status_t = "✗"
+            ver = "MISSING"; status_c = "#D154FF"; status_t = "✗"
         col.markdown(
             f'<div style="background:rgba(6,10,20,.85);'
             f'border:1px solid rgba(232,196,106,0.08);'
@@ -1758,7 +1758,7 @@ def render_system_status():
         col = fc1 if i % 2 == 0 else fc2
         exists = os.path.exists(fname)
         fsize  = f"{os.path.getsize(fname)/1e3:.0f}KB" if exists else ""
-        clr3   = "#81C784" if exists else ("#FFB74D" if "optional" in desc else "#EF5350")
+        clr3   = "#81C784" if exists else ("#FFB74D" if "optional" in desc else "#D154FF")
         with col:
             st.markdown(
                 f'<div style="font-family:monospace;font-size:0.57rem;'
@@ -1805,7 +1805,7 @@ def safe_render(page_fn, backend_mod: str, title: str,
     """Safely call a backend page function with error handling."""
     if not BACKENDS_LOADED.get(backend_mod, False):
         page_header(title, f"Module offline: {backend_mod}.py",
-                    accent="#EF5350", icon="⚠")
+                    accent="#D154FF", icon="⚠")
         backend_error_card(backend_mod, BACKEND_ERRORS.get(backend_mod, "Import failed"))
         st.markdown("""
         <div style="font-family:monospace;font-size:0.62rem;
