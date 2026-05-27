@@ -1088,6 +1088,8 @@ class CooperMurphTimeEngine:
                 "Earth time (yr)":leg.earth_time_yr,
                 "Murph age start": murph_age,
                 "Murph age end":   murph_age + leg.earth_time_yr,
+                "Earth year start": earth_t,
+                "Earth year end":   earth_t + leg.earth_time_yr,
             })
             murph_age += leg.earth_time_yr
             earth_t   += leg.earth_time_yr
