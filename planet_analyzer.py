@@ -676,6 +676,7 @@ class HabitabilityScorer:
         hz = {}
         for name, (a0,a1,a2,a3,a4) in coeff.items():
             S_eff = a0 + a1*T_prime + a2*T_prime**2 + a3*T_prime**3 + a4*T_prime**4
+            S_eff = max(S_eff, 1e-5)
             d_AU  = math.sqrt(L_star_sol / S_eff)
             hz[name] = d_AU
         hz["conservative_inner"] = hz["runaway_greenhouse"]
@@ -1791,7 +1792,7 @@ class PlanetaryInterior:
         r_c_frac = bounds["R_core"] / self.R_total
         
         # If tidally locked (Miller, maybe others), rotation is slow
-        rot_omega = 2.0 * math.pi / (self.p.day_length_hr * 3600.0)
+        rot_omega = 2.0 * math.pi / (self.p.rotation_period_hr * 3600.0)
         earth_omega = 2.0 * math.pi / 86400.0
         
         # Rossby number proxy (inverse): higher is better for dynamo

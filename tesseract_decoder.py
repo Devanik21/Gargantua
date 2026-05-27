@@ -1000,7 +1000,7 @@ class TARSDataCrystal:
         text = self.encoder.binary_to_text(bits)
         lat, lon = self.encoder.binary_to_coords(crystal["coord_bits"])
         coeffs   = crystal["murphy"]["coefficients"]
-        n_valid  = int(len(coeffs) * crystal["murphy"]["tars_data_confidence"]
+        n_valid  = int(len(coeffs) * crystal["capacity"]["tars_data_confidence"]
                        if "tars_data_confidence" in crystal.get("capacity",{})
                        else len(coeffs) * 0.9997)
         plan_a = self.solver.plan_a_progress(n_valid, 42)
