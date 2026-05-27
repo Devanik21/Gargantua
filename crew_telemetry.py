@@ -952,7 +952,7 @@ class CommunicationsRelay:
         self.inbox:    List[Message] = []
         self.outbox:   List[Message] = []
         self.band:     str   = "Ka-band"
-        self.distance_AU: float = SATURN_SMA_AU = 9.537
+        self.distance_AU: float = 9.537
         self.wormhole_relay: bool = False
         self._seed_nasa_messages()
 
@@ -1109,6 +1109,212 @@ class PhysiologySimulator:
             "stress_pct":       np.clip(stress, 0, 100),
             "morale_pct":       morale,
         })
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §10A  EPIGENETIC RADIATION DAMAGE ACCUMULATOR
+# ══════════════════════════════════════════════════════════════════════════════
+class EpigeneticRadiationModel:
+    """
+    Simulates DNA double-strand breaks (DSBs) and epigenetic clock acceleration
+    due to Galactic Cosmic Rays (GCR) and Solar Particle Events (SPE).
+    
+    Uses a Linear-Quadratic (LQ) biological response model:
+    Surviving fraction S = exp(-αD - βD²)
+    where D is the absorbed dose in Gray (Gy).
+    
+    Includes cellular repair mechanisms (non-homologous end joining) which
+    fail probabilistically over long mission durations.
+    """
+    
+    def __init__(self, bg_gcr_msv_per_day: float = 1.8):
+        self.bg_rate = bg_gcr_msv_per_day
+        self.alpha_dsb = 0.03  # DSBs per mSv per cell
+        self.repair_half_life_hrs = 2.0
+        self.epigenetic_age_rate = 0.005  # Years added per mSv
+        
+    def simulate_damage(self, days: int, solar_flares: List[Tuple[int, float]] = None) -> pd.DataFrame:
+        """
+        Simulate radiation damage over time.
+        solar_flares: List of (day_index, dose_mSv)
+        """
+        if solar_flares is None:
+            solar_flares = []
+            
+        t_arr = np.arange(days)
+        dose_rate = np.full(days, self.bg_rate)
+        
+        # Add flares
+        for day, dose in solar_flares:
+            if 0 <= day < days:
+                dose_rate[day] += dose
+                
+        cum_dose = np.cumsum(dose_rate)
+        
+        # DSB kinetics (production - repair)
+        dsbs = np.zeros(days)
+        unrepaired_dsbs = np.zeros(days)
+        repair_rate = math.log(2) / (self.repair_half_life_hrs / 24.0)
+        
+        for i in range(1, days):
+            # New breaks
+            new_dsbs = self.alpha_dsb * dose_rate[i]
+            # Repair of existing breaks
+            repaired = dsbs[i-1] * (1.0 - math.exp(-repair_rate))
+            # Fraction of misrepaired/unrepaired (permanent damage)
+            misrepaired = repaired * 0.01
+            
+            dsbs[i] = dsbs[i-1] + new_dsbs - repaired
+            unrepaired_dsbs[i] = unrepaired_dsbs[i-1] + misrepaired
+            
+        # Epigenetic clock acceleration (biological aging)
+        bio_age_increase = cum_dose * self.epigenetic_age_rate
+        
+        # Cancer risk excess (linear no-threshold model: 5% per Sv)
+        excess_cancer_risk_pct = cum_dose / 1000.0 * 5.0
+        
+        return pd.DataFrame({
+            "Day": t_arr,
+            "Daily_Dose_mSv": dose_rate,
+            "Cum_Dose_mSv": cum_dose,
+            "Active_DSBs_per_cell": dsbs,
+            "Permanent_DSBs": unrepaired_dsbs,
+            "Bio_Age_Increase_yr": bio_age_increase,
+            "Cancer_Risk_Excess_pct": excess_cancer_risk_pct
+        })
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §10B  CIRCADIAN DESYNCHRONIZATION MODEL
+# ══════════════════════════════════════════════════════════════════════════════
+class CircadianRhythmModel:
+    """
+    Models the human circadian oscillator (suprachiasmatic nucleus) using a
+    forced Van der Pol oscillator (Kronauer model).
+    
+    dx/dt = (π/12) * (y + gamma * (x/3 + 4/3 x^3 - 256/105 x^7) + F(t))
+    dy/dt = (π/12) * (-x)
+    
+    Where F(t) is the light zeitgeber.
+    Simulates jet lag and desynchronization under non-24h light cycles
+    (e.g., tidally locked planets, erratic ship lighting).
+    """
+    
+    def __init__(self):
+        self.omega = 2.0 * math.pi / 24.2  # intrinsic period ~ 24.2h
+        self.gamma = 0.13  # stiffness parameter
+        
+    def _vdp_system(self, t: float, state: np.ndarray, light_cycle: Callable[[float], float]) -> np.ndarray:
+        x, y = state
+        F_t = light_cycle(t)  # Light forcing term
+        
+        # Modified Kronauer oscillator
+        dxdt = (math.pi/12.0) * (y + self.gamma * (x/3.0 - (4.0/3.0)*x**3) + F_t)
+        dydt = (math.pi/12.0) * (-x * (24.0/24.2)**2)
+        return np.array([dxdt, dydt])
+        
+    def simulate_rhythm(self, days: float, light_period_hr: float = 24.0) -> pd.DataFrame:
+        """
+        Simulate core body temperature (x) rhythm under a given light cycle.
+        """
+        def light_forcing(t_hr: float) -> float:
+            # Simple square wave: 16h light, 8h dark
+            phase = t_hr % light_period_hr
+            if phase < (light_period_hr * 0.66):
+                return 0.1  # Light on
+            return -0.05    # Light off
+            
+        t_max = days * 24.0
+        t_eval = np.linspace(0, t_max, int(days * 24))
+        y0 = np.array([-1.0, 0.0])  # Initial state
+        
+        sol = sci_int.solve_ivp(
+            self._vdp_system, (0, t_max), y0,
+            args=(light_forcing,), method='RK45', t_eval=t_eval
+        )
+        
+        x = sol.y[0] # Proxy for Core Body Temp / Alertness
+        
+        # Calculate cognitive performance based on CBT proxy
+        # Baseline is 100%, dips when CBT is low
+        performance = 85.0 + 15.0 * x
+        
+        # Calculate phase angle difference (desynchronization penalty)
+        expected_phase = np.sin(2.0 * math.pi * t_eval / 24.0)
+        desync = np.abs(x - expected_phase)
+        fatigue = np.clip(100.0 * desync / 2.0, 0, 100)
+        
+        return pd.DataFrame({
+            "Hour": t_eval,
+            "Day": t_eval / 24.0,
+            "CBT_Proxy": x,
+            "Cognitive_Perf_pct": performance,
+            "Fatigue_pct": fatigue
+        })
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §10C  HYPOXIA & FLUID SHIFT SIMULATOR
+# ══════════════════════════════════════════════════════════════════════════════
+class MicrogravityPhysiology:
+    """
+    Simulates cephalad fluid shift in microgravity and its effect on intraocular 
+    pressure (Spaceflight-Associated Neuro-ocular Syndrome - SANS).
+    Also simulates tissue oxygenation under varying cabin pressures.
+    """
+    
+    def __init__(self):
+        self.base_iop_mmhg = 15.0  # Intraocular pressure
+        self.base_icp_mmhg = 10.0  # Intracranial pressure
+        
+    def fluid_shift(self, days_in_ug: np.ndarray) -> pd.DataFrame:
+        """
+        Simulate 2-liter fluid shift to upper body.
+        Volume shifts rapidly in first 24h, then plateaus.
+        """
+        # Fluid shift in Liters
+        shift_L = 2.0 * (1.0 - np.exp(-days_in_ug / 1.0))
+        
+        # ICP increases due to venous congestion
+        icp = self.base_icp_mmhg + 5.0 * (1.0 - np.exp(-days_in_ug / 3.0))
+        
+        # IOP increases
+        iop = self.base_iop_mmhg + 4.0 * (1.0 - np.exp(-days_in_ug / 2.0))
+        
+        # Visual acuity degradation proxy (SANS risk)
+        # Risk increases non-linearly with prolonged elevated ICP/IOP gradient
+        gradient = iop - icp
+        sans_risk = 100.0 * (1.0 - np.exp(-days_in_ug / 180.0)) * (gradient / 5.0)
+        sans_risk = np.clip(sans_risk, 0, 100)
+        
+        return pd.DataFrame({
+            "Day": days_in_ug,
+            "Fluid_Shift_L": shift_L,
+            "ICP_mmHg": icp,
+            "IOP_mmHg": iop,
+            "SANS_Risk_pct": sans_risk
+        })
+        
+    def hypoxia_model(self, cabin_pressure_atm: float, fiO2: float) -> float:
+        """
+        Alveolar gas equation to calculate blood oxygen saturation (SpO2).
+        P_A_O2 = (P_atm - P_H2O) * fiO2 - (P_a_CO2 / R)
+        """
+        P_atm_mmhg = cabin_pressure_atm * 760.0
+        P_H2O = 47.0  # Vapor pressure of water at 37C
+        P_a_CO2 = 40.0 # Arterial CO2
+        R = 0.8 # Respiratory quotient
+        
+        PAO2 = (P_atm_mmhg - P_H2O) * fiO2 - (P_a_CO2 / R)
+        
+        if PAO2 <= 0: return 0.0
+        
+        # Severinghaus equation for Oxygen Dissociation Curve
+        # SpO2 = ( ( (PAO2^3 + 150*PAO2)^-1 * 23400 ) + 1 )^-1
+        po2_3 = PAO2**3
+        spo2 = 1.0 / ( (23400.0 / (po2_3 + 150.0 * PAO2)) + 1.0 )
+        
+        return spo2 * 100.0
 
 
 # ══════════════════════════════════════════════════════════════════════════════
