@@ -89,6 +89,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
+trapz = getattr(np, "trapezoid", getattr(np, "trapz", None))
 import pandas as pd
 import scipy.integrate as sci_int
 import scipy.optimize  as sci_opt
@@ -369,15 +370,20 @@ class Planet:
         self.T_eff    = self._T_effective()
         self.T_surf   = self.T_eff  # updated by atmosphere model
         # Orbital period (Kepler)
-        self.period_s = 2*math.pi * math.sqrt(self.a_m**3/(G_SI*self.star_M_kg))
+        if self.a_m > 0:
+            self.period_s = 2*math.pi * math.sqrt(self.a_m**3/(G_SI*self.star_M_kg))
+            self.S_flux   = self.star_L_W / (4*math.pi*self.a_m**2)  # [W/m²]
+        else:
+            self.period_s = 1.7 * 3600.0 # Fallback for Miller's World
+            self.S_flux   = self.star_L_W / (4*math.pi*(10.0*AU)**2)
         self.period_yr= self.period_s / YEAR_S
-        # Solar flux at orbit
-        self.S_flux   = self.star_L_W / (4*math.pi*self.a_m**2)  # [W/m²]
         self.S_earth  = self.S_flux / 1361.0   # normalised to Earth=1
 
     def _T_eq_no_greenhouse(self) -> float:
         """Equilibrium temperature (no atmosphere):
            T_eq = T_star × (R_star/2a)^½ × (1−A)^¼"""
+        if self.a_m <= 0:
+            return 290.0 # Fallback temperature (e.g. Miller's World)
         ratio = self.star_R_m / (2.0*self.a_m)
         return self.star_T_K * math.sqrt(ratio) * (1.0-self.albedo_bond)**0.25
 
@@ -1050,7 +1056,7 @@ class SpectralEngine:
         x     = np.clip(x, 1e-5, 700)
         B_nu  = 2*H_PL*C_SI**2/wl_m**5 / (np.exp(x)-1)
         # Normalise to incident flux
-        norm = np.trapz(B_nu, wl_m)
+        norm = trapz(B_nu, wl_m)
         if norm > 0:
             B_nu = B_nu / norm * L_au2
         return B_nu   # W/m²/m → convert
@@ -1351,9 +1357,454 @@ class MissionRiskAssessor:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# §10A  ATMOSPHERIC RADIATIVE TRANSFER — 7-Layer Radiative-Convective Model
+# ══════════════════════════════════════════════════════════════════════════════
+class RadiativeConvectiveModel:
+    """
+    7-layer 1D radiative-convective equilibrium (RCE) climate model.
+    Solves for the vertical temperature profile of a planetary atmosphere.
+
+    Method:
+    1. Divide atmosphere into 7 pressure layers (log-spaced)
+    2. Compute optical depth τ_λ for each layer based on composition
+    3. Solve two-stream Schwarzschild equations for upwelling/downwelling IR
+    4. Compute radiative heating/cooling rates
+    5. Convective adjustment: enforce dry/moist adiabatic lapse rate
+    6. Iterate to equilibrium T(P) profile
+
+    References:
+      Manabe & Strickler (1964) J.Atmos.Sci.
+      Pierrehumbert, "Principles of Planetary Climate" (2010)
+    """
+
+    def __init__(self, planet: Planet, n_layers: int = 7):
+        self.p    = planet
+        self.n    = n_layers
+        self.g    = planet.surface_gravity()
+        # Pressure grid (Pa): logarithmically spaced from surface to TOA
+        P_surf    = planet.pressure_bar * 1e5
+        P_toa     = P_surf * 1e-4
+        self.P_edges = np.geomspace(P_surf, P_toa, self.n + 1)
+        self.P_mid   = np.sqrt(self.P_edges[:-1] * self.P_edges[1:])  # Layer centers
+        self.dP      = self.P_edges[:-1] - self.P_edges[1:]
+
+    def _absorption_coefficients(self) -> Dict[str, float]:
+        """Specific absorption coefficients κ_IR [m²/kg] (approximate)."""
+        return {
+            "CO2": 0.05,
+            "H2O": 0.10,
+            "CH4": 0.08,
+            "N2":  0.0001,  # CIA only
+            "O2":  0.0002,
+            "NH3": 0.15,
+        }
+
+    def compute_optical_depths(self) -> np.ndarray:
+        """
+        Compute IR optical depth difference Δτ for each layer.
+        Δτ_i = κ_mix · ΔP_i / g
+        """
+        k_dict = self._absorption_coefficients()
+        k_mix = 0.0
+        for gas, frac in self.p.atmosphere.items():
+            k_mix += k_dict.get(gas, 0.0) * frac
+        
+        # Add pressure broadening: κ ∝ (P/P0)
+        tau_diff = k_mix * self.dP / self.g * (self.P_mid / 1e5)**0.5
+        return tau_diff
+
+    def dry_adiabatic_lapse_rate(self) -> float:
+        """Γ_d = g / c_p [K/m]. Convert to K/Pa: dT/dP = R T / (c_p P)"""
+        m_mean = self.p.mean_molecular_weight() * 1e-3  # kg/mol
+        c_p = 1000.0 * (28.97e-3 / m_mean)  # approximate specific heat
+        return self.g / c_p
+
+    def radiative_fluxes(self, T_layers: np.ndarray, T_surf: float) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Solve two-stream IR fluxes using Schwarzschild equation.
+        Upwelling F_up, Downwelling F_down at layer edges.
+        """
+        dtau = self.compute_optical_depths()
+        
+        # Blackbody emission of layers (σT^4)
+        B_layers = SIGMA_SB * T_layers**4
+        B_surf   = SIGMA_SB * T_surf**4
+        
+        F_down = np.zeros(self.n + 1)
+        F_up   = np.zeros(self.n + 1)
+        
+        # Downwelling (Top to Bottom)
+        F_down[-1] = 0.0  # TOA
+        for i in range(self.n - 1, -1, -1):
+            trans = math.exp(-1.66 * dtau[i])  # Diffusivity factor 1.66
+            F_down[i] = F_down[i+1] * trans + B_layers[i] * (1.0 - trans)
+            
+        # Upwelling (Bottom to Top)
+        F_up[0] = B_surf
+        for i in range(self.n):
+            trans = math.exp(-1.66 * dtau[i])
+            F_up[i+1] = F_up[i] * trans + B_layers[i] * (1.0 - trans)
+            
+        return F_up, F_down
+
+    def convective_adjustment(self, T_layers: np.ndarray, T_surf: float) -> Tuple[np.ndarray, float]:
+        """Enforce adiabatic lapse rate constraint (energy conserving)."""
+        m_mean = self.p.mean_molecular_weight() * 1e-3
+        R_spec = 8.314 / m_mean
+        c_p    = 1000.0 * (28.97e-3 / m_mean)
+        kappa  = R_spec / c_p  # R/c_p
+        
+        T_adj = T_layers.copy()
+        T_s_adj = T_surf
+        
+        # Check consecutive layers
+        for i in range(self.n - 1):
+            P1, P2 = self.P_mid[i], self.P_mid[i+1]
+            T1, T2 = T_adj[i], T_adj[i+1]
+            # Potential temperature condition
+            if T2 < T1 * (P2/P1)**kappa:
+                # Mix layers conserving enthalpy (c_p T dP)
+                H_tot = c_p * T1 * self.dP[i] + c_p * T2 * self.dP[i+1]
+                # New temperatures follow adiabat: T2_new = T1_new * (P2/P1)^kappa
+                T1_new = H_tot / (c_p * self.dP[i] + c_p * self.dP[i+1] * (P2/P1)**kappa)
+                T_adj[i] = T1_new
+                T_adj[i+1] = T1_new * (P2/P1)**kappa
+                
+        # Check surface to layer 0
+        if T_adj[0] < T_s_adj * (self.P_mid[0] / self.P_edges[0])**kappa:
+            T_s_adj = T_adj[0] / (self.P_mid[0] / self.P_edges[0])**kappa
+            
+        return T_adj, T_s_adj
+
+    def solve_temperature_profile(self, n_iter: int = 50, dt_days: float = 0.5) -> Dict[str, np.ndarray]:
+        """
+        Iterate RCE model to equilibrium.
+        dt_days is the pseudo-timestep for radiative relaxation.
+        """
+        # Initial guess: isothermal
+        T_eq   = self.p.equilibrium_temperature()
+        T_surf = T_eq + 30.0
+        T_layers = np.ones(self.n) * T_eq
+        
+        c_p = 1000.0
+        dt  = dt_days * 86400.0
+        
+        # Insolation absorbed at surface
+        alb = self.p.albedo
+        S_inc = self.p.stellar_flux()
+        F_solar_absorbed = S_inc * (1.0 - alb) / 4.0
+        
+        for _ in range(n_iter):
+            F_up, F_down = self.radiative_fluxes(T_layers, T_surf)
+            
+            # Radiative heating rates: dT/dt = -g/c_p dF_net/dP
+            F_net = F_up - F_down
+            dF_dP = (F_net[:-1] - F_net[1:]) / self.dP
+            dT_rad = -self.g / c_p * dF_dP * dt
+            
+            T_layers += dT_rad
+            
+            # Surface balance
+            F_surf_net = F_solar_absorbed + F_down[0] - F_up[0]
+            # Assume arbitrary surface heat capacity equivalent to 10m ocean
+            C_surf = 10.0 * 1000.0 * 4184.0 
+            T_surf += F_surf_net * dt / C_surf
+            
+            # Convective adjustment
+            T_layers, T_surf = self.convective_adjustment(T_layers, T_surf)
+            
+        return {
+            "P_mid_Pa": self.P_mid,
+            "T_layers_K": T_layers,
+            "T_surf_K": T_surf,
+            "OLR_W": F_up[-1],  # Outgoing Longwave Radiation
+            "F_up": F_up,
+            "F_down": F_down,
+        }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §10B  ATMOSPHERIC RETRIEVAL ENGINE — Spectral Biosignature Inversion
+# ══════════════════════════════════════════════════════════════════════════════
+class AtmosphericRetrieval:
+    """
+    Bayesian atmospheric retrieval engine for biosignatures.
+    Simulates observation of a planetary reflectance spectrum and runs an MCMC-like
+    grid search to retrieve the posterior probability of key biosignature gases.
+
+    Retrieval targets:
+      - O₂ (Oxygen A-band at 0.76 μm)
+      - CH₄ (Methane bands at 1.15, 1.4, 1.6 μm)
+      - O₃ (Ozone Chappuis band 0.6 μm)
+
+    References:
+      Madhusudhan & Seager (2009) ApJ 707:24
+      Line et al. (2013) ApJ 775:137
+    """
+
+    def __init__(self, planet: Planet):
+        self.p = planet
+        # Wavelength grid for retrieval [μm]
+        self.wl = np.linspace(0.4, 2.0, 300)
+
+    def _cross_sections(self) -> Dict[str, np.ndarray]:
+        """Simulated absorption cross-sections σ(λ) [arbitrary units]."""
+        # Gaussian profiles for key molecular bands
+        def band(wl0, width):
+            return np.exp(-0.5 * ((self.wl - wl0) / width)**2)
+            
+        return {
+            "O2":  1.0 * band(0.76, 0.01) + 0.2 * band(1.27, 0.02),
+            "CH4": 0.8 * band(1.15, 0.03) + 1.2 * band(1.40, 0.04) + 1.5 * band(1.65, 0.05),
+            "O3":  0.5 * band(0.60, 0.08) + 0.3 * band(0.32, 0.02),
+            "H2O": 1.0 * band(0.94, 0.02) + 1.2 * band(1.13, 0.03) + 1.8 * band(1.38, 0.04) + 2.5 * band(1.88, 0.06),
+            "CO2": 0.5 * band(1.60, 0.02) + 2.0 * band(2.00, 0.05),
+        }
+
+    def forward_model(self, abundances: Dict[str, float]) -> np.ndarray:
+        """
+        Generate synthetic reflectance spectrum given abundances.
+        Uses simple Beer-Lambert transmission through 1 airmass.
+        """
+        sigma = self._cross_sections()
+        tau = np.zeros_like(self.wl)
+        
+        # Column density scale factor (proportional to pressure)
+        col = self.p.pressure_bar * 1.0e25  
+        
+        for gas, frac in abundances.items():
+            if gas in sigma:
+                tau += sigma[gas] * frac * col * 1e-25  # scaled cross sections
+                
+        # Reflectance = Albedo * exp(-2*tau) (two-way path)
+        reflectance = self.p.albedo * np.exp(-2.0 * tau)
+        
+        # Add Rayleigh scattering slope (λ^-4)
+        rayleigh = 0.05 * self.p.pressure_bar * (0.5 / self.wl)**4
+        reflectance = reflectance + rayleigh
+        return np.clip(reflectance, 0.0, 1.0)
+
+    def simulate_observation(self, snr: float = 20.0) -> np.ndarray:
+        """Generate synthetic observed spectrum with Gaussian noise."""
+        truth = self.forward_model(self.p.atmosphere)
+        noise = truth / snr * np.random.randn(len(self.wl))
+        return truth + noise
+
+    def retrieve_abundances(self, obs_spec: np.ndarray, snr: float = 20.0) -> Dict[str, Any]:
+        """
+        Grid search retrieval for O2 and CH4 (simulated 2D MCMC posterior).
+        Computes the Bayesian evidence for the presence of biosignatures.
+        """
+        noise_std = np.mean(obs_spec) / snr
+        
+        # Grid bounds: log10(fraction)
+        o2_grid  = np.logspace(-6, 0, 40)
+        ch4_grid = np.logspace(-6, -2, 40)
+        
+        posterior = np.zeros((len(o2_grid), len(ch4_grid)))
+        base_atm = {"N2": 0.8, "CO2": 0.1, "H2O": 0.01}  # Fixed background
+        
+        for i, o2 in enumerate(o2_grid):
+            for j, ch4 in enumerate(ch4_grid):
+                test_atm = base_atm.copy()
+                test_atm["O2"] = o2
+                test_atm["CH4"] = ch4
+                
+                model = self.forward_model(test_atm)
+                
+                # Log-likelihood: L ∝ -0.5 * chi^2
+                chi2 = np.sum(((obs_spec - model) / noise_std)**2)
+                posterior[i, j] = math.exp(-0.5 * chi2)
+                
+        # Normalise posterior
+        Z = np.sum(posterior)
+        posterior /= (Z + 1e-300)
+        
+        # Marginalize
+        marg_o2  = np.sum(posterior, axis=1)
+        marg_ch4 = np.sum(posterior, axis=0)
+        
+        # Best fit
+        idx_o2, idx_ch4 = np.unravel_index(np.argmax(posterior), posterior.shape)
+        
+        # Equivalent width of O2-A band (0.76 μm)
+        idx_A = np.where((self.wl > 0.75) & (self.wl < 0.77))[0]
+        continuum = np.interp(self.wl[idx_A], [0.74, 0.78], [obs_spec[np.argmin(abs(self.wl-0.74))], obs_spec[np.argmin(abs(self.wl-0.78))]])
+        ew_O2 = trapz(1.0 - obs_spec[idx_A] / continuum, self.wl[idx_A]) * 1000.0  # nm
+        
+        return {
+            "O2_best":    o2_grid[idx_o2],
+            "CH4_best":   ch4_grid[idx_ch4],
+            "O2_marg":    marg_o2,
+            "CH4_marg":   marg_ch4,
+            "O2_grid":    o2_grid,
+            "CH4_grid":   ch4_grid,
+            "posterior":  posterior,
+            "O2_A_band_EW_nm": max(0.0, ew_O2),
+            "biosig_confidence": float(np.sum(posterior[o2_grid > 1e-3, :]) * np.sum(posterior[:, ch4_grid > 1e-5])),
+        }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §10C  PLANETARY INTERIOR STRUCTURE MODEL (4-Layer)
+# ══════════════════════════════════════════════════════════════════════════════
+class PlanetaryInterior:
+    """
+    4-layer differentiated interior structure model.
+    Solves the Adams-Williamson equation for hydrostatic equilibrium:
+      dρ/dr = −(G M(r) ρ(r)) / (r² Φ)
+    where Φ = K_S / ρ is the seismic parameter.
+
+    Layers:
+    1. Iron Core (Inner solid + Outer liquid)
+    2. Silicate Mantle
+    3. Silicate Crust
+    4. Ocean/Ice shell (if present)
+
+    Computes moment of inertia factor I/MR² and core pressure.
+    """
+
+    def __init__(self, planet: Planet):
+        self.p = planet
+        self.M_total = planet.mass_earth * 5.972e24      # kg
+        self.R_total = planet.radius_earth * 6371e3      # m
+        self.avg_rho = self.M_total / (4.0/3.0 * math.pi * self.R_total**3)
+
+    def determine_layer_boundaries(self) -> Dict[str, float]:
+        """
+        Estimate layer boundary radii based on uncompressed density matching.
+        Returns radii in metres.
+        """
+        # Earth baseline fractions (radius)
+        # Core: 0.54 R_E, Mantle: 0.99 R_E, Crust: 1.0 R_E
+        
+        # Scale core size based on mean density (iron fraction proxy)
+        # Higher density -> larger core. 
+        # Empirical fit: r_core/R = 0.54 * (rho / 5514)^0.5
+        r_c_frac = 0.54 * math.sqrt(self.avg_rho / 5514.0)
+        r_c_frac = min(max(r_c_frac, 0.1), 0.85)  # bounds
+        
+        return {
+            "R_core":   r_c_frac * self.R_total,
+            "R_mantle": 0.985 * self.R_total,
+            "R_crust":  self.R_total,
+        }
+
+    def _equation_of_state(self, r: float, bounds: Dict[str, float]) -> Tuple[float, float]:
+        """
+        Return base density ρ0 and bulk modulus K0 for layer at radius r.
+        Uses Murnaghan EOS parameters [kg/m³, Pa].
+        """
+        if r <= bounds["R_core"]:
+            # Iron core (liquid Fe-Ni)
+            rho0 = 7000.0
+            K0   = 130e9  
+        elif r <= bounds["R_mantle"]:
+            # Silicate mantle (Perovskite/Bridgmanite)
+            rho0 = 4100.0
+            K0   = 200e9
+        else:
+            # Crust (Basalt/Granite)
+            rho0 = 2900.0
+            K0   = 60e9
+            
+        return rho0, K0
+
+    def solve_density_profile(self, n_pts: int = 500) -> Dict[str, np.ndarray]:
+        """
+        Integrate Adams-Williamson ODE from surface to center.
+        System:
+          dM/dr = 4π r² ρ
+          dρ/dr = −(G M ρ²) / (K r²)
+        """
+        bounds = self.determine_layer_boundaries()
+        r_arr = np.linspace(100.0, self.R_total, n_pts)  # avoid r=0 singularity
+        
+        # Initialize arrays
+        rho = np.zeros(n_pts)
+        M_r = np.zeros(n_pts)
+        P   = np.zeros(n_pts)
+        g   = np.zeros(n_pts)
+        
+        # Boundary condition at surface
+        rho[-1], K_surf = self._equation_of_state(self.R_total, bounds)
+        M_r[-1] = self.M_total
+        P[-1]   = self.p.pressure_bar * 1e5
+        g[-1]   = G_SI * M_r[-1] / (r_arr[-1]**2)
+        
+        # Integrate inward (Euler method for simplicity, suffices for qualitative)
+        dr = r_arr[1] - r_arr[0]
+        
+        for i in range(n_pts - 1, 0, -1):
+            r_i = r_arr[i]
+            rho0, K0 = self._equation_of_state(r_i, bounds)
+            
+            # Density gradient (Adams-Williamson)
+            # Add small regularisation to avoid division by zero
+            Phi = K0 / rho[i]
+            drho_dr = - (G_SI * M_r[i] * rho[i]) / (r_i**2 * Phi + 1e-10)
+            
+            # Update density
+            rho[i-1] = rho[i] - drho_dr * dr
+            
+            # Enforce density jumps at boundaries
+            rho0_next, _ = self._equation_of_state(r_arr[i-1], bounds)
+            if rho0_next > rho0 + 100.0:  # Crossed boundary inward
+                rho[i-1] = rho[i-1] + (rho0_next - rho0)
+            
+            # Update mass
+            dM_dr = 4.0 * math.pi * r_i**2 * rho[i]
+            M_r[i-1] = M_r[i] - dM_dr * dr
+            
+            # Update pressure (dP/dr = -rho g)
+            g_i = G_SI * M_r[i] / (r_i**2)
+            dP_dr = -rho[i] * g_i
+            P[i-1] = P[i] - dP_dr * dr
+            g[i-1] = G_SI * M_r[i-1] / (r_arr[i-1]**2)
+
+        # Compute Moment of Inertia: I = (8π/3) ∫ ρ r⁴ dr
+        I_val = (8.0 * math.pi / 3.0) * trapz(rho * r_arr**4, r_arr)
+        # Dimensionless MoI factor: C/MR²
+        I_factor = I_val / (self.M_total * self.R_total**2)
+
+        return {
+            "r_m":      r_arr,
+            "r_frac":   r_arr / self.R_total,
+            "rho_kgm3": rho,
+            "Mass_kg":  M_r,
+            "P_Pa":     P,
+            "P_GPa":    P / 1e9,
+            "g_ms2":    g,
+            "I_factor": I_factor,
+            "P_core_GPa": P[0] / 1e9,
+            "R_core_km": bounds["R_core"] / 1000.0,
+            "core_mass_frac": M_r[np.argmin(np.abs(r_arr - bounds["R_core"]))] / self.M_total,
+        }
+
+    def magnetic_dynamo_proxy(self) -> float:
+        """
+        Estimate likelihood of active core dynamo.
+        Requires liquid iron core + sufficient rotation + heat flux.
+        Proxy score 0-1 based on core size and rotation rate.
+        """
+        bounds = self.determine_layer_boundaries()
+        r_c_frac = bounds["R_core"] / self.R_total
+        
+        # If tidally locked (Miller, maybe others), rotation is slow
+        rot_omega = 2.0 * math.pi / (self.p.day_length_hr * 3600.0)
+        earth_omega = 2.0 * math.pi / 86400.0
+        
+        # Rossby number proxy (inverse): higher is better for dynamo
+        # Score = (core_frac / 0.54) * (omega / omega_earth)
+        score = (r_c_frac / 0.54) * (rot_omega / earth_omega)**0.5
+        return float(np.clip(score, 0.0, 1.0))
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # §11  SESSION STATE
 # ══════════════════════════════════════════════════════════════════════════════
 def init_session_state():
+
     scorer = HabitabilityScorer()
     D: Dict[str, Any] = {
         "plan_active_pid":    PlanetID.EDMUNDS,

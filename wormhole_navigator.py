@@ -91,6 +91,7 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
+trapz = getattr(np, "trapezoid", getattr(np, "trapz", None))
 import pandas as pd
 import scipy.integrate as sci_int
 import scipy.optimize  as sci_opt
@@ -119,6 +120,7 @@ C_SI      = 2.997_924_58e8
 HBAR      = 1.054_571_817e-34
 K_B       = 1.380_649e-23
 M_SUN     = 1.989_000e30
+L_SUN     = 3.828_000e26
 M_EARTH   = 5.972_000e24
 M_JUPITER = 1.898_000e27
 M_SAT     = 5.683_000e26
@@ -385,7 +387,7 @@ class WormholeGeometry:
         r_arr = np.geomspace(b0*1.001, r_max_b0*b0, 500)
         rho_arr = np.array([abs(self.stress_energy_tensor(r)["rho_kg_m3"])
                              for r in r_arr])
-        return np.trapz(rho_arr * 4*math.pi*r_arr**2, r_arr)
+        return trapz(rho_arr * 4*math.pi*r_arr**2, r_arr)
 
     def flaring_satisfies(self) -> bool:
         """Check flaring-out condition at throat."""
@@ -1065,6 +1067,201 @@ class MissionTrajectoryPlanner:
                 "v_circular (km/s)":round(v_c/1e3, 3),
             })
         return pd.DataFrame(rows)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §8A  MORRIS-THORNE GEODESIC INTEGRATOR — 3D Null & Timelike Trajectories
+# ══════════════════════════════════════════════════════════════════════════════
+class MorrisThorneGeodesics:
+    """
+    Solves 3D geodesic equations for rays (photons) and particles
+    traversing a traversable wormhole (Morris & Thorne 1988).
+    
+    Metric: ds² = -e^(2Φ(r)) dt² + dr² / (1 - b(r)/r) + r² dΩ²
+    Uses Hamilton-Jacobi formalism with conserved quantities E, L.
+    
+    Integrates coordinates (t, r, φ) with respect to affine parameter λ 
+    (or proper time τ) through the throat (r = b0).
+    """
+    
+    def __init__(self, b0: float = WORM_THROAT_M, shape_param: float = 1.0):
+        self.b0 = b0
+        self.b_exponent = shape_param  # b(r) = b0 * (b0/r)^gamma
+        
+    def b(self, r: float) -> float:
+        """Shape function."""
+        # Standard Ellis-type generalisation
+        return self.b0 * (self.b0 / max(r, self.b0))**self.b_exponent
+        
+    def Phi(self, r: float) -> float:
+        """Redshift function. Assume zero for traversability (no horizons)."""
+        return 0.0
+        
+    def _ode_system(self, p: float, y: np.ndarray, L: float, is_null: bool) -> np.ndarray:
+        """
+        Geodesic equations in equatorial plane (θ=π/2).
+        y = [t, l, phi], where l is proper radial distance.
+        r(l) is obtained by integrating dl = dr / sqrt(1 - b(r)/r).
+        To avoid coordinate singularity at throat, we integrate w.r.t l.
+        """
+        t, l, phi = y
+        # Reconstruct r from l (approximate for Ellis: r = sqrt(l^2 + b0^2))
+        r = math.sqrt(l**2 + self.b0**2) 
+        
+        # Conserved E (energy) = 1.0 for simplicity
+        E = 1.0
+        
+        kappa = 0.0 if is_null else 1.0
+        
+        # dr/dp from E, L conservation
+        # E^2 = e^(2Φ) * (kappa + (dr/dp)^2 / (1-b/r) + L^2/r^2)
+        # We use l instead of r: dl/dp = sqrt(E^2 e^{-2Φ} - kappa - L^2/r^2)
+        V_eff = math.exp(2 * self.Phi(r)) * (kappa + L**2 / r**2)
+        dl_dp_sq = E**2 - V_eff
+        
+        if dl_dp_sq < 0:
+            dl_dp = 0.0  # Turning point
+        else:
+            # Sign depends on direction (assume inbound then outbound)
+            dl_dp = math.sqrt(dl_dp_sq) if l >= 0 else -math.sqrt(dl_dp_sq)
+            
+        dt_dp = E * math.exp(-2 * self.Phi(r))
+        dphi_dp = L / r**2
+        
+        return np.array([dt_dp, dl_dp, dphi_dp])
+
+    def integrate_ray(self, b_impact: float, l_start: float = 100.0, 
+                      is_null: bool = True, steps: int = 1000) -> Dict[str, np.ndarray]:
+        """
+        Integrate a ray with impact parameter b_impact.
+        L = b_impact * E.
+        """
+        L = b_impact
+        y0 = np.array([0.0, -l_start * self.b0, 0.0])  # Start far away, l < 0
+        p_max = 2.0 * l_start * self.b0  # Affine parameter max
+        
+        sol = sci_int.solve_ivp(
+            self._ode_system, (0, p_max), y0,
+            args=(L, is_null), method='RK45', 
+            dense_output=True, max_step=p_max/200)
+            
+        p_eval = np.linspace(0, sol.t[-1], steps)
+        y_eval = sol.sol(p_eval)
+        
+        t_arr = y_eval[0]
+        l_arr = y_eval[1]
+        phi_arr = y_eval[2]
+        
+        r_arr = np.sqrt(l_arr**2 + self.b0**2)
+        
+        return {
+            "p": p_eval,
+            "t": t_arr,
+            "l": l_arr,
+            "r": r_arr,
+            "phi": phi_arr,
+            "x": r_arr * np.cos(phi_arr),
+            "y": r_arr * np.sin(phi_arr)
+        }
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §8B  FLAMM'S PARABOLOID EMBEDDING — Differential Geometry
+# ══════════════════════════════════════════════════════════════════════════════
+class FlammsParaboloid:
+    """
+    Computes the 3D embedding diagram of the wormhole spatial slice (t=const, θ=π/2).
+    The metric is ds² = dr² / (1 - b(r)/r) + r² dφ².
+    We embed this in 3D Euclidean space: ds² = dz² + dr² + r² dφ².
+    Equating the two: dz/dr = ± sqrt( b(r) / (r - b(r)) ).
+    """
+    
+    def __init__(self, b0: float = WORM_THROAT_M, shape_func: str = "Ellis"):
+        self.b0 = b0
+        self.shape_func = shape_func
+        
+    def b(self, r: float) -> float:
+        if self.shape_func == "Ellis":
+            return self.b0**2 / r
+        elif self.shape_func == "Morris-Thorne":
+            return math.sqrt(self.b0 * r)
+        else: # Standard
+            return self.b0
+            
+    def dz_dr(self, r: float) -> float:
+        """Embedding slope."""
+        br = self.b(r)
+        if r <= br: return 1e6 # Avoid singularity
+        return math.sqrt(br / (r - br))
+        
+    def compute_embedding(self, r_max: float, n_pts: int = 500) -> Dict[str, np.ndarray]:
+        """Integrate dz/dr to find z(r)."""
+        r_arr = np.linspace(self.b0 * 1.0001, r_max, n_pts)
+        z_arr = np.zeros(n_pts)
+        
+        for i in range(1, n_pts):
+            dr = r_arr[i] - r_arr[i-1]
+            r_mid = 0.5 * (r_arr[i] + r_arr[i-1])
+            z_arr[i] = z_arr[i-1] + self.dz_dr(r_mid) * dr
+            
+        # Symmetrize for upper and lower universes
+        r_full = np.concatenate((r_arr[::-1], r_arr))
+        z_full = np.concatenate((z_arr[::-1], -z_arr))
+        
+        return {
+            "r": r_full,
+            "z": z_full,
+            "r_throat": self.b0
+        }
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §8C  EXOTIC MATTER & ENERGY CONDITIONS ANALYZER
+# ══════════════════════════════════════════════════════════════════════════════
+class EnergyConditionAnalyzer:
+    """
+    Calculates the Stress-Energy Tensor components (ρ, τ, p) required to sustain
+    the wormhole geometry, and evaluates energy condition violations.
+    
+    Einstein Field Equations: G_μν = (8πG/c⁴) T_μν
+    ρ: Energy density
+    τ: Radial tension (negative radial pressure)
+    p: Lateral pressure
+    
+    Violation of Null Energy Condition (NEC): ρ - τ < 0
+    This implies "exotic matter" with negative energy density or extreme tension.
+    """
+    
+    def __init__(self, b0: float = WORM_THROAT_M):
+        self.b0 = b0
+        self.kappa = 8.0 * math.pi * G_SI / C_SI**4
+        
+    def stress_energy(self, r: float, b_val: float, b_prime: float) -> Dict[str, float]:
+        """Compute ρ, τ, p in physical units (J/m³ or Pa)."""
+        if r <= 0: return {"rho": 0, "tau": 0, "p": 0}
+        
+        # From Morris & Thorne 1988, Eq 13-15 (assuming Φ = 0 for simplicity)
+        rho_geom = b_prime / (8.0 * math.pi * r**2)
+        tau_geom = b_val / (8.0 * math.pi * r**3)
+        p_geom   = (b_val - r * b_prime) / (16.0 * math.pi * r**3)
+        
+        # Convert from geometric to SI
+        conversion = C_SI**4 / G_SI
+        return {
+            "rho": rho_geom * conversion,
+            "tau": tau_geom * conversion,
+            "p":   p_geom * conversion,
+            "nec_violation": (rho_geom - tau_geom) * conversion
+        }
+        
+    def total_exotic_mass(self, r_max: float) -> float:
+        """
+        Integrate the exotic mass violation over the wormhole volume.
+        M_exotic = \int (ρ - τ) dV
+        Returns negative mass equivalent in kg.
+        """
+        # For b(r) = b0^2 / r, rho - tau is always negative
+        # Analytic integral for Ellis wormhole:
+        # M_ex = - b0 / (2G/c^2)
+        return - self.b0 / (2.0 * G_SI / C_SI**2)
 
 
 # ══════════════════════════════════════════════════════════════════════════════

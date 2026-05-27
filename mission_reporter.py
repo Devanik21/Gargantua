@@ -852,6 +852,244 @@ class MissionReporter:
         for yr, evt, loc, cat in events:
             rows.append({"Year": yr, "Event": evt, "Location": loc, "Category": cat})
         return pd.DataFrame(rows)
+        return pd.DataFrame(rows)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §9A  NSGA-II MULTI-OBJECTIVE EMBRYO OPTIMIZER (Plan B Genetic Diversity)
+# ══════════════════════════════════════════════════════════════════════════════
+class PlanBGeneticOptimizer:
+    """
+    Simulates the selection of the initial 5,000 fertilized embryos for Plan B.
+    Uses the NSGA-II (Non-dominated Sorting Genetic Algorithm II) concept
+    to optimize a multi-objective problem:
+      Objective 1: Maximize genetic diversity (minimize inbreeding).
+      Objective 2: Maximize environmental adaptability (e.g., radiation resistance).
+      Objective 3: Maximize critical skill predispositions (e.g., engineering).
+      
+    For the simulation, we use a surrogate model representing the Pareto front
+    of embryo batches.
+    """
+    
+    def __init__(self, target_population: int = 5000):
+        self.pop_size = target_population
+        
+    def generate_pareto_front(self, n_points: int = 100) -> Dict[str, np.ndarray]:
+        """
+        Generates a synthetic 3D Pareto front for embryo batch selection.
+        Trade-off: High diversity vs High specific adaptability.
+        """
+        # Generate random points on a 3D spherical shell quadrant (Pareto surface)
+        u = np.random.rand(n_points)
+        v = np.random.rand(n_points)
+        
+        theta = 0.5 * math.pi * u
+        phi = 0.5 * math.pi * v
+        
+        # Base scores (normalized 0 to 1)
+        diversity = np.sin(theta) * np.cos(phi)
+        adaptability = np.sin(theta) * np.sin(phi)
+        skills = np.cos(theta)
+        
+        # Add some noise and scale
+        diversity = 70.0 + 30.0 * diversity + np.random.randn(n_points) * 1.5
+        adaptability = 60.0 + 40.0 * adaptability + np.random.randn(n_points) * 1.5
+        skills = 50.0 + 50.0 * skills + np.random.randn(n_points) * 1.5
+        
+        # Cap at 100
+        diversity = np.clip(diversity, 0, 100)
+        adaptability = np.clip(adaptability, 0, 100)
+        skills = np.clip(skills, 0, 100)
+        
+        # Calculate a combined fitness score (example weightings)
+        fitness = 0.5 * diversity + 0.3 * adaptability + 0.2 * skills
+        
+        return {
+            "Diversity": diversity,
+            "Adaptability": adaptability,
+            "Skills": skills,
+            "Fitness": fitness
+        }
+        
+    def simulate_colony_growth(self, years: int, initial_pop: int = 5000) -> pd.DataFrame:
+        """
+        Simulate population growth of Plan B colony.
+        Phase 1: Incubation (rapid linear growth as incubators operate).
+        Phase 2: Natural reproduction (exponential/logistic).
+        """
+        t_arr = np.arange(years)
+        pop = np.zeros(years)
+        diversity_index = np.zeros(years)
+        
+        # Parameters
+        incubator_capacity = 500  # babies per year
+        max_incubated = initial_pop
+        
+        current_pop = 0
+        incubated_total = 0
+        div = 100.0  # Initial diversity score
+        
+        for i in range(years):
+            if incubated_total < max_incubated:
+                new_babies = min(incubator_capacity, max_incubated - incubated_total)
+                incubated_total += new_babies
+                current_pop += new_babies
+            else:
+                # Natural growth: Logistic curve with carrying capacity of 1 million
+                growth_rate = 0.03  # 3% annual growth
+                carrying_capacity = 1000000
+                new_babies = int(current_pop * growth_rate * (1 - current_pop/carrying_capacity))
+                current_pop += new_babies
+                # Genetic drift / founder effect slightly reduces diversity over time
+                div -= 0.01 * (current_pop / carrying_capacity)
+                
+            pop[i] = current_pop
+            diversity_index[i] = max(0, div)
+            
+        return pd.DataFrame({
+            "Year": t_arr,
+            "Population": pop,
+            "Genetic_Diversity_Score": diversity_index
+        })
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §9B  SIR DISEASE VECTOR SIMULATOR (Blight Spread on Earth)
+# ══════════════════════════════════════════════════════════════════════════════
+class BlightSIRModel:
+    """
+    Epidemiological SIR (Susceptible, Infected, Recovered/Dead) model adapted
+    for crop blight spread across Earth's agricultural zones.
+    
+    Categories:
+    S: Healthy crops
+    I: Infected crops (spreading spores)
+    R: Dead crops / barren land
+    
+    Includes an "adaptation" parameter where the blight mutates to attack
+    new crop types (wheat -> okra -> corn).
+    """
+    
+    def __init__(self, beta: float = 0.3, gamma: float = 0.1):
+        self.beta = beta    # Infection rate
+        self.gamma = gamma  # Crop death rate
+        
+    def _sir_derivatives(self, t: float, y: np.ndarray, beta: float, gamma: float) -> np.ndarray:
+        S, I, R = y
+        # N = 1 (normalized to total arable land)
+        dSdt = -beta * S * I
+        dIdt = beta * S * I - gamma * I
+        dRdt = gamma * I
+        return np.array([dSdt, dIdt, dRdt])
+        
+    def simulate_crop_collapse(self, years: float, crop_type: str = "Corn") -> pd.DataFrame:
+        """Simulate the collapse of a specific crop type."""
+        # Mutation makes beta increase over time (blight gets more aggressive)
+        if crop_type == "Wheat":
+            beta_eff, gamma_eff = self.beta * 1.5, self.gamma * 1.2
+        elif crop_type == "Okra":
+            beta_eff, gamma_eff = self.beta * 1.2, self.gamma * 1.0
+        else: # Corn (the last crop)
+            beta_eff, gamma_eff = self.beta * 0.8, self.gamma * 0.8
+            
+        t_max = years
+        t_eval = np.linspace(0, t_max, 500)
+        # Initial state: 99% healthy, 1% infected
+        y0 = np.array([0.99, 0.01, 0.0])
+        
+        sol = sci_int.solve_ivp(
+            self._sir_derivatives, (0, t_max), y0,
+            args=(beta_eff, gamma_eff), method='RK45', t_eval=t_eval
+        )
+        
+        # Calculate atmospheric oxygen depletion proxy
+        # Assuming crops produce O2, dead land consumes O2 via decay
+        baseline_o2 = 21.0
+        # O2 drops as healthy crops (S) approach 0, but it's a slow global process
+        # We model a localized severe drop for dramatic effect
+        o2_levels = baseline_o2 - 5.0 * sol.y[2] 
+        
+        return pd.DataFrame({
+            "Year": t_eval,
+            "Healthy_pct": sol.y[0] * 100.0,
+            "Infected_pct": sol.y[1] * 100.0,
+            "Barren_pct": sol.y[2] * 100.0,
+            "Local_O2_pct": o2_levels
+        })
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §9C  SHANNON ENTROPY SIGNAL ANALYZER (Lazarus Telemetry Compression)
+# ══════════════════════════════════════════════════════════════════════════════
+class LazarusSignalAnalyzer:
+    """
+    Analyzes the binary telemetry data sent by Lazarus probes through the wormhole.
+    Computes Shannon Entropy to determine data compressibility and information density.
+    
+    High entropy implies complex, uncompressible data (e.g., quantum gravity readings).
+    Low entropy implies repetitive/empty data (e.g., continuous "all clear" pings).
+    """
+    
+    def __init__(self):
+        pass
+        
+    def generate_synthetic_telemetry(self, length: int, signal_type: str = "random") -> np.ndarray:
+        """Generates synthetic binary telemetry data."""
+        if signal_type == "periodic":
+            # Simple alternating pattern (e.g., a beacon)
+            pattern = np.array([1, 0, 1, 0, 0, 0, 0, 0])
+            return np.tile(pattern, length // len(pattern) + 1)[:length]
+        elif signal_type == "sparse":
+            # Mostly zeros with rare 1s (e.g., anomaly detection)
+            return np.random.choice([0, 1], size=length, p=[0.95, 0.05])
+        else: # "random" or "quantum"
+            # High entropy data (e.g., complex environmental scan)
+            return np.random.randint(0, 2, size=length)
+            
+    def compute_shannon_entropy(self, data: np.ndarray, word_size: int = 8) -> float:
+        """
+        Computes the Shannon Entropy of the data stream.
+        Groups data into 'words' of given size and calculates probability distribution.
+        """
+        if len(data) < word_size:
+            return 0.0
+            
+        # Group into words (e.g., bytes if word_size=8)
+        num_words = len(data) // word_size
+        words = data[:num_words * word_size].reshape((num_words, word_size))
+        
+        # Convert binary array words to integers for counting
+        # e.g. [1,0,1] -> 5
+        powers = 2 ** np.arange(word_size - 1, -1, -1)
+        word_ints = np.dot(words, powers)
+        
+        # Calculate probabilities
+        _, counts = np.unique(word_ints, return_counts=True)
+        probabilities = counts / num_words
+        
+        # Shannon Entropy: H = - sum(p * log2(p))
+        entropy = -np.sum(probabilities * np.log2(probabilities))
+        return entropy
+        
+    def analyze_transmission(self) -> Dict[str, Any]:
+        """Runs analysis on various signal types representing different Lazarus probe states."""
+        length = 10000
+        types = ["periodic", "sparse", "random"]
+        results = {}
+        
+        for t in types:
+            data = self.generate_synthetic_telemetry(length, signal_type=t)
+            # Max entropy for 8-bit word is 8.0
+            entropy = self.compute_shannon_entropy(data, word_size=8)
+            compression_ratio = 8.0 / max(entropy, 0.01) # Theoretical max compression
+            
+            results[t] = {
+                "entropy_bits_per_byte": round(entropy, 3),
+                "compressibility": round(compression_ratio, 2),
+                "information_density_pct": round((entropy / 8.0) * 100.0, 1)
+            }
+            
+        return results
 
 
 # ══════════════════════════════════════════════════════════════════════════════

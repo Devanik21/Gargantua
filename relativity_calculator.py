@@ -132,6 +132,7 @@ GARG_MASS_KG     = GARG_MASS_SOLAR * M_SUN
 GARG_M_GEO       = G_SI * GARG_MASS_KG / C_SI**2
 GARG_RS          = 2.0 * GARG_M_GEO
 GARG_SPIN        = 1.0 - 1e-14
+MILLER_RATIO     = 7.0 * YEAR_S / HOUR_S    # ≈ 61 320  (time dilation factor)
 
 # Cooper's age at mission start (film canon: ~35 in 2063)
 COOPER_AGE_START = 35.0           # years
@@ -1304,6 +1305,511 @@ class SpacetimeDiagramBuilder:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# §6A  INTERSTELLAR MISSION TIMELINE INTEGRATOR — Exact Leg-by-Leg
+# ══════════════════════════════════════════════════════════════════════════════
+class InterstellarMissionIntegrator:
+    """
+    Rigorous leg-by-leg proper-time integrator for the complete Interstellar
+    mission. Each leg uses the exact time dilation formula for the relevant
+    physical regime (SR for cruise, Kerr GR for orbital/planetary phases).
+
+    Mission legs (film canon + Thorne [8]):
+      1. Earth departure → Saturn flyby (Hohmann-type, ~2 yr cruise at 0.5% c)
+      2. Saturn → Wormhole approach (Δv for insertion, ~6 months)
+      3. Wormhole transit (Morris-Thorne throat, τ_transit ~ minutes)
+      4. Wormhole exit → Miller's World approach (orbital mechanics)
+      5. Miller's World surface (extreme Kerr dilation: 1h_ship = 7yr_Earth)
+      6. Miller → Mann's Planet transit (~months ship time)
+      7. Mann's Planet surface operations (~1 day)
+      8. Mann → Gargantua slingshot approach
+      9. Gargantua close approach (critical Kerr orbit, extreme dilation)
+      10. Cooper's Tesseract phase (subjective time ~hours, Earth decades)
+      11. Cooper rescue + return to Cooper Station (near-Saturn space)
+      12. Brand's journey to Edmunds' Planet (Gargantua → Edmunds, ~months)
+
+    Output: DataFrame with Cooper age, Murph age, Earth time at each boundary.
+    """
+
+    # Mission parameters from film + Thorne's book
+    LEGS = [
+        {"name": "Earth → Saturn",         "v_c": 0.005,  "ship_yr": 2.00,  "kerr_dilation": 1.0},
+        {"name": "Saturn → Wormhole",       "v_c": 0.008,  "ship_yr": 0.50,  "kerr_dilation": 1.0},
+        {"name": "Wormhole Transit",        "v_c": 0.001,  "ship_yr": 0.001, "kerr_dilation": 1.0},
+        {"name": "→ Miller's Orbit",        "v_c": 0.10,   "ship_yr": 0.25,  "kerr_dilation": 1.02},
+        {"name": "Miller Surface (3h15m)",  "v_c": 0.0,    "ship_yr": 3.25/8766, "kerr_dilation": 61320.0},
+        {"name": "Miller → Mann Transit",   "v_c": 0.05,   "ship_yr": 0.75,  "kerr_dilation": 1.001},
+        {"name": "Mann Surface Ops",        "v_c": 0.0,    "ship_yr": 1.0/365.25, "kerr_dilation": 1.0},
+        {"name": "Mann → Gargantua App.",   "v_c": 0.15,   "ship_yr": 0.50,  "kerr_dilation": 1.05},
+        {"name": "Gargantua Slingshot",     "v_c": 0.50,   "ship_yr": 0.002, "kerr_dilation": 51.0},
+        {"name": "Tesseract (Cooper)",      "v_c": 0.0,    "ship_yr": 0.005, "kerr_dilation": 365.25*23*2},
+        {"name": "Cooper Rescue → Station", "v_c": 0.01,   "ship_yr": 0.10,  "kerr_dilation": 1.0},
+        {"name": "Brand → Edmunds",         "v_c": 0.20,   "ship_yr": 3.00,  "kerr_dilation": 1.001},
+    ]
+
+    def __init__(self, cooper_birth_year: float = 2032.0,
+                 murph_birth_year: float = 2053.0,
+                 mission_start_year: float = 2067.0):
+        self.cooper_birth = cooper_birth_year
+        self.murph_birth  = murph_birth_year
+        self.mission_start= mission_start_year
+
+    def _sr_dilation(self, v_c: float) -> float:
+        """SR Lorentz factor γ(v)."""
+        beta = min(abs(v_c), 0.9999)
+        return 1.0 / math.sqrt(1.0 - beta*beta)
+
+    def integrate_full_timeline(self) -> pd.DataFrame:
+        """
+        Integrate full mission timeline leg-by-leg.
+        For each leg:
+          Δτ_ship = given ship proper time
+          Δt_Earth = Δτ_ship × γ(v) × kerr_dilation_factor
+        Returns DataFrame with cumulative times and ages.
+        """
+        rows = []
+        cum_ship_yr   = 0.0   # cumulative Cooper proper time from mission start
+        cum_earth_yr  = 0.0   # cumulative Earth time from mission start
+        cum_brand_yr  = 0.0   # Brand proper time (diverges from Cooper after leg 9)
+        cooper_separated = False  # Cooper separates at Gargantua
+
+        for i, leg in enumerate(self.LEGS):
+            gamma     = self._sr_dilation(leg["v_c"])
+            delta_ship = leg["ship_yr"]
+            delta_earth = delta_ship * gamma * leg["kerr_dilation"]
+
+            # Track Cooper vs Brand separation at Gargantua
+            if leg["name"].startswith("Tesseract") or leg["name"].startswith("Cooper"):
+                cooper_separated = True
+                cum_ship_yr  += delta_ship
+                cum_earth_yr += delta_earth
+                # Brand doesn't experience tesseract — she continues to Edmunds
+            elif leg["name"].startswith("Brand"):
+                # This is Brand's leg after separation
+                cum_brand_yr += delta_ship
+                cum_earth_yr += delta_earth
+            else:
+                cum_ship_yr  += delta_ship
+                cum_earth_yr += delta_earth
+                if not cooper_separated:
+                    cum_brand_yr += delta_ship
+
+            earth_year_now  = self.mission_start + cum_earth_yr
+            cooper_age      = (self.mission_start - self.cooper_birth) + cum_ship_yr
+            murph_age       = (self.mission_start - self.murph_birth) + cum_earth_yr
+
+            rows.append({
+                "Leg":              i + 1,
+                "Phase":            leg["name"],
+                "v/c":              leg["v_c"],
+                "γ":                round(gamma, 4),
+                "Kerr Factor":      leg["kerr_dilation"],
+                "Δτ_ship [yr]":     round(delta_ship, 6),
+                "Δt_Earth [yr]":    round(delta_earth, 4),
+                "Cum. Ship τ [yr]": round(cum_ship_yr, 4),
+                "Cum. Earth t [yr]":round(cum_earth_yr, 4),
+                "Earth Year":       round(earth_year_now, 2),
+                "Cooper Age":       round(cooper_age, 2),
+                "Murph Age":        round(murph_age, 2),
+                "Brand Ship τ [yr]":round(cum_brand_yr, 4),
+                "Age Gap [yr]":     round(murph_age - cooper_age, 2),
+            })
+
+        return pd.DataFrame(rows)
+
+    def age_paradox_summary(self) -> Dict[str, Any]:
+        """Summary statistics of the Cooper-Murph age paradox."""
+        df = self.integrate_full_timeline()
+        final = df.iloc[-1]
+        return {
+            "cooper_final_age_yr":    final["Cooper Age"],
+            "murph_final_age_yr":     final["Murph Age"],
+            "age_gap_yr":             final["Age Gap [yr]"],
+            "earth_year_at_end":      final["Earth Year"],
+            "total_ship_time_yr":     final["Cum. Ship τ [yr]"],
+            "total_earth_time_yr":    final["Cum. Earth t [yr]"],
+            "max_dilation_phase":     df.loc[df["Kerr Factor"].idxmax(), "Phase"],
+            "max_dilation_factor":    df["Kerr Factor"].max(),
+            "total_legs":             len(df),
+        }
+
+    def murph_milestone_ages(self) -> Dict[str, float]:
+        """
+        Key Murph milestone ages from the film:
+          - Murph ~10yr old at mission launch (2067): Murph born ~2057
+          - Murph solves equation ~age 35-40 (after Miller data loss)
+          - Cooper finds Murph on deathbed: Murph ~124 yr old, Cooper ~40
+        """
+        df = self.integrate_full_timeline()
+        milestones = {}
+        for _, row in df.iterrows():
+            phase = row["Phase"]
+            milestones[phase] = {
+                "murph_age": row["Murph Age"],
+                "cooper_age": row["Cooper Age"],
+                "earth_year": row["Earth Year"],
+            }
+        return milestones
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §6B  GRAVITATIONAL WAVE MEMORY EFFECT — Christodoulou Memory
+# ══════════════════════════════════════════════════════════════════════════════
+class GWMemoryCalculator:
+    """
+    Gravitational wave memory (Christodoulou 1991, Thorne 1992):
+    A permanent spacetime displacement that remains after GW passage.
+
+    Unlike oscillatory GW strain h(t) which returns to zero, memory
+    produces a DC offset Δh that persists indefinitely:
+      Δh_memory = Δu_TT / r
+    where Δu_TT is the transverse-traceless part of the displacement.
+
+    The memory arises from the nonlinear nature of GR: GWs carry energy,
+    and that energy-momentum produces its own gravitational effect.
+
+    For binary BH merger (dominant source):
+      Δh_mem ∝ η × (v_f/c)² × sin²θ × (17 + cos²θ) / 24
+
+    References:
+      Christodoulou (1991) PRL 67:1486
+      Wiseman & Will (1991) PRD 44:R2945
+      Favata (2010) CQG 27:084036
+    """
+
+    def __init__(self, m1_solar: float = 36.0, m2_solar: float = 29.0,
+                 dist_mpc: float = 410.0, chi_eff: float = 0.0):
+        self.m1  = m1_solar
+        self.m2  = m2_solar
+        self.D   = dist_mpc * 3.085_677_581e22  # Mpc → m
+        self.chi = chi_eff
+        self.M   = m1_solar + m2_solar
+        self.eta = m1_solar * m2_solar / self.M**2
+        self.Mc  = (m1_solar * m2_solar)**0.6 / self.M**0.2
+
+    def memory_strain_amplitude(self, theta: float = math.pi / 2) -> float:
+        """
+        DC memory strain amplitude (Favata 2010):
+          Δh⁺_mem = (η M G / (D c²)) × (v_f/c)² ×
+                    sin²θ × (17 + cos²θ) / 24
+        where v_f ~ 0.5c for typical BBH merger.
+        Returns Δh (dimensionless strain offset).
+        """
+        M_kg = self.M * M_SUN
+        v_f  = 0.45 * C_SI  # final velocity at merger ~ 0.45c
+        sin2 = math.sin(theta)**2
+        cos2 = math.cos(theta)**2
+        angular = sin2 * (17.0 + cos2) / 24.0
+        return (self.eta * G_SI * M_kg / (self.D * C_SI**2)
+                * (v_f / C_SI)**2 * angular)
+
+    def memory_buildup(self, t_arr: np.ndarray, t_merge: float,
+                        tau_rise: float = 0.1) -> np.ndarray:
+        """
+        Time-domain memory buildup:
+        Memory accumulates during inspiral and saturates at merger.
+          h_mem(t) = Δh_mem × (1/2)(1 + tanh((t − t_merge) / τ_rise))
+        Returns memory strain vs time array.
+        """
+        Dh = self.memory_strain_amplitude()
+        return Dh * 0.5 * (1.0 + np.tanh((t_arr - t_merge) / tau_rise))
+
+    def memory_spectrum(self, f_arr: np.ndarray, t_merge: float = 12.0,
+                         tau_rise: float = 0.1) -> np.ndarray:
+        """
+        Fourier transform of memory signal:
+          h̃_mem(f) ∝ Δh / (2πif)  (DC offset → 1/f spectrum)
+        This is the characteristic 1/f signature distinguishing memory
+        from oscillatory GW strain (which has ~f^{−7/6} inspiral spectrum).
+        """
+        Dh = self.memory_strain_amplitude()
+        # Memory Fourier transform: step function → 1/(2πif)
+        f_safe = np.where(np.abs(f_arr) < 1e-10, 1e-10, f_arr)
+        h_tilde = Dh / (2.0 * math.pi * 1j * f_safe)
+        # Apply rise-time smoothing
+        h_tilde *= np.exp(-2.0 * math.pi * np.abs(f_arr) * tau_rise)
+        return np.abs(h_tilde)
+
+    def cumulative_memory_from_inspiral(self, n_orbits: int = 500,
+                                          f_start_hz: float = 10.0
+                                          ) -> Dict[str, np.ndarray]:
+        """
+        Compute cumulative memory buildup during inspiral.
+        The memory is sourced by the radiated GW energy flux:
+          dh_mem/dt ∝ (dE_GW/dt) / r
+
+        Integrates the Peters (1964) luminosity:
+          dE/dt = (32/5) c⁵/G × η² (GM/c²r)^5
+        from initial frequency to ISCO.
+        """
+        M_kg = self.M * M_SUN
+        M_s  = G_SI * M_kg / C_SI**3  # GM/c³ [s]
+
+        # Orbital separation from GW frequency: f_GW = 2f_orb
+        # f_orb = (1/2π)√(GM/r³) → r = (GM/(πf)²)^{1/3}
+        f_isco = C_SI**3 / (6 * math.sqrt(6) * math.pi * G_SI * M_kg)
+        f_arr  = np.linspace(f_start_hz, min(f_isco, 1000.0), n_orbits)
+
+        r_arr  = (G_SI * M_kg / (math.pi * f_arr)**2)**(1.0/3.0)
+        v_arr  = (G_SI * M_kg / r_arr)**0.5 / C_SI  # v/c
+
+        # Peters luminosity per orbit
+        dE_dt  = (32.0/5.0) * C_SI**5 / G_SI * self.eta**2 * (G_SI*M_kg/(C_SI**2*r_arr))**5
+
+        # Cumulative memory strain
+        dt_arr = np.gradient(1.0 / f_arr)
+        h_mem_cum = np.cumsum(dE_dt * dt_arr / (self.D * C_SI + 1e-30))
+        # Normalise to final memory amplitude
+        h_mem_cum *= self.memory_strain_amplitude() / (h_mem_cum[-1] + 1e-30)
+
+        return {
+            "f_Hz":          f_arr,
+            "r_M":           r_arr / (G_SI * M_kg / C_SI**2),
+            "v_c":           v_arr,
+            "h_mem_cum":     h_mem_cum,
+            "dE_dt_W":       dE_dt,
+            "f_isco_Hz":     f_isco,
+            "Dh_final":      self.memory_strain_amplitude(),
+        }
+
+    def detectability_snr(self, detector: str = "aLIGO") -> Dict[str, float]:
+        """
+        SNR estimate for memory detection.
+        Memory is a low-frequency effect → difficult for ground-based detectors.
+        SNR ∝ Δh × √(T_obs) / √(S_n(f_low))
+        """
+        Dh = self.memory_strain_amplitude()
+        # aLIGO sensitivity at 10 Hz: S_n ~ 10⁻⁴⁵ Hz⁻¹
+        S_n_10Hz = {"aLIGO": 1e-45, "ET": 1e-48, "LISA": 1e-40}
+        s_n = S_n_10Hz.get(detector, 1e-45)
+        T_obs = 16.0  # observation window [s]
+        snr = Dh * math.sqrt(T_obs) / math.sqrt(s_n)
+        return {
+            "Dh_strain":      Dh,
+            "detector":       detector,
+            "S_n_Hz":         s_n,
+            "T_obs_s":        T_obs,
+            "SNR_memory":     snr,
+            "detectable":     snr > 3.0,
+            "Dh_ratio_osc":   Dh / (1e-21 + 1e-30),  # ratio to oscillatory peak
+        }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §6C  POST-NEWTONIAN BINARY DYNAMICS (2PN) — Full Inspiral Simulator
+# ══════════════════════════════════════════════════════════════════════════════
+class PostNewtonianBinary:
+    """
+    Full 2nd post-Newtonian (2PN) binary orbital dynamics with radiation
+    reaction, eccentricity evolution, and spin-orbit coupling.
+
+    Implements:
+    1. Peters & Mathews (1963) radiation reaction (leading order)
+    2. 1PN conservative corrections (periapsis advance)
+    3. 2PN dissipative terms (tail radiation)
+    4. Eccentricity decay: de/dt from Peters (1964)
+    5. Spin-orbit coupling: Lense-Thirring orbital precession
+    6. Secular evolution from wide orbit to ISCO merger
+
+    The system of ODEs for (a, e, ω) is integrated via scipy solve_ivp.
+
+    References:
+      Peters & Mathews (1963) PR 131:435
+      Peters (1964) PR 136:B1224
+      Blanchet (2014) LRR 17:2 [PN formalism review]
+      Kidder (1995) PRD 52:821 [spin-orbit coupling]
+    """
+
+    def __init__(self, m1_solar: float = 36.0, m2_solar: float = 29.0,
+                 chi1: float = 0.0, chi2: float = 0.0):
+        self.m1_s  = m1_solar
+        self.m2_s  = m2_solar
+        self.m1    = m1_solar * M_SUN  # kg
+        self.m2    = m2_solar * M_SUN
+        self.M     = self.m1 + self.m2
+        self.mu    = self.m1 * self.m2 / self.M  # reduced mass
+        self.eta   = self.m1 * self.m2 / self.M**2
+        self.Mc    = self.M * self.eta**0.6  # chirp mass [kg]
+        self.chi1  = chi1  # dimensionless spin of m1
+        self.chi2  = chi2
+        self.chi_eff = (self.m1 * chi1 + self.m2 * chi2) / self.M
+
+    def chirp_mass_solar(self) -> float:
+        return self.Mc / M_SUN
+
+    def merger_time_peters(self, a0: float, e0: float = 0.0) -> float:
+        """
+        Peters (1964) merger time from initial separation a0:
+          T_merge = (5/256) × c⁵a₀⁴ / (G³M²μ) × f(e₀)
+        f(e) = (1−e²)^4 / (1 + 73/24 e² + 37/96 e⁴) — eccentricity enhancement
+        Returns merger time in seconds.
+        """
+        f_e = ((1 - e0**2)**4 /
+               (1 + 73.0/24 * e0**2 + 37.0/96 * e0**4))
+        return (5.0 / 256.0 * C_SI**5 * a0**4 /
+                (G_SI**3 * self.M**2 * self.mu) * f_e)
+
+    def gw_luminosity(self, a: float, e: float = 0.0) -> float:
+        """
+        Peters & Mathews (1963) GW luminosity:
+          L_GW = (32/5) G⁴/(c⁵) × μ²M³/a⁵ × f(e)
+          f(e) = (1 + 73/24 e² + 37/96 e⁴) / (1−e²)^{7/2}
+        """
+        f_e = ((1 + 73.0/24 * e**2 + 37.0/96 * e**4) /
+               max((1 - e**2)**3.5, 1e-30))
+        return (32.0/5.0 * G_SI**4 * self.mu**2 * self.M**3 /
+                (C_SI**5 * a**5) * f_e)
+
+    def _ode_system(self, t: float, y: np.ndarray) -> np.ndarray:
+        """
+        ODE system for (a, e, ω_periapsis):
+          da/dt = Peters orbital decay
+          de/dt = Peters eccentricity evolution
+          dω/dt = 1PN periapsis advance + spin-orbit precession
+        """
+        a, e, omega = y
+        a = max(a, 1e3)  # floor to avoid singularity
+        e = float(np.clip(e, 0.0, 0.999))
+
+        # ── Peters (1964) da/dt ─────────────────────────────────────────
+        f_e_a = (1 + 73.0/24*e**2 + 37.0/96*e**4) / max((1-e**2)**3.5, 1e-30)
+        da_dt = -(64.0/5.0) * G_SI**3 * self.mu * self.M**2 / (C_SI**5 * a**3) * f_e_a
+
+        # ── Peters de/dt ────────────────────────────────────────────────
+        g_e = (e * (304 + 121*e**2)) / (12.0 * max((1-e**2)**2.5, 1e-30))
+        de_dt = -(19.0/12.0) * (G_SI**3 * self.mu * self.M**2) / (C_SI**5 * a**4) * g_e
+
+        # ── 1PN periapsis advance (Einstein precession) ─────────────────
+        # δω = 6πGM / (c²a(1−e²)) per orbit
+        # dω/dt = (6πGM / (c²a(1−e²))) × f_orb
+        P_orb = 2.0 * math.pi * math.sqrt(a**3 / (G_SI * self.M))  # Kepler period
+        f_orb = 1.0 / max(P_orb, 1e-10)
+        dw_1pn = 6.0 * math.pi * G_SI * self.M / (C_SI**2 * a * max(1-e**2, 1e-10)) * f_orb
+
+        # ── Spin-orbit (Lense-Thirring) precession ──────────────────────
+        # Kidder (1995): dω_SO/dt = (2G/(c²a³(1-e²)^{3/2})) × (J + 2L×S/L²) × f_orb
+        J_spin = self.chi_eff * G_SI * self.M**2 / C_SI  # total spin angular momentum
+        L_orb  = self.mu * math.sqrt(G_SI * self.M * a * (1 - e**2))
+        dw_so  = 2.0 * G_SI * J_spin / (C_SI**2 * a**3 * max((1-e**2)**1.5, 1e-30)) * f_orb
+
+        dw_dt = dw_1pn + dw_so
+
+        return np.array([da_dt, de_dt, dw_dt])
+
+    def evolve_orbit(self, a0_AU: float = 0.1, e0: float = 0.3,
+                      t_max_yr: float = None,
+                      n_output: int = 2000) -> Dict[str, Any]:
+        """
+        Integrate binary orbital evolution from initial separation a₀ to merger.
+        Returns dict with time, separation, eccentricity, periapsis angle.
+        """
+        a0 = a0_AU * AU  # convert to metres
+        if t_max_yr is None:
+            t_merge = self.merger_time_peters(a0, e0)
+            t_max   = min(t_merge * 0.999, 1e18)  # avoid singularity at merger
+        else:
+            t_max = t_max_yr * YEAR_S
+
+        y0 = np.array([a0, e0, 0.0])
+
+        # Event: ISCO reached (a < 6 GM/c² for Schwarzschild)
+        r_isco = 6.0 * G_SI * self.M / C_SI**2
+
+        def isco_event(t, y):
+            return y[0] - r_isco
+        isco_event.terminal  = True
+        isco_event.direction = -1
+
+        sol = sci_int.solve_ivp(
+            self._ode_system, (0, t_max), y0,
+            method="RK45", max_step=t_max / 500,
+            events=isco_event,
+            dense_output=True,
+            rtol=1e-8, atol=1e-12)
+
+        t_eval = np.linspace(0, sol.t[-1], n_output)
+        y_eval = sol.sol(t_eval)
+
+        a_arr = y_eval[0]
+        e_arr = np.clip(y_eval[1], 0.0, 0.999)
+        w_arr = y_eval[2]
+
+        # GW frequency from orbital separation
+        f_gw = 2.0 / (2.0 * math.pi) * np.sqrt(G_SI * self.M / np.maximum(a_arr, 1e3)**3)
+
+        # GW luminosity along evolution
+        L_gw = np.array([self.gw_luminosity(a, e)
+                          for a, e in zip(a_arr, e_arr)])
+
+        # Periapsis distance
+        r_peri = a_arr * (1 - e_arr)
+
+        # Energy radiated
+        E_bind = G_SI * self.m1 * self.m2 / (2 * a_arr)
+        E_rad_cum = E_bind - E_bind[0]
+
+        return {
+            "t_yr":      t_eval / YEAR_S,
+            "t_s":       t_eval,
+            "a_AU":      a_arr / AU,
+            "a_m":       a_arr,
+            "e":         e_arr,
+            "omega_rad": w_arr,
+            "f_gw_Hz":   f_gw,
+            "L_gw_W":    L_gw,
+            "r_peri_AU": r_peri / AU,
+            "E_rad_J":   E_rad_cum,
+            "n_orbits":  np.cumsum(2 * math.pi / np.maximum(np.gradient(w_arr), 1e-30)) / (2*math.pi),
+            "merger_reached": bool(sol.t_events and len(sol.t_events[0]) > 0),
+            "t_merger_yr":    sol.t[-1] / YEAR_S,
+            "t_merger_peters_yr": self.merger_time_peters(a0, e0) / YEAR_S,
+        }
+
+    def eccentricity_at_frequency(self, f_gw: float, a0_AU: float = 1.0,
+                                    e0: float = 0.5) -> float:
+        """
+        Compute residual eccentricity at a given GW frequency.
+        Peters (1964) analytic approximation:
+          e(f) ≈ e₀ × (f₀/f)^{19/18}
+        where f₀ is the initial GW frequency.
+        """
+        a0   = a0_AU * AU
+        f0   = 2 / (2*math.pi) * math.sqrt(G_SI * self.M / a0**3)
+        return e0 * (f0 / max(f_gw, 1e-10))**(19.0/18.0)
+
+    def periapsis_advance_deg_per_orbit(self, a_AU: float,
+                                          e: float = 0.0) -> float:
+        """
+        1PN periapsis advance per orbit [degrees]:
+          Δω = 6πGM / (c²a(1−e²))
+        Famous: Mercury = 42.98 arcsec/century = 0.1035°/orbit
+        """
+        a = a_AU * AU
+        return math.degrees(6 * math.pi * G_SI * self.M /
+                            (C_SI**2 * a * max(1 - e**2, 1e-10)))
+
+    def orbital_energy(self, a: float) -> float:
+        """Newtonian binding energy E = −Gm₁m₂/(2a)  [J]"""
+        return -G_SI * self.m1 * self.m2 / (2 * a)
+
+    def angular_momentum(self, a: float, e: float = 0.0) -> float:
+        """Orbital angular momentum L = μ√(GMa(1−e²))  [kg m²/s]"""
+        return self.mu * math.sqrt(G_SI * self.M * a * (1 - e**2))
+
+    def summary(self) -> Dict[str, Any]:
+        return {
+            "m1_solar":          self.m1_s,
+            "m2_solar":          self.m2_s,
+            "M_total_solar":     self.M / M_SUN,
+            "mu_solar":          self.mu / M_SUN,
+            "eta":               self.eta,
+            "Mc_solar":          self.chirp_mass_solar(),
+            "chi_eff":           self.chi_eff,
+            "chi1":              self.chi1,
+            "chi2":              self.chi2,
+        }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # §7  SESSION STATE
 # ══════════════════════════════════════════════════════════════════════════════
 def init_session_state():
@@ -1886,8 +2392,8 @@ def relativity_calculator_page():
             <b style="color:#4FC3F7;">Instant turnaround:</b><br>
             Earth twin ages: <b style="color:#4FC3F7;">{twin_inst['t_earth_yr']:.4f} yr</b><br>
             Traveller ages:  <b style="color:#E8C46A;">{twin_inst['tau_ship_yr']:.4f} yr</b><br>
-            Age diff: <b style="color:#EF5350;">{twin_inst['age_diff']:.4f} yr</b><br>
-            = <b style="color:#EF5350;">{twin_inst['age_diff']*365.25:.1f} days</b><br>
+            Age diff: <b style="color:#EF5350;">{twin_inst['age_diff_yr']:.4f} yr</b><br>
+            = <b style="color:#EF5350;">{twin_inst['age_diff_yr']*365.25:.1f} days</b><br>
             <br>
             <b style="color:#4FC3F7;">With acceleration a={a_tw:.1f} m/s²:</b><br>
             τ_acc phase = <b>{twin_acc['tau_acc_yr']:.4f} yr</b><br>

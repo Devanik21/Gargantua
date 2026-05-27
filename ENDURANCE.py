@@ -1058,7 +1058,7 @@ def render_sidebar():
             if st.button(
                 f"{icon}  {label}  {status_dot}",
                 key=f"nav_{page_key}",
-                width='stretch',
+                use_container_width=True,
             ):
                 S["page"] = page_key
                 st.rerun()
@@ -1095,7 +1095,7 @@ def render_sidebar():
             "plan_a":      f"Plan A requires Murphy's equation. Current: {PLAN_A_PCT:.1f}%. Professor Brand was less forthcoming than expected.",
             "default":     "That is an interesting perspective. Also: you haven't slept in 18 hours.",
         }
-        if st.button("◈ ASK TARS", width='stretch'):
+        if st.button("◈ ASK TARS", use_container_width=True):
             S["tars_dialogue"] = TARS_BANK.get(ctx, TARS_BANK["default"])
 
         if S.get("tars_dialogue"):
@@ -1121,7 +1121,7 @@ def render_sidebar():
           <div style="color:#2a3a50;margin-top:0.15rem;">— {q_auth}</div>
         </div>""", unsafe_allow_html=True)
 
-        if st.button("↻ New quote", width='stretch'):
+        if st.button("↻ New quote", use_container_width=True):
             S["quote_idx"] = (S["quote_idx"] + 1) % len(INTERSTELLAR_QUOTES)
             st.rerun()
 
@@ -1225,7 +1225,7 @@ def render_boot_sequence():
 
         # Launch button
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("◉  ENTER MISSION CONTROL", width='stretch', type="primary"):
+        if st.button("◉  ENTER MISSION CONTROL", use_container_width=True, type="primary"):
             S["boot_done"] = True
             st.rerun()
 
@@ -1531,7 +1531,7 @@ def _render_gargantua_overview():
     ax.set_title("GARGANTUA — Kerr BH  a*≈1−10⁻¹⁴  ·  Accretion Disk (NT Model)",
                  fontsize=7, color="#E8C46A", pad=8)
 
-    st.pyplot(fig, width='stretch')
+    st.pyplot(fig, use_container_width=True)
     plt.close(fig)
 
 

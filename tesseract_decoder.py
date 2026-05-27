@@ -92,6 +92,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
+trapz = getattr(np, "trapezoid", getattr(np, "trapz", None))
 import pandas as pd
 import scipy.integrate  as sci_int
 import scipy.optimize   as sci_opt
@@ -134,6 +135,7 @@ HOUR_S    = 3_600.0
 GARG_MASS_KG = 1.0e8 * M_SUN
 GARG_M_GEO   = G_SI * GARG_MASS_KG / C_SI**2
 GARG_RS      = 2.0 * GARG_M_GEO
+GARG_SPIN    = 1.0 - 1.0e-14  # near-maximal: a* = 1 − 10⁻¹⁴
 
 # Cooper's NASA coordinate message (film canon)
 COOPER_MSG_LAT_DMS  = (40, 53, 23, "N")   # 40°53'23"N
@@ -159,7 +161,7 @@ CMAP_GRAVITY_SIG = LinearSegmentedColormap.from_list("gravity_signal",
 
 CMAP_QUANTUM = LinearSegmentedColormap.from_list("quantum",
     ["#000000","#100020","#280040","#500060","#880080",
-     "#c000a0","#ff00c0","#ff80e0","#ffcoff"], N=512)
+     "#c000a0","#ff00c0","#ff80e0","#ffc0ff"], N=512)
 
 CMAP_BOOKSHELF = LinearSegmentedColormap.from_list("bookshelf",
     ["#1a0800","#3d1200","#7a2800","#c05000","#e08030",
@@ -808,7 +810,7 @@ class MurphyEquationSolver:
             Phi_v[i] = (Psi[i] - Psi[i-1])/da
 
         # Normalise
-        norm = np.trapz(Psi**2, a_arr)
+        norm = trapz(Psi**2, a_arr)
         if norm > 0:
             Psi /= math.sqrt(norm)
 
@@ -1092,6 +1094,222 @@ class BulkCommunicationChannel:
         Very long coherence: gravity is classical at macroscopic scales.
         """
         return 1.0 / (freq_hz * turbulence_param)
+        return 1.0 / (freq_hz * turbulence_param)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §9A  AdS/CFT HOLOGRAPHIC ENTANGLEMENT ENTROPY (Ryu-Takayanagi)
+# ══════════════════════════════════════════════════════════════════════════════
+class HolographicEntanglement:
+    """
+    Computes holographic entanglement entropy using the Ryu-Takayanagi formula.
+    In AdS/CFT, the entanglement entropy of a boundary subregion A is proportional 
+    to the area of the minimal bulk surface γ_A homologous to A:
+        S_A = Area(γ_A) / (4 G_N^{(d+1)})
+        
+    For a 2D CFT on the boundary of AdS_3, this gives the famous universal result:
+        S_A = (c/3) * ln(l / a)
+    where l is the subregion length, a is the UV cutoff, and c is central charge.
+    
+    This connects the "love" metric of the mission to quantum information.
+    """
+    
+    def __init__(self, c_charge: float = 1.0, cutoff: float = 1e-3, L_AdS: float = 1.0):
+        self.c = c_charge
+        self.a = cutoff
+        self.L_AdS = L_AdS
+        self.G_N = 3.0 * L_AdS / (2.0 * self.c)  # Brown-Henneaux relation
+        
+    def minimal_surface_area_ads3(self, length: float) -> float:
+        """
+        Area (length in AdS_3) of the minimal geodesic in Poincare patch.
+        ds² = (L/z)² (dz² + dx² - dt²)
+        Geodesic is a semi-circle: x² + z² = (l/2)²
+        Length = 2L * ln(l/a)
+        """
+        if length <= 2.0 * self.a:
+            return 0.0
+        return 2.0 * self.L_AdS * math.log(length / self.a)
+        
+    def entanglement_entropy_cft2(self, length: float) -> float:
+        """
+        Ryu-Takayanagi entropy S_A = Area / 4G_N
+        Equivalent to (c/3) * ln(l/a).
+        """
+        area = self.minimal_surface_area_ads3(length)
+        return area / (4.0 * self.G_N)
+        
+    def mutual_information(self, l_A: float, l_B: float, separation: float) -> float:
+        """
+        Holographic mutual information I(A:B) = S(A) + S(B) - S(A U B).
+        Exhibits a phase transition at a critical separation where the minimal
+        surface topology changes.
+        """
+        s_a = self.entanglement_entropy_cft2(l_A)
+        s_b = self.entanglement_entropy_cft2(l_B)
+        
+        # Disconnected phase: S(A U B) = S(A) + S(B)
+        s_aub_disc = s_a + s_b
+        
+        # Connected phase: S(A U B) = S(separation) + S(A + B + separation)
+        s_aub_conn = (self.entanglement_entropy_cft2(separation) + 
+                      self.entanglement_entropy_cft2(l_A + l_B + separation))
+                      
+        s_aub = min(s_aub_disc, s_aub_conn)
+        return max(0.0, s_a + s_b - s_aub)
+        
+    def bulk_profile(self, length: float, n_pts: int = 100) -> Dict[str, np.ndarray]:
+        """Returns the (x, z) profile of the Ryu-Takayanagi minimal surface."""
+        radius = length / 2.0
+        theta = np.linspace(0, math.pi, n_pts)
+        
+        # x is boundary coordinate, z is bulk depth
+        x = radius * np.cos(theta)
+        z = radius * np.sin(theta)
+        
+        # Apply UV cutoff
+        mask = z >= self.a
+        return {
+            "x": x[mask],
+            "z": z[mask],
+            "entropy": self.entanglement_entropy_cft2(length)
+        }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §9B  BULK 5D GEODESIC DEVIATION — Gravity Leakage
+# ══════════════════════════════════════════════════════════════════════════════
+class BulkGeodesicDeviation:
+    """
+    Computes the geodesic deviation (Jacobi field) for gravity anomalies
+    leaking from the 5D bulk into the 4D brane (murph's room).
+    
+    Equation: D²J^μ / dτ² = - R^μ_{νρσ} T^ν J^ρ T^σ
+    where J is the deviation vector and T is the tangent vector.
+    
+    In a Randall-Sundrum braneworld, bulk gravitons affect the local 4D 
+    curvature, producing tidal anomalies (dust settling into binary patterns).
+    """
+    
+    def __init__(self, anomaly_strength: float = 1e-6, freq_hz: float = 1.0):
+        self.strength = anomaly_strength
+        self.omega = 2.0 * math.pi * freq_hz
+        
+    def riemann_tensor_proxy(self, t: float) -> np.ndarray:
+        """
+        Simplified pseudo-Riemann tensor tidal matrix induced by 5D bulk waves.
+        R_{i0j0} component equivalent.
+        """
+        # Oscillating tidal field corresponding to the gravity signal
+        tidal = self.strength * math.cos(self.omega * t)
+        # Transverse-traceless
+        R_matrix = np.array([
+            [tidal, 0.0, 0.0],
+            [0.0, -tidal, 0.0],
+            [0.0, 0.0, 0.0]
+        ])
+        return R_matrix
+        
+    def _ode_system(self, t: float, y: np.ndarray) -> np.ndarray:
+        """
+        y = [J_x, J_y, J_z, v_x, v_y, v_z]
+        dJ/dt = v
+        dv/dt = - R * J  (Geodesic deviation)
+        """
+        J = y[0:3]
+        v = y[3:6]
+        
+        R_mat = self.riemann_tensor_proxy(t)
+        accel = - np.dot(R_mat, J)
+        
+        return np.concatenate((v, accel))
+        
+    def integrate_dust_deviation(self, t_max: float = 10.0, 
+                                 y0: np.ndarray = None) -> Dict[str, np.ndarray]:
+        """Integrate deviation vector J(t) for dust particles."""
+        if y0 is None:
+            y0 = np.array([1.0, 1.0, 0.0, 0.0, 0.0, 0.0])
+            
+        sol = sci_int.solve_ivp(
+            self._ode_system, (0, t_max), y0,
+            method='RK45', dense_output=True, max_step=t_max/200
+        )
+        
+        t_eval = np.linspace(0, t_max, 500)
+        y_eval = sol.sol(t_eval)
+        
+        return {
+            "t": t_eval,
+            "Jx": y_eval[0],
+            "Jy": y_eval[1],
+            "Jz": y_eval[2],
+            "area": y_eval[0] * y_eval[1] - y_eval[2]**2
+        }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §9C  PENROSE TILING / QUASICRYSTAL GEOMETRY GENERATOR
+# ══════════════════════════════════════════════════════════════════════════════
+class QuasicrystalGeometry:
+    """
+    Generates a 2D slice of a higher-dimensional quasi-crystal lattice, 
+    resembling Penrose tiling. Used to visualize the complex intersecting 
+    worldlines inside the Tesseract.
+    
+    Method: de Bruijn's grid method (cut-and-project from 5D to 2D).
+    """
+    
+    def __init__(self, grid_size: int = 10):
+        self.N = grid_size
+        self.angles = [i * 2.0 * math.pi / 5.0 for i in range(5)]
+        self.star_vectors = [np.array([math.cos(a), math.sin(a)]) for a in self.angles]
+        self.offsets = [0.2] * 5  # arbitrary generic shifts
+        
+    def generate_intersections(self) -> List[Tuple[float, float]]:
+        """
+        Compute intersection points of the 5 grids (Ammann lines).
+        These map to vertices in the Penrose tiling.
+        """
+        intersections = []
+        for i in range(4):
+            for j in range(i+1, 5):
+                vi = self.star_vectors[i]
+                vj = self.star_vectors[j]
+                det = vi[0]*vj[1] - vi[1]*vj[0]
+                
+                if abs(det) < 1e-5: continue
+                
+                for k1 in range(-self.N, self.N + 1):
+                    for k2 in range(-self.N, self.N + 1):
+                        c1 = k1 - self.offsets[i]
+                        c2 = k2 - self.offsets[j]
+                        
+                        # Solve vi.x = c1, vj.x = c2
+                        x = (c1*vj[1] - c2*vi[1]) / det
+                        y = (vi[0]*c2 - vj[0]*c1) / det
+                        
+                        intersections.append((x, y))
+        return intersections
+        
+    def get_lines(self) -> Dict[str, Any]:
+        """Return the grid lines for plotting."""
+        lines = []
+        for i, v in enumerate(self.star_vectors):
+            # Normal vector to v
+            n = np.array([-v[1], v[0]])
+            for k in range(-self.N, self.N + 1):
+                c = k - self.offsets[i]
+                # Line: r.v = c  => x*vx + y*vy = c
+                # Point on line: p0 = c * v
+                p0 = c * v
+                p1 = p0 + self.N * n
+                p2 = p0 - self.N * n
+                lines.append((p1, p2))
+                
+        return {
+            "lines": lines,
+            "intersections": self.generate_intersections()
+        }
 
 
 # ══════════════════════════════════════════════════════════════════════════════
