@@ -870,17 +870,16 @@ def inject_background(b64_str: Optional[str]):
         return
     st.markdown(f"""
     <style>
-    [data-testid="stAppViewContainer"]::before {{
+    .star-field::before {{
       content: '';
-      position: fixed;
+      position: absolute;
       top: 0; left: 0;
-      width: 100vw; height: 100vh;
+      width: 100%; height: 100%;
       background-image: url('{b64_str}');
       background-size: cover;
       background-position: center 30%;
       background-repeat: no-repeat;
       opacity: 0.08;
-      z-index: -3;
       pointer-events: none;
     }}
     </style>""", unsafe_allow_html=True)
