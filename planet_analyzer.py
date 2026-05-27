@@ -2335,7 +2335,7 @@ def planet_analyzer_page():
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     with tab_overview:
         if st.button("🌍 COMPUTE FULL COMPARATIVE ANALYSIS",
-                     use_container_width=True, type="primary"):
+                     width='stretch', type="primary"):
             with st.spinner("Scoring all planets..."):
                 S["plan_compare_df"] = scorer.comparative_table(planets)
 
@@ -2368,10 +2368,10 @@ def planet_analyzer_page():
 
             st.markdown("---")
             fig1 = _plot_comparison_overview(df, planets)
-            st.pyplot(fig1, use_container_width=True); plt.close(fig1)
+            st.pyplot(fig1, width='stretch'); plt.close(fig1)
 
             fig2 = _plot_radar(df, planets)
-            st.pyplot(fig2, use_container_width=True); plt.close(fig2)
+            st.pyplot(fig2, width='stretch'); plt.close(fig2)
 
             with st.expander("◈ Full Comparative Data Table"):
                 display_cols = ["name","ESI","SHI","BCI","overall_priority",
@@ -2379,7 +2379,7 @@ def planet_analyzer_page():
                                 "ocean_fraction","biosig_score",
                                 "hz_class","habitability_class","plan_B_score"]
                 st.dataframe(df[display_cols].round(4),
-                             use_container_width=True, hide_index=True)
+                             width='stretch', hide_index=True)
         else:
             st.info("Click the button above to compute the full comparative analysis.")
 
@@ -2473,7 +2473,7 @@ def planet_analyzer_page():
             ax_esi.set_title(f"HABITABILITY SCORES — {p.name}")
             ax_esi.set_facecolor("#080c18")
             fig_esi.patch.set_facecolor("#06090e")
-            st.pyplot(fig_esi, use_container_width=True)
+            st.pyplot(fig_esi, width='stretch')
             plt.close(fig_esi)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2522,7 +2522,7 @@ def planet_analyzer_page():
 
         with c2:
             fig_a = _plot_atmosphere(p2)
-            st.pyplot(fig_a, use_container_width=True)
+            st.pyplot(fig_a, width='stretch')
             plt.close(fig_a)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2535,11 +2535,11 @@ def planet_analyzer_page():
         p3   = S["plan_planets"].get(PlanetID(pid3), make_earth())
         sp3  = SpectralEngine(p3)
         fig_s = _plot_spectrum(p3)
-        st.pyplot(fig_s, use_container_width=True); plt.close(fig_s)
+        st.pyplot(fig_s, width='stretch'); plt.close(fig_s)
         bio_df = sp3.biosignature_feature_table()
         st.markdown('<div style="font-family:monospace;font-size:.62rem;color:#81C784;">BIOSIGNATURE FEATURE TABLE</div>',
                     unsafe_allow_html=True)
-        st.dataframe(bio_df, use_container_width=True, hide_index=True)
+        st.dataframe(bio_df, width='stretch', hide_index=True)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # TAB 5 — MILLER'S WORLD
@@ -2547,7 +2547,7 @@ def planet_analyzer_page():
     with tab_miller:
         miller = S["plan_planets"][PlanetID.MILLER]
         fig_m  = _plot_miller_special(miller)
-        st.pyplot(fig_m, use_container_width=True); plt.close(fig_m)
+        st.pyplot(fig_m, width='stretch'); plt.close(fig_m)
         rpt_m  = scorer.full_report(miller)
         c1, c2 = st.columns(2)
         with c1:
@@ -2571,7 +2571,7 @@ def planet_analyzer_page():
         with c2:
             risk4  = MissionRiskAssessor(miller)
             rdf4, ov4 = risk4.full_risk_matrix()
-            st.dataframe(rdf4, use_container_width=True, hide_index=True)
+            st.dataframe(rdf4, width='stretch', hide_index=True)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # TAB 6 — HABITABLE ZONE
@@ -2598,7 +2598,7 @@ def planet_analyzer_page():
             </div>""", unsafe_allow_html=True)
         with c2:
             fig_hz = _plot_hz_diagram(planets, scorer)
-            st.pyplot(fig_hz, use_container_width=True); plt.close(fig_hz)
+            st.pyplot(fig_hz, width='stretch'); plt.close(fig_hz)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # TAB 7 — MISSION RISK
@@ -2616,7 +2616,7 @@ def planet_analyzer_page():
         Overall Risk: {ov5.value}
         </div>""", unsafe_allow_html=True)
         fig_r5 = _plot_risk_matrix(rdf5, ov5, p5)
-        st.pyplot(fig_r5, use_container_width=True); plt.close(fig_r5)
+        st.pyplot(fig_r5, width='stretch'); plt.close(fig_r5)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # TAB 8 — CUSTOM PLANET BUILDER
@@ -2646,7 +2646,7 @@ def planet_analyzer_page():
             c_O3  = st.slider("O₃ fraction", 0.0, 1e-4, 3e-6, 1e-7, format="%.2e")
 
         if st.button("⚙ ANALYSE CUSTOM PLANET",
-                     use_container_width=True, type="primary"):
+                     width='stretch', type="primary"):
             comp_c = AtmosphericComposition(
                 N2=c_N2, O2=c_O2, CO2=c_CO2, H2O=c_H2O,
                 CH4=c_CH4, O3=c_O3)
@@ -2693,7 +2693,7 @@ def planet_analyzer_page():
             c_col1, c_col2 = st.columns(2)
             with c_col1:
                 fig_ca = _plot_atmosphere(p_c)
-                st.pyplot(fig_ca, use_container_width=True); plt.close(fig_ca)
+                st.pyplot(fig_ca, width='stretch'); plt.close(fig_ca)
             with c_col2:
                 fig_cs = _plot_spectrum(p_c)
-                st.pyplot(fig_cs, use_container_width=True); plt.close(fig_cs)
+                st.pyplot(fig_cs, width='stretch'); plt.close(fig_cs)

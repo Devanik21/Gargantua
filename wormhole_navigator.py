@@ -1833,7 +1833,7 @@ def wormhole_navigator_page():
             S["wh_redshift"]  = redsh_name
             S["wh_alpha"]     = alpha
 
-            if st.button("◎ COMPUTE WORMHOLE", use_container_width=True,
+            if st.button("◎ COMPUTE WORMHOLE", width='stretch',
                          type="primary"):
                 wh = WormholeGeometry(
                     throat_radius_m=b0_km*1e3,
@@ -1868,7 +1868,7 @@ def wormhole_navigator_page():
 
         with c3:
             fig = _plot_embedding(wh)
-            st.pyplot(fig, use_container_width=True); plt.close(fig)
+            st.pyplot(fig, width='stretch'); plt.close(fig)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # TAB 2 — EXOTIC MATTER
@@ -1898,7 +1898,7 @@ def wormhole_navigator_page():
             </div>""", unsafe_allow_html=True)
         with c2:
             fig = _plot_exotic_traversal(wh)
-            st.pyplot(fig, use_container_width=True); plt.close(fig)
+            st.pyplot(fig, width='stretch'); plt.close(fig)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # TAB 3 — TRAVERSAL PHYSICS
@@ -1964,7 +1964,7 @@ def wormhole_navigator_page():
             axes_tr[1].set_title("TRANSIT TIME vs SPEED")
             axes_tr[1].legend(fontsize=6)
             plt.tight_layout()
-            st.pyplot(fig_tr, use_container_width=True); plt.close(fig_tr)
+            st.pyplot(fig_tr, width='stretch'); plt.close(fig_tr)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # TAB 4 — SHAPE FAMILIES
@@ -1972,7 +1972,7 @@ def wormhole_navigator_page():
     with tab_shapes:
         wh  = S["wh_geometry"]
         fig = _plot_shape_comparison(wh.b0)
-        st.pyplot(fig, use_container_width=True); plt.close(fig)
+        st.pyplot(fig, width='stretch'); plt.close(fig)
         # Comparison table
         rows = []
         for shape in ShapeFunction:
@@ -1985,7 +1985,7 @@ def wormhole_navigator_page():
                 "M_exotic (kg)": f"{su['exotic_mass_kg']:.3e}",
                 "M_exotic/M_Jup": f"{su['exotic_mass_Jupiter']:.3e}",
             })
-        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(rows), width='stretch', hide_index=True)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # TAB 5 — ORBITAL MECHANICS
@@ -2035,9 +2035,9 @@ def wormhole_navigator_page():
 
         with c2:
             fig = _plot_saturn_wormhole(planner)
-            st.pyplot(fig, use_container_width=True); plt.close(fig)
+            st.pyplot(fig, width='stretch'); plt.close(fig)
             st.dataframe(planner.planet_orbital_data(),
-                         use_container_width=True, hide_index=True)
+                         width='stretch', hide_index=True)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # TAB 6 — GRAVITY ASSIST
@@ -2054,7 +2054,7 @@ def wormhole_navigator_page():
             S["orb_r_peri"] = r_peri
         with c2:
             fig = _plot_gravity_assist(planner, v_inf_kms*1e3, r_peri)
-            st.pyplot(fig, use_container_width=True); plt.close(fig)
+            st.pyplot(fig, width='stretch'); plt.close(fig)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # TAB 7 — MISSION Δv BUDGET
@@ -2062,7 +2062,7 @@ def wormhole_navigator_page():
     with tab_mission:
         planner = S["orb_planner"]
         if st.button("🚀 COMPUTE FULL Δv BUDGET",
-                     use_container_width=True, type="primary"):
+                     width='stretch', type="primary"):
             S["orb_dv_budget"] = planner.full_dv_budget()
 
         df = S.get("orb_dv_budget")
@@ -2082,7 +2082,7 @@ def wormhole_navigator_page():
                     f'<div style="color:{clr};font-size:.85rem;">{val}</div>'
                     f'</div>', unsafe_allow_html=True)
             fig = _plot_mission_trajectory(planner)
-            st.pyplot(fig, use_container_width=True); plt.close(fig)
-            st.dataframe(df, use_container_width=True, hide_index=True)
+            st.pyplot(fig, width='stretch'); plt.close(fig)
+            st.dataframe(df, width='stretch', hide_index=True)
         else:
             st.info("Click button to compute full mission Δv budget.")

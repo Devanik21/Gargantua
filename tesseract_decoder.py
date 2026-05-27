@@ -1920,7 +1920,7 @@ def tesseract_decoder_page():
 
         with c2:
             fig = _plot_tesseract(geom, t_angle, slices)
-            st.pyplot(fig, use_container_width=True); plt.close(fig)
+            st.pyplot(fig, width='stretch'); plt.close(fig)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # TAB 2 — ENCODE SIGNAL
@@ -1936,7 +1936,7 @@ def tesseract_decoder_page():
             S["grav_message"] = msg
             S["grav_scheme"]  = scheme
 
-            if st.button("⇡ ENCODE MESSAGE", use_container_width=True,
+            if st.button("⇡ ENCODE MESSAGE", width='stretch',
                          type="primary"):
                 enc  = GravitySignalEncoder()
                 sch  = EncodingScheme[scheme]
@@ -1968,7 +1968,7 @@ def tesseract_decoder_page():
             enc_data = S.get("grav_encoded")
             if enc_data:
                 fig = _plot_encoding(enc_data, scheme)
-                st.pyplot(fig, use_container_width=True); plt.close(fig)
+                st.pyplot(fig, width='stretch'); plt.close(fig)
             else:
                 st.info("Enter a message and click Encode.")
 
@@ -1978,7 +1978,7 @@ def tesseract_decoder_page():
     with tab_decode:
         enc_data = S.get("grav_encoded")
         if enc_data is not None:
-            if st.button("⇣ DECODE SIGNAL", use_container_width=True,
+            if st.button("⇣ DECODE SIGNAL", width='stretch',
                          type="primary"):
                 dec  = GravitySignalDecoder()
                 result = dec.decode_bookshelf(
@@ -2030,7 +2030,7 @@ def tesseract_decoder_page():
                         axes_d[1].set_xlabel("Bit index"); axes_d[1].set_ylabel("Bit")
                         axes_d[1].set_title(f"Decoded: '{wd['decoded_text'][:20]}'")
                         plt.tight_layout()
-                        st.pyplot(fig_d, use_container_width=True); plt.close(fig_d)
+                        st.pyplot(fig_d, width='stretch'); plt.close(fig_d)
         else:
             st.info("Encode a message first (Tab 2), then decode here.")
 
@@ -2049,7 +2049,7 @@ def tesseract_decoder_page():
             S["n_coeffs_known"]  = n_coeffs
 
             if st.button("Ψ SOLVE WHEELER-DeWITT",
-                         use_container_width=True, type="primary"):
+                         width='stretch', type="primary"):
                 solver = S["murphy_solver"]
                 S["murphy_wdw"]    = solver.solve_wdw_shooting(Lambda=lam)
                 S["murphy_coeffs"] = solver.murphy_coefficients_from_tars(42)
@@ -2075,7 +2075,7 @@ def tesseract_decoder_page():
             wdw = S.get("murphy_wdw")
             if wdw:
                 fig = _plot_wdw(wdw)
-                st.pyplot(fig, use_container_width=True); plt.close(fig)
+                st.pyplot(fig, width='stretch'); plt.close(fig)
                 bek = S["murphy_solver"].bekenstein_entropy()
                 st.markdown(f"""
                 <div style="font-family:monospace;font-size:.58rem;color:#c0c0e0;
@@ -2090,7 +2090,7 @@ def tesseract_decoder_page():
     # TAB 5 — TARS DATA CRYSTAL
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     with tab_tars:
-        if st.button("◈ GENERATE TARS CRYSTAL", use_container_width=True,
+        if st.button("◈ GENERATE TARS CRYSTAL", width='stretch',
                      type="primary"):
             tdc = TARSDataCrystal()
             crystal = tdc.encode_crystal()
@@ -2121,7 +2121,7 @@ def tesseract_decoder_page():
                     f'<div style="color:{clr};font-size:.72rem;">{val}</div></div>',
                     unsafe_allow_html=True)
             fig = _plot_tars_crystal(crystal, decoded)
-            st.pyplot(fig, use_container_width=True); plt.close(fig)
+            st.pyplot(fig, width='stretch'); plt.close(fig)
         else:
             st.info("Click 'Generate TARS Crystal' to run the full data pipeline.")
 
@@ -2160,7 +2160,7 @@ def tesseract_decoder_page():
 
         with c2:
             fig_c = _plot_coordinate_decode(bits_c, lat_in, lon_in)
-            st.pyplot(fig_c, use_container_width=True); plt.close(fig_c)
+            st.pyplot(fig_c, width='stretch'); plt.close(fig_c)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # TAB 7 — BULK CHANNEL
@@ -2170,7 +2170,7 @@ def tesseract_decoder_page():
         if S.get("bulk_kk") is None:
             S["bulk_kk"] = bulk.kaluza_klein_spectrum(n_modes=8)
         fig_b = _plot_bulk_channel(bulk)
-        st.pyplot(fig_b, use_container_width=True); plt.close(fig_b)
+        st.pyplot(fig_b, width='stretch'); plt.close(fig_b)
         st.markdown('<div style="font-family:monospace;font-size:.62rem;color:#c040ff;margin-top:.5rem;">KALUZA-KLEIN GRAVITON MASS SPECTRUM</div>',
                     unsafe_allow_html=True)
-        st.dataframe(S["bulk_kk"].round(6), use_container_width=True, hide_index=True)
+        st.dataframe(S["bulk_kk"].round(6), width='stretch', hide_index=True)

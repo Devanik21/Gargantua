@@ -2358,7 +2358,7 @@ def relativity_calculator_page():
 
         with c3:
             fig = _plot_sr_dashboard(v_c, m0_kg)
-            st.pyplot(fig, use_container_width=True)
+            st.pyplot(fig, width='stretch')
             plt.close(fig)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2405,10 +2405,10 @@ def relativity_calculator_page():
 
         with c2:
             fig = _plot_spacetime_diagram(v_tw, d_tw)
-            st.pyplot(fig, use_container_width=True)
+            st.pyplot(fig, width='stretch')
             plt.close(fig)
             fig2 = _plot_twin_summary(twin_inst)
-            st.pyplot(fig2, use_container_width=True)
+            st.pyplot(fig2, width='stretch')
             plt.close(fig2)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2432,7 +2432,7 @@ def relativity_calculator_page():
             S["rel_gr_spin"]       = gr_spin
             S["rel_gr_r_query_rs"] = gr_r_rs
 
-            if st.button("🌀 COMPUTE GR PROFILE", use_container_width=True,
+            if st.button("🌀 COMPUTE GR PROFILE", width='stretch',
                          type="primary"):
                 _gr = GeneralRelativity(gr_mass*M_SUN, gr_spin)
                 S["rel_gr_profile"] = _gr.gr_profile_dataframe()
@@ -2482,7 +2482,7 @@ def relativity_calculator_page():
             df = S.get("rel_gr_profile")
             if df is not None:
                 fig = _plot_gr_profile(df, gr_mass)
-                st.pyplot(fig, use_container_width=True)
+                st.pyplot(fig, width='stretch')
                 plt.close(fig)
             else:
                 st.info("Click 'Compute GR Profile' to generate radial plots.")
@@ -2517,19 +2517,19 @@ def relativity_calculator_page():
                 f'</div>', unsafe_allow_html=True)
 
         fig = _plot_mission_timeline(cooper_df, murph_df, div)
-        st.pyplot(fig, use_container_width=True)
+        st.pyplot(fig, width='stretch')
         plt.close(fig)
 
         c1, c2 = st.columns(2)
         with c1:
             st.markdown('<div style="font-family:monospace;font-size:.62rem;color:#4FC3F7;">COOPER TIMELINE</div>',
                         unsafe_allow_html=True)
-            st.dataframe(cooper_df.round(4), use_container_width=True,
+            st.dataframe(cooper_df.round(4), width='stretch',
                          hide_index=True)
         with c2:
             st.markdown('<div style="font-family:monospace;font-size:.62rem;color:#4FC3F7;">MURPH TIMELINE</div>',
                         unsafe_allow_html=True)
-            st.dataframe(murph_df.round(4), use_container_width=True,
+            st.dataframe(murph_df.round(4), width='stretch',
                          hide_index=True)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2588,7 +2588,7 @@ def relativity_calculator_page():
             ax_m.legend(fontsize=5.5)
             ax_m.set_facecolor("#080c18")
             fig_m.patch.set_facecolor("#06090f")
-            st.pyplot(fig_m, use_container_width=True)
+            st.pyplot(fig_m, width='stretch')
             plt.close(fig_m)
 
         with c2:
@@ -2625,7 +2625,7 @@ def relativity_calculator_page():
             ax_k2.set_facecolor("#080c18")
 
             plt.tight_layout()
-            st.pyplot(fig_k, use_container_width=True)
+            st.pyplot(fig_k, width='stretch')
             plt.close(fig_k)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2651,7 +2651,7 @@ def relativity_calculator_page():
             S["rel_geo_r0"] = geo_r0; S["rel_geo_L"] = geo_L
 
             if st.button("📐 INTEGRATE GEODESIC",
-                         use_container_width=True, type="primary"):
+                         width='stretch', type="primary"):
                 _gr_geo = GeneralRelativity(geo_mass*M_SUN, 0.0)
                 r0_m    = geo_r0 * _gr_geo.r_s
                 result  = _gr_geo.geodesic_integrate_schw(
@@ -2678,7 +2678,7 @@ def relativity_calculator_page():
             geo_res = S.get("rel_geo_result")
             if geo_res:
                 fig = _plot_geodesic(geo_res, S["rel_gr"].r_s)
-                st.pyplot(fig, use_container_width=True)
+                st.pyplot(fig, width='stretch')
                 plt.close(fig)
             else:
                 st.info("Configure parameters and integrate geodesic.")
@@ -2794,5 +2794,5 @@ def relativity_calculator_page():
             ax_r4.set_facecolor("#080c18")
 
             plt.tight_layout()
-            st.pyplot(fig_r, use_container_width=True)
+            st.pyplot(fig_r, width='stretch')
             plt.close(fig_r)

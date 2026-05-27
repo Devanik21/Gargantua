@@ -1878,11 +1878,11 @@ def crew_telemetry_page():
 
         st.markdown("---")
         fig = _plot_crew_vitals(crew_reg)
-        st.pyplot(fig, use_container_width=True); plt.close(fig)
+        st.pyplot(fig, width='stretch'); plt.close(fig)
 
         # Summary table
         rows = [c.to_summary_dict() for c in crew_reg.values()]
-        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(rows), width='stretch', hide_index=True)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # TAB 2 — PHYSIOLOGY
@@ -1896,12 +1896,12 @@ def crew_telemetry_page():
             ex_hrs   = st.slider("Exercise hours/day", 0.0, 4.0, 1.0, 0.25)
             sel_crew = crew_reg[CrewID[sel_name]]
             if st.button("🩺 COMPUTE PHYSIOLOGY PROFILE",
-                         use_container_width=True, type="primary"):
+                         width='stretch', type="primary"):
                 physio = PhysiologySimulator(fs=1.0)
                 df_ph  = physio.physiological_profile(sel_crew, days=sel_days)
                 S["physio_profile"] = (df_ph, sel_crew.crew_id.value)
             # ECG live
-            if st.button("ECG WAVEFORM", use_container_width=True):
+            if st.button("ECG WAVEFORM", width='stretch'):
                 physio = PhysiologySimulator(fs=500.0)
                 t_ecg, ecg = physio.ecg_waveform(sel_crew.hr_bpm, 8.0)
                 S["ecg_waveform"] = (t_ecg, ecg, sel_crew.hr_bpm)
@@ -1916,14 +1916,14 @@ def crew_telemetry_page():
                 ax_ecg.set_title(f"ECG WAVEFORM — {sel_name}  HR={hr:.0f} bpm")
                 ax_ecg.set_facecolor("#030508")
                 fig_ecg.patch.set_facecolor("#04080e")
-                st.pyplot(fig_ecg, use_container_width=True); plt.close(fig_ecg)
+                st.pyplot(fig_ecg, width='stretch'); plt.close(fig_ecg)
 
             if S.get("physio_profile"):
                 df_ph, crw_name = S["physio_profile"]
                 fig_ph = _plot_physiological_profile(df_ph, crw_name)
-                st.pyplot(fig_ph, use_container_width=True); plt.close(fig_ph)
+                st.pyplot(fig_ph, width='stretch'); plt.close(fig_ph)
                 with st.expander("Physiology Data Table"):
-                    st.dataframe(df_ph.round(3), use_container_width=True, hide_index=True)
+                    st.dataframe(df_ph.round(3), width='stretch', hide_index=True)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # TAB 3 — TARS/CASE AI
@@ -1943,7 +1943,7 @@ def crew_telemetry_page():
             tars_bot.humour=t_h; tars_bot.honesty=t_e
             tars_bot.courage=t_c; tars_bot.optimism=t_o; tars_bot.opacity=t_op
             context = st.selectbox("Context", list(TARS_DIALOGUE_BANK.keys()))
-            if st.button("🤖 GENERATE TARS DIALOGUE", use_container_width=True):
+            if st.button("🤖 GENERATE TARS DIALOGUE", width='stretch'):
                 tars_bot.mission_log.append(tars_bot.generate_dialogue(context))
 
         with c2:
@@ -1953,7 +1953,7 @@ def crew_telemetry_page():
             c_e = st.slider("CASE Honesty", 0.0, 1.0, float(S["case_honesty"]), 0.01)
             S["case_humour"]=c_h; S["case_honesty"]=c_e
             case_bot.humour=c_h; case_bot.honesty=c_e
-            if st.button("🤖 GENERATE CASE DIALOGUE", use_container_width=True):
+            if st.button("🤖 GENERATE CASE DIALOGUE", width='stretch'):
                 case_bot.mission_log.append(case_bot.generate_dialogue("default"))
             st.markdown('<div style="font-family:monospace;font-size:.60rem;color:#4FC3F7;margin-top:.6rem;">CASE LOG</div>',
                         unsafe_allow_html=True)
@@ -1963,7 +1963,7 @@ def crew_telemetry_page():
 
         with c3:
             fig_t = _plot_tars_panel(tars_bot, case_bot)
-            st.pyplot(fig_t, use_container_width=True); plt.close(fig_t)
+            st.pyplot(fig_t, width='stretch'); plt.close(fig_t)
             st.markdown('<div style="font-family:monospace;font-size:.60rem;color:#E8C46A;margin-top:.5rem;">TARS DIALOGUE LOG</div>',
                         unsafe_allow_html=True)
             for line in tars_bot.mission_log[-10:]:
@@ -1971,7 +1971,7 @@ def crew_telemetry_page():
                             unsafe_allow_html=True)
 
         fig_td = _plot_tars_decisions(tars_bot)
-        st.pyplot(fig_td, use_container_width=True); plt.close(fig_td)
+        st.pyplot(fig_td, width='stretch'); plt.close(fig_td)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # TAB 4 — SHIP SYSTEMS
@@ -1986,16 +1986,16 @@ def crew_telemetry_page():
                                  float(S["advance_days"]), 0.5)
             S["advance_days"] = adv_d
 
-            if st.button("🔥 EXECUTE BURN", use_container_width=True):
+            if st.button("🔥 EXECUTE BURN", width='stretch'):
                 result = ship.propulsion.burn(dv_burn)
                 st.success(f"Burn complete: Δv={result['dv_executed_ms']:.1f}m/s  "
                            f"Prop={result['propellant_kg']:.0f}kg used")
 
-            if st.button("⚡ APPLY TIDAL STRESS", use_container_width=True):
+            if st.button("⚡ APPLY TIDAL STRESS", width='stretch'):
                 ship.apply_tidal_stress(tidal)
                 st.warning(f"Tidal event: {tidal:.2f} g/m applied")
 
-            if st.button("⏩ ADVANCE MISSION", use_container_width=True, type="primary"):
+            if st.button("⏩ ADVANCE MISSION", width='stretch', type="primary"):
                 ship.advance_mission(adv_d)
                 st.success(f"Advanced {adv_d:.1f} days")
 
@@ -2018,7 +2018,7 @@ def crew_telemetry_page():
 
         with c2:
             fig_s = _plot_endurance_systems(ship)
-            st.pyplot(fig_s, use_container_width=True); plt.close(fig_s)
+            st.pyplot(fig_s, width='stretch'); plt.close(fig_s)
 
         # Data tables
         c3, c4 = st.columns(2)
@@ -2026,12 +2026,12 @@ def crew_telemetry_page():
             st.markdown('<div style="font-family:monospace;font-size:.60rem;color:#81C784;">PROPULSION</div>',
                         unsafe_allow_html=True)
             st.dataframe(pd.DataFrame([ship.propulsion.status_dict()]).T.rename(
-                columns={0:"Value"}), use_container_width=True)
+                columns={0:"Value"}), width='stretch')
         with c4:
             st.markdown('<div style="font-family:monospace;font-size:.60rem;color:#81C784;">LIFE SUPPORT</div>',
                         unsafe_allow_html=True)
             st.dataframe(pd.DataFrame([ship.life_support.status_dict()]).T.rename(
-                columns={0:"Value"}), use_container_width=True)
+                columns={0:"Value"}), width='stretch')
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # TAB 5 — CRYOSLEEP
@@ -2043,11 +2043,11 @@ def crew_telemetry_page():
                                       [c.value for c in CrewID if c not in (CrewID.TARS,CrewID.CASE)])
             pod_id    = st.number_input("Pod ID (0–5)", 0, 5, 0)
             emergency_rv = st.checkbox("Emergency revival (45min, cardiac risk)")
-            if st.button("❄️ INITIATE CRYOSLEEP", use_container_width=True):
+            if st.button("❄️ INITIATE CRYOSLEEP", width='stretch'):
                 cid = next(c for c in CrewID if c.value == cryo_crew)
                 msg = cryo_mgr.put_to_sleep(cid, int(pod_id))
                 st.success(msg)
-            if st.button("⚡ REVIVE CREW", use_container_width=True):
+            if st.button("⚡ REVIVE CREW", width='stretch'):
                 cid   = next(c for c in CrewID if c.value == cryo_crew)
                 steps = cryo_mgr.revive(cid, emergency_rv)
                 for s in steps:
@@ -2056,9 +2056,9 @@ def crew_telemetry_page():
 
         with c2:
             fig_c = _plot_cryosleep(cryo_mgr)
-            st.pyplot(fig_c, use_container_width=True); plt.close(fig_c)
+            st.pyplot(fig_c, width='stretch'); plt.close(fig_c)
             st.dataframe(cryo_mgr.pods_status(),
-                         use_container_width=True, hide_index=True)
+                         width='stretch', hide_index=True)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # TAB 6 — COMMUNICATIONS
@@ -2073,7 +2073,7 @@ def crew_telemetry_page():
             S["comms_distance"] = dist_AU
             msg_txt = st.text_area("Compose message", value=S["comms_msg"], height=80)
             S["comms_msg"] = msg_txt
-            if st.button("📡 SEND MESSAGE", use_container_width=True, type="primary"):
+            if st.button("📡 SEND MESSAGE", width='stretch', type="primary"):
                 m = comms.send(msg_txt)
                 st.success(f"Queued — Delivery lag: {comms.signal_lag_formatted(dist_AU)}")
 
@@ -2094,16 +2094,16 @@ def crew_telemetry_page():
 
         with c2:
             fig_cm = _plot_comms(comms, dist_AU)
-            st.pyplot(fig_cm, use_container_width=True); plt.close(fig_cm)
+            st.pyplot(fig_cm, width='stretch'); plt.close(fig_cm)
             inbox_df, outbox_df = comms.message_queue_df()
             st.markdown('<div style="font-family:monospace;font-size:.60rem;color:#CE93D8;">📥 INBOX</div>',
                         unsafe_allow_html=True)
             if not inbox_df.empty:
-                st.dataframe(inbox_df, use_container_width=True, hide_index=True)
+                st.dataframe(inbox_df, width='stretch', hide_index=True)
             st.markdown('<div style="font-family:monospace;font-size:.60rem;color:#4FC3F7;">📤 OUTBOX</div>',
                         unsafe_allow_html=True)
             if not outbox_df.empty:
-                st.dataframe(outbox_df, use_container_width=True, hide_index=True)
+                st.dataframe(outbox_df, width='stretch', hide_index=True)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # TAB 7 — MISSION CONTROL (master view)
@@ -2137,7 +2137,7 @@ def crew_telemetry_page():
             st.markdown('<div style="font-family:monospace;font-size:.60rem;color:#81C784;">CREW STATUS SUMMARY</div>',
                         unsafe_allow_html=True)
             rows = [c.to_summary_dict() for c in crew_reg.values()]
-            st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(rows), width='stretch', hide_index=True)
         with col_b:
             st.markdown('<div style="font-family:monospace;font-size:.60rem;color:#81C784;">SYSTEMS STATUS</div>',
                         unsafe_allow_html=True)
@@ -2157,7 +2157,7 @@ def crew_telemetry_page():
                 {"System": "Hull",         "Status": SystemStatus.NOMINAL.value if ship.hull_integrity_pct>80 else "DEGRADED",
                  "Key metric": f"{ship.hull_integrity_pct:.1f}% integrity"},
             ])
-            st.dataframe(combined, use_container_width=True, hide_index=True)
+            st.dataframe(combined, width='stretch', hide_index=True)
 
         if ship.alert_log:
             st.markdown('<div style="font-family:monospace;font-size:.60rem;color:#EF5350;margin-top:.5rem;">ALERT LOG</div>',

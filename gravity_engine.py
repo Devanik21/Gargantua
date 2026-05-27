@@ -2629,7 +2629,7 @@ def gravity_engine_page():
                                 step=1e-7, format="%.8f")
 
             if st.button("⬡ COMPUTE KERR GEOMETRY",
-                         use_container_width=True, type="primary"):
+                         width='stretch', type="primary"):
                 bh = KerrBlackHole(mass_solar=bh_mass, spin_star=bh_spin)
                 S["grav_bh"]      = bh
                 S["grav_bh_mass"] = bh_mass
@@ -2679,13 +2679,13 @@ def gravity_engine_page():
 
         with c3:
             fig = _plot_bh_anatomy(bh)
-            st.pyplot(fig, use_container_width=True)
+            st.pyplot(fig, width='stretch')
             plt.close(fig)
 
         # Hawking spectrum below
         st.markdown("---")
         hfig = _plot_hawking(bh)
-        st.pyplot(hfig, use_container_width=True)
+        st.pyplot(hfig, width='stretch')
         plt.close(hfig)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2705,7 +2705,7 @@ def gravity_engine_page():
                                0.0, 89.0, float(S["grav_inc"]), 0.5)
 
             if st.button("◎ RENDER DISK IMAGE",
-                         use_container_width=True, type="primary"):
+                         width='stretch', type="primary"):
                 disk = NovikovThorneAccretionDisk(bh, mdot_edd=mdot)
                 S["grav_disk"] = disk
                 S["grav_mdot"] = mdot
@@ -2743,13 +2743,13 @@ def gravity_engine_page():
             ax_sed.set_title("NT Disk SED", fontsize=7)
             ax_sed.set_facecolor("#080c18")
             fig_sed.patch.set_facecolor("#060a14")
-            st.pyplot(fig_sed, use_container_width=True)
+            st.pyplot(fig_sed, width='stretch')
             plt.close(fig_sed)
 
         with c2:
             disk = S.get("grav_disk") or NovikovThorneAccretionDisk(bh, S["grav_mdot"])
             fig = _plot_disk_panel(bh, disk, S["grav_inc"])
-            st.pyplot(fig, use_container_width=True)
+            st.pyplot(fig, width='stretch')
             plt.close(fig)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2800,7 +2800,7 @@ def gravity_engine_page():
             </div>""", unsafe_allow_html=True)
 
             if st.button("〜 GENERATE GW EVENT",
-                         use_container_width=True, type="primary"):
+                         width='stretch', type="primary"):
                 with st.spinner("Generating IMR waveform..."):
                     wf = gwe.generate_waveform(
                         m1=m1, m2=m2, dist_mpc=dist,
@@ -2843,7 +2843,7 @@ def gravity_engine_page():
                         f'<div style="color:{clr};font-size:.80rem;">{val}</div>'
                         f'</div>', unsafe_allow_html=True)
                 fig = _plot_gw_waveform(wf)
-                st.pyplot(fig, use_container_width=True)
+                st.pyplot(fig, width='stretch')
                 plt.close(fig)
             else:
                 st.info("Configure source parameters and generate a GW event.")
@@ -2856,10 +2856,10 @@ def gravity_engine_page():
                 'color:#E8C46A;margin-top:1rem;">[ GW EVENT CATALOGUE ]</div>',
                 unsafe_allow_html=True)
             df_evts = pd.DataFrame([e.to_dict() for e in evts[-20:]])
-            st.dataframe(df_evts, use_container_width=True, hide_index=True)
+            st.dataframe(df_evts, width='stretch', hide_index=True)
             if len(evts) >= 3:
                 fig_cat = _plot_gw_catalog(evts)
-                st.pyplot(fig_cat, use_container_width=True)
+                st.pyplot(fig_cat, width='stretch')
                 plt.close(fig_cat)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2908,17 +2908,17 @@ def gravity_engine_page():
 
         with c2:
             if st.button("⊛ COMPUTE FULL TIDAL PROFILE",
-                         use_container_width=True):
+                         width='stretch'):
                 with st.spinner("Computing tidal tensor across 500 radii..."):
                     S["grav_tidal_df"] = bh.tidal_profile_dataframe(
                         r_min_rs=1.5, r_max_rs=200.0, n=500)
             if S.get("grav_tidal_df") is not None:
                 fig = _plot_tidal(S["grav_tidal_df"], bh)
-                st.pyplot(fig, use_container_width=True)
+                st.pyplot(fig, width='stretch')
                 plt.close(fig)
                 with st.expander("◈ Tidal Data Table"):
                     st.dataframe(S["grav_tidal_df"].round(6),
-                                 use_container_width=True, hide_index=True)
+                                 width='stretch', hide_index=True)
             else:
                 st.info("Click 'Compute Full Tidal Profile' to run.")
 
@@ -2973,7 +2973,7 @@ def gravity_engine_page():
 
         with c2:
             fig = _plot_miller(mill, bh)
-            st.pyplot(fig, use_container_width=True)
+            st.pyplot(fig, width='stretch')
             plt.close(fig)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2982,7 +2982,7 @@ def gravity_engine_page():
     with tab_profiles:
         bh = S["grav_bh"]
         if st.button("◈ COMPUTE FULL KERR PROFILE  (600 radii)",
-                     use_container_width=True, type="primary"):
+                     width='stretch', type="primary"):
             with st.spinner("Integrating Kerr metric at 600 radii..."):
                 S["grav_radial_df"] = bh.radial_profile(
                     r_min_rs=1.02, r_max_rs=150.0, n=600)
@@ -2990,11 +2990,11 @@ def gravity_engine_page():
         df = S.get("grav_radial_df")
         if df is not None:
             fig = _plot_radial_profile(df, bh)
-            st.pyplot(fig, use_container_width=True)
+            st.pyplot(fig, width='stretch')
             plt.close(fig)
             with st.expander("◈ Full Data Table  (600×16)"):
                 st.dataframe(df.round(8),
-                             use_container_width=True, hide_index=True)
+                             width='stretch', hide_index=True)
         else:
             st.info("Click the button to compute the full radial profile.")
 
@@ -3028,9 +3028,9 @@ def gravity_engine_page():
 
             st.button("◇ RECOMPUTE PENROSE GRID",
                       on_click=lambda: S.update({"grav_penrose_grid": None}),
-                      use_container_width=True)
+                      width='stretch')
 
         with c2:
             fig = _plot_penrose(bh)
-            st.pyplot(fig, use_container_width=True)
+            st.pyplot(fig, width='stretch')
             plt.close(fig)

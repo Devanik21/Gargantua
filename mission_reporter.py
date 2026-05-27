@@ -1609,11 +1609,11 @@ def mission_reporter_page():
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     with tab_lazarus:
         fig_laz = _plot_lazarus_overview(R.lazarus)
-        st.pyplot(fig_laz, use_container_width=True); plt.close(fig_laz)
+        st.pyplot(fig_laz, width='stretch'); plt.close(fig_laz)
         st.markdown('<div style="font-family:monospace;font-size:.62rem;color:#FFD700;margin-top:.5rem;">◈ FULL LAZARUS PROBE MANIFEST</div>',
                     unsafe_allow_html=True)
         df_laz = R.lazarus_df()
-        st.dataframe(df_laz, use_container_width=True, hide_index=True)
+        st.dataframe(df_laz, width='stretch', hide_index=True)
         best = R.best_candidates(3)
         st.markdown(f"""
         <div style="font-family:monospace;font-size:.60rem;color:#c0c0e0;
@@ -1663,17 +1663,17 @@ def mission_reporter_page():
             </div>""", unsafe_allow_html=True)
         with c2:
             fig_ab = _plot_plan_ab(R.plan_a, R.plan_b)
-            st.pyplot(fig_ab, use_container_width=True); plt.close(fig_ab)
+            st.pyplot(fig_ab, width='stretch'); plt.close(fig_ab)
         with st.expander("◈ Top 20 Embryos by Fitness"):
             st.dataframe(R.plan_b.embryo_bank.top_embryos(20),
-                         use_container_width=True, hide_index=True)
+                         width='stretch', hide_index=True)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # TAB 3 — BLIGHT MODEL
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     with tab_blight:
         fig_bl = _plot_blight(R.blight)
-        st.pyplot(fig_bl, use_container_width=True); plt.close(fig_bl)
+        st.pyplot(fig_bl, width='stretch'); plt.close(fig_bl)
         ext_yr = R.blight.extinction_year()
         fpi_now = R.blight.food_production_index(MISSION_START_YR+30)
         st.markdown(f"""
@@ -1694,7 +1694,7 @@ def mission_reporter_page():
         with c1:
             unlk = st.selectbox("Unlock achievement",
                                  [a["name"] for a in ACHIEVEMENT_CATALOGUE])
-            if st.button("🏆 UNLOCK", use_container_width=True, type="primary"):
+            if st.button("🏆 UNLOCK", width='stretch', type="primary"):
                 result = R.scorer.unlock(unlk)
                 if result:
                     st.success(f"🏆 {result.name} — {result.points} pts!")
@@ -1716,9 +1716,9 @@ def mission_reporter_page():
             </div>""", unsafe_allow_html=True)
         with c2:
             fig_ach = _plot_achievements(R.scorer)
-            st.pyplot(fig_ach, use_container_width=True); plt.close(fig_ach)
+            st.pyplot(fig_ach, width='stretch'); plt.close(fig_ach)
             st.dataframe(R.scorer.achievements_df(),
-                         use_container_width=True, hide_index=True)
+                         width='stretch', hide_index=True)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # TAB 5 — DATA DRIVES
@@ -1733,7 +1733,7 @@ def mission_reporter_page():
             d_coeff = st.slider("Murphy coefficients", 0, 42, int(S["drive_coeffs"]), 1)
             S["drive_content"] = d_cont; S["drive_size_mb"] = d_size
             S["drive_is_crystal"] = d_xtal; S["drive_coeffs"] = d_coeff
-            if st.button("💾 SUBMIT DRIVE", use_container_width=True, type="primary"):
+            if st.button("💾 SUBMIT DRIVE", width='stretch', type="primary"):
                 drive = R.drives.submit_drive(
                     d_cont, int(d_size*1e6), is_tars=d_xtal, coeffs=d_coeff)
                 st.success(f"Drive {drive.drive_id} submitted — SHA: {drive.sha256_hash[:12]}...")
@@ -1751,16 +1751,16 @@ def mission_reporter_page():
             </div>""", unsafe_allow_html=True)
         with c2:
             fig_dd = _plot_data_drives(R.drives)
-            st.pyplot(fig_dd, use_container_width=True); plt.close(fig_dd)
+            st.pyplot(fig_dd, width='stretch'); plt.close(fig_dd)
             st.dataframe(R.drives.drives_df(),
-                         use_container_width=True, hide_index=True)
+                         width='stretch', hide_index=True)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # TAB 6 — NASA REPORT
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     with tab_nasa:
         if st.button("📋 GENERATE NASA FINAL REPORT",
-                     use_container_width=True, type="primary"):
+                     width='stretch', type="primary"):
             S["nasa_report"] = R.generate_nasa_report()
         if S.get("nasa_report"):
             rpt = S["nasa_report"]
@@ -1789,7 +1789,7 @@ def mission_reporter_page():
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     with tab_timeline:
         fig_tl = _plot_mission_timeline(R)
-        st.pyplot(fig_tl, use_container_width=True); plt.close(fig_tl)
+        st.pyplot(fig_tl, width='stretch'); plt.close(fig_tl)
         tl_df  = R.mission_timeline()
         cat_colors_html = {
             "CRITICAL":    "#EF5350", "DISCOVERY": "#c040ff",
