@@ -2013,7 +2013,7 @@ def main():
                   rgba(4,6,12,0.98) 50%,
                   rgba(2,4,8,0.98) 100%);
                 border-top:1px solid rgba(232,196,106,0.10);
-                padding:0.25rem 1.2rem;
+                padding:0.15rem 1.2rem;
                 display:flex;justify-content:space-between;
                 align-items:center;z-index:1000;">
       <span style="font-family:monospace;font-size:0.50rem;color:#2a3a50;">
