@@ -1831,13 +1831,13 @@ def crew_telemetry_page():
     (tab_crew, tab_physio, tab_tars,
      tab_ship, tab_cryo,
      tab_comms, tab_mission) = st.tabs([
-        "👥 CREW VITALS",
-        "🩺 PHYSIOLOGY",
-        "🤖 TARS/CASE AI",
+        "⚇ CREW VITALS",
+        "⚕ PHYSIOLOGY",
+        "⚙ TARS/CASE AI",
         "🛸 SHIP SYSTEMS",
         "❄️ CRYOSLEEP",
         "📡 COMMUNICATIONS",
-        "⏱ MISSION CONTROL",
+        "⧖ MISSION CONTROL",
     ])
 
     crew_reg  = S["crew_registry"]
@@ -1943,7 +1943,7 @@ def crew_telemetry_page():
             tars_bot.humour=t_h; tars_bot.honesty=t_e
             tars_bot.courage=t_c; tars_bot.optimism=t_o; tars_bot.opacity=t_op
             context = st.selectbox("Context", list(TARS_DIALOGUE_BANK.keys()))
-            if st.button("🤖 GENERATE TARS DIALOGUE", width='stretch'):
+            if st.button("⚙ GENERATE TARS DIALOGUE", width='stretch'):
                 tars_bot.mission_log.append(tars_bot.generate_dialogue(context))
 
         with c2:
@@ -1953,7 +1953,7 @@ def crew_telemetry_page():
             c_e = st.slider("CASE Honesty", 0.0, 1.0, float(S["case_honesty"]), 0.01)
             S["case_humour"]=c_h; S["case_honesty"]=c_e
             case_bot.humour=c_h; case_bot.honesty=c_e
-            if st.button("🤖 GENERATE CASE DIALOGUE", width='stretch'):
+            if st.button("⚙ GENERATE CASE DIALOGUE", width='stretch'):
                 case_bot.mission_log.append(case_bot.generate_dialogue("default"))
             st.markdown('<div style="font-family:monospace;font-size:.60rem;color:#4FC3F7;margin-top:.6rem;">CASE LOG</div>',
                         unsafe_allow_html=True)
