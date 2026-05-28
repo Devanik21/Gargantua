@@ -869,13 +869,12 @@ def inject_background(b64_str: Optional[str]):
         return
     st.markdown(f"""
     <style>
-    /* 1. Bind the background directly to Streamlit's native root containers */
-    /* We apply a dark gradient overlay so your UI text remains perfectly readable */
-    [data-testid="stAppViewContainer"], .stApp {{
+    /* 1. Bind the background to the absolute root element and add a crisp dark gradient overlay */
+    html, body, .stApp {{
         background: 
             linear-gradient(
-                rgba(2, 4, 8, 0.75), 
-                rgba(4, 6, 12, 0.90)
+                rgba(2, 4, 8, 0.70), 
+                rgba(4, 6, 12, 0.85)
             ),
             url('{b64_str}') !important;
         background-size: cover !important;
@@ -884,16 +883,30 @@ def inject_background(b64_str: Optional[str]):
         background-attachment: fixed !important;
     }}
     
-    /* 2. Ensure the main block remains transparent to reveal the root background */
-    [data-testid="stAppViewContainer"] > .main {{
+    /* 2. Make the main layout, sidebar container, and element blocks completely transparent */
+    [data-testid="stAppViewContainer"],
+    [data-testid="stAppViewContainer"] > .main,
+    [data-testid="stSidebar"],
+    [data-testid="stSidebar"] > div:first-child,
+    .block-container,
+    [data-testid="column"] {{
         background: transparent !important;
+        background-color: transparent !important;
     }}
     
-    /* 3. Neutralise the previous pseudo-element to keep the DOM clean */
+    /* 3. Keep a clean aesthetic separation with a glass border on the sidebar */
+    [data-testid="stSidebar"] {{
+        border-right: 1px solid rgba(232, 196, 106, 0.15) !important;
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5) !important;
+    }}
+
+    /* 4. Kill the old pseudo-element to keep execution clean */
     .star-field::before {{
         display: none !important;
     }}
     </style>""", unsafe_allow_html=True)
+
+
   
 # ══════════════════════════════════════════════════════════════════════════════
 # §6  UTILITY COMPONENTS
