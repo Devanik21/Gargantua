@@ -193,8 +193,14 @@ MASTER_CSS = """
 /* ── Global reset ── */
 *, *::before, *::after { box-sizing: border-box; }
 
-html, body, [data-testid="stAppViewContainer"] {
+html, body {
   background: var(--bg0) !important;
+  color: var(--text) !important;
+  font-family: var(--font-body) !important;
+}
+
+[data-testid="stAppViewContainer"] {
+  background: transparent !important;
   color: var(--text) !important;
   font-family: var(--font-body) !important;
 }
@@ -879,7 +885,7 @@ def inject_background(b64_str: Optional[str]):
       background-size: cover;
       background-position: center 30%;
       background-repeat: no-repeat;
-      opacity: 0.08;
+      opacity: 0.90;
       pointer-events: none;
     }}
     </style>""", unsafe_allow_html=True)
