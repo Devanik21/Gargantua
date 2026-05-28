@@ -4,7 +4,7 @@ ENDURANCE.py — Mission Control Frontend | Interstellar Science Platform v3.0.0
 The ENDURANCE Mission Control Interface — A complete science platform
 built as a serious tribute to Christopher Nolan's Interstellar (2014).
 
-Seven scientific backends, one unified command centre.
+Seven scientific backends, one unified command centre. 
 
 "Mankind was born on Earth. It was never meant to die here."
                                          — Cooper, 2067
