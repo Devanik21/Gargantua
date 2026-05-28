@@ -13,7 +13,7 @@ Seven scientific backends, one unified command centre.
 import streamlit as st
 st.set_page_config(
     page_title="ENDURANCE — Mission Control",
-    page_icon="🌌",
+    page_icon="✦",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -80,14 +80,14 @@ TARS_HONESTY         = 90
 TARS_HUMOUR          = 75
 
 NAV_PAGES = [
-    ("🌌",  "MISSION OVERVIEW",    "overview"),
+    ("✦",  "MISSION OVERVIEW",    "overview"),
     ("⬡",  "GRAVITY ENGINE",      "gravity"),
-    ("⏱",  "RELATIVITY CALC",     "relativity"),
+    ("⧖",  "RELATIVITY CALC",     "relativity"),
     ("🪐",  "PLANET SCANNER",      "planets"),
     ("⟳",  "WORMHOLE NAVIGATOR",  "wormhole"),
     ("◈",  "TESSERACT DECODER",   "tesseract"),
-    ("👥",  "CREW TELEMETRY",      "crew"),
-    ("📋",  "MISSION REPORTER",    "mission"),
+    ("⛨",  "CREW TELEMETRY",      "crew"),
+    ("▤",  "MISSION REPORTER",    "mission"),
     ("ℹ",  "SYSTEM STATUS",       "system"),
 ]
 
@@ -1265,7 +1265,7 @@ def render_overview():
         "MISSION OVERVIEW",
         f"ENDURANCE · Day {S['mission_day']} · Gargantua System · "
         f"Earth Year {MISSION_START_YEAR}",
-        accent="#E8C46A", icon="🌌"
+        accent="#E8C46A", icon="✦"
     )
 
     # ── Top KPI strip ──────────────────────────────────────────────────────
@@ -1460,7 +1460,7 @@ def render_overview():
         ("gravity",    "⬡", "GRAVITY ENGINE",
          "Kerr BH · Accretion disk · GW synthesis · Tidal forces · Hawking radiation",
          "#FF8800", "gravity_engine"),
-        ("relativity", "⏱", "RELATIVITY CALC",
+        ("relativity", "⧖", "RELATIVITY CALC",
          "SR/GR · Time dilation · Cooper-Murph divergence · Geodesics · Twin paradox",
          "#4FC3F7", "relativity_calculator"),
         ("planets",    "🪐", "PLANET SCANNER",
@@ -1472,10 +1472,10 @@ def render_overview():
         ("tesseract",  "◈", "TESSERACT DECODER",
          "4D geometry · Gravity signals · Murphy's equation · TARS crystal · Bulk channel",
          "#c040ff", "tesseract_decoder"),
-        ("crew",       "👥", "CREW TELEMETRY",
+        ("crew",       "⛨", "CREW TELEMETRY",
          "Vitals · TARS/CASE AI · Endurance systems · Cryosleep · Communications",
          "#81C784", "crew_telemetry"),
-        ("mission",    "📋", "MISSION REPORTER",
+        ("mission",    "▤", "MISSION REPORTER",
          "Lazarus archive · Plan A/B · Blight model · Achievements · NASA reports",
          "#FFD700", "mission_reporter"),
     ]
@@ -1654,7 +1654,7 @@ def render_system_status():
     backend_info = [
         ("gravity_engine",        "Gravity Engine",      "⬡", "#FF8800",
          "Kerr BH physics, GW synthesis, accretion disk, tidal forces"),
-        ("relativity_calculator", "Relativity Calc",     "⏱", "#4FC3F7",
+        ("relativity_calculator", "Relativity Calc",     "⧖", "#4FC3F7",
          "SR/GR time dilation, twin paradox, Cooper-Murph timeline"),
         ("planet_analyzer",       "Planet Scanner",      "🪐", "#81C784",
          "Habitability scoring, atmosphere, spectroscopy, biosignatures"),
@@ -1662,9 +1662,9 @@ def render_system_status():
          "Morris-Thorne geometry, exotic matter, orbital mechanics"),
         ("tesseract_decoder",     "Tesseract Decoder",   "◈", "#c040ff",
          "4D geometry, gravity signals, Murphy's equation, TARS crystal"),
-        ("crew_telemetry",        "Crew Telemetry",      "👥", "#81C784",
+        ("crew_telemetry",        "Crew Telemetry",      "⛨", "#81C784",
          "Crew health, TARS/CASE AI, Endurance ship systems, cryosleep"),
-        ("mission_reporter",      "Mission Reporter",    "📋", "#FFD700",
+        ("mission_reporter",      "Mission Reporter",    "▤", "#FFD700",
          "Lazarus archive, Plan A/B, blight model, achievements"),
     ]
 
@@ -1954,7 +1954,7 @@ def main():
             relativity_calculator_page,
             "relativity_calculator",
             "RELATIVITY CALCULATOR",
-            accent="#4FC3F7", icon="⏱"
+            accent="#4FC3F7", icon="⧖"
         )
 
     elif page == "planets":
@@ -1986,7 +1986,7 @@ def main():
             crew_telemetry_page,
             "crew_telemetry",
             "CREW TELEMETRY",
-            accent="#81C784", icon="👥"
+            accent="#81C784", icon="⛨"
         )
 
     elif page == "mission":
@@ -1994,7 +1994,7 @@ def main():
             mission_reporter_page,
             "mission_reporter",
             "MISSION REPORTER",
-            accent="#FFD700", icon="📋"
+            accent="#FFD700", icon="▤"
         )
 
     elif page == "system":
@@ -2013,7 +2013,7 @@ def main():
                   rgba(4,6,12,0.98) 50%,
                   rgba(2,4,8,0.98) 100%);
                 border-top:1px solid rgba(232,196,106,0.10);
-                padding:0.15rem 1.2rem;
+                padding:0.25rem 1.2rem;
                 display:flex;justify-content:space-between;
                 align-items:center;z-index:1000;">
       <span style="font-family:monospace;font-size:0.50rem;color:#2a3a50;">

@@ -2286,13 +2286,13 @@ def relativity_calculator_page():
     (tab_sr, tab_twin, tab_gr,
      tab_mission, tab_miller,
      tab_geodesic, tab_rocket) = st.tabs([
-        "⚡ SPECIAL RELATIVITY",
-        "👥 TWIN PARADOX",
-        "🌀 GENERAL RELATIVITY",
-        "🚀 MISSION TIMELINE",
+        "⧖ SPECIAL RELATIVITY",
+        "⚇ TWIN PARADOX",
+        "⌬ GENERAL RELATIVITY",
+        "⧗ MISSION TIMELINE",
         "🌊 MILLER'S WORLD",
-        "📐 GEODESICS",
-        "🔥 ROCKET EQUATION",
+        "⬡ GEODESICS",
+        "▲ ROCKET EQUATION",
     ])
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2435,7 +2435,7 @@ def relativity_calculator_page():
             S["rel_gr_spin"]       = gr_spin
             S["rel_gr_r_query_rs"] = gr_r_rs
 
-            if st.button("🌀 COMPUTE GR PROFILE", width='stretch',
+            if st.button("⌬ COMPUTE GR PROFILE", width='stretch',
                          type="primary"):
                 _gr = GeneralRelativity(gr_mass*M_SUN, gr_spin)
                 S["rel_gr_profile"] = _gr.gr_profile_dataframe()
@@ -2653,7 +2653,7 @@ def relativity_calculator_page():
                                          value=2000)
             S["rel_geo_r0"] = geo_r0; S["rel_geo_L"] = geo_L
 
-            if st.button("📐 INTEGRATE GEODESIC",
+            if st.button("⬡ INTEGRATE GEODESIC",
                          width='stretch', type="primary"):
                 _gr_geo = GeneralRelativity(geo_mass*M_SUN, 0.0)
                 r0_m    = geo_r0 * _gr_geo.r_s
