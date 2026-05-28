@@ -1073,7 +1073,7 @@ def render_sidebar():
             clr        = page_colors.get(page_key, "#E8C46A")
             bmod       = backend_map.get(page_key)
             loaded_ok  = BACKENDS_LOADED.get(bmod, True)
-            status_dot = ("●" if loaded_ok else "○") if bmod else ""
+            status_dot = "" if loaded_ok else "○"
             btn_style = (
                 f"border-left:2px solid {clr};"
                 f"background:rgba({_hex_to_rgb(clr)},0.08);"
@@ -1487,8 +1487,7 @@ def render_overview():
     cols_m = st.columns(4)
     for i, (pg, icon, title, desc, clr, backend) in enumerate(modules_info):
         col = cols_m[i % 4]
-        loaded = BACKENDS_LOADED.get(backend, True)
-        st_txt = ("● ONLINE" if loaded else "○ OFFLINE")
+        st_txt = ("" if loaded else "○ OFFLINE")
         st_clr = ("#81C784" if loaded else "#D154FF")
         with col:
             st.markdown(f"""
