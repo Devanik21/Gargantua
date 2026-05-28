@@ -1552,6 +1552,89 @@ def render_overview():
     quote_banner(q_txt, q_auth)
 
 
+# ── Technical Appendix ────────────────────────────────────────────────
+    section_rule()
+    with st.expander("◈ TECHNICAL APPENDIX — SYSTEM ARCHITECTURE & MASTER FORMULAS (COMPREHENSIVE)"):
+        st.markdown(r"""
+        <div class="data-panel" style="font-size: 0.65rem; line-height: 1.9; color: var(--text-dim);">
+        <h3 style="color:var(--gold); font-family:var(--font-head); letter-spacing:0.15em;">1. GARGANTUA GRAVITY ENGINE (KERR METRIC)</h3>
+        The underlying spacetime topology for the Gargantua system is modeled on the exact solution to the Einstein field equations for a rotating, uncharged black hole. We utilize Boyer-Lindquist coordinates where the line element is given by:
+        
+        $$ds^2 = -\left(1 - \frac{r_s r}{\Sigma}\right)c^2dt^2 - \frac{2r_s r a \sin^2\theta}{\Sigma}cdtd\phi + \frac{\Sigma}{\Delta}dr^2 + \Sigma d\theta^2 + \left(r^2 + a^2 + \frac{r_s r a^2 \sin^2\theta}{\Sigma}\right)\sin^2\theta d\phi^2$$
+        
+        Where the structural parameters are defined as:
+        * $r_s = \frac{2GM}{c^2}$ (Schwarzschild radius)
+        * $a = \frac{J}{Mc}$ (Spin parameter, where $a \approx 1$ for Gargantua)
+        * $\Sigma = r^2 + a^2\cos^2\theta$
+        * $\Delta = r^2 - r_s r + a^2$
+
+        The event horizon ($r_+$) and Cauchy inner horizon ($r_-$) correspond to the roots of $\Delta = 0$:
+        $$r_{\pm} = \frac{r_s \pm \sqrt{r_s^2 - 4a^2}}{2}$$
+        
+        Due to Gargantua's extreme supermassive scale ($M \approx 10^8 M_\odot$), the Hawking Radiation Temperature evaluates to near absolute zero, ensuring minimal quantum evaporation over the mission timeline:
+        $$T_H = \frac{\hbar c^3}{8 \pi G M k_B}$$
+
+        <hr style="border: 1px solid rgba(232,196,106,0.1); margin: 1rem 0;">
+
+        <h3 style="color:var(--gold); font-family:var(--font-head); letter-spacing:0.15em;">2. RELATIVITY & TIME DILATION</h3>
+        The time slippage on Miller's Planet (1 hour = 7 years) is a direct consequence of extreme gravitational time dilation near the ISCO (Innermost Stable Circular Orbit) of a rapidly spinning black hole. Total time dilation $\Delta t'$ relative to Earth $\Delta t$ incorporates both gravitational depth and orbital kinematics:
+        
+        $$\Delta t' = \Delta t \sqrt{1 - \frac{r_s}{r} - \frac{v^2}{c^2} + \frac{2 a r_s \sin^2\theta}{r^3} \frac{v_\phi}{c}}$$
+        
+        At Miller's coordinates, the gravitational frame-dragging effect (Lense-Thirring effect) dominates. The angular velocity of the spacetime itself is:
+        $$\omega = \frac{r_s r a c}{\Sigma (r^2 + a^2) + r_s r a^2 \sin^2\theta}$$
+        
+        <hr style="border: 1px solid rgba(232,196,106,0.1); margin: 1rem 0;">
+
+        <h3 style="color:var(--gold); font-family:var(--font-head); letter-spacing:0.15em;">3. WORMHOLE TOPOLOGY (MORRIS-THORNE METRIC)</h3>
+        The transit gateway near Saturn operates as a traversable Lorentzian wormhole. To maintain stability and avoid collapse into a singularity, the throat is threaded with exotic matter violating the null energy condition ($T_{\mu\nu}k^\mu k^\nu < 0$). The spacetime geometry is mapped using:
+        
+        $$ds^2 = -e^{2\Phi(r)}c^2dt^2 + \frac{dr^2}{1 - b(r)/r} + r^2(d\theta^2 + \sin^2\theta d\phi^2)$$
+        
+        Where:
+        * $\Phi(r)$ is the redshift function, requiring $\Phi(r)$ to be finite everywhere to prevent event horizons.
+        * $b(r)$ is the spatial shape function, dictating the throat radius where $b(r_0) = r_0$.
+        * The flare-out condition mandates $\frac{b(r) - b'(r)r}{2b(r)^2} > 0$ at the throat.
+        
+        To compute the minimum negative energy density ($\rho$) required at the throat using the Einstein Tensor ($G_{\hat{t}\hat{t}}$):
+        $$\rho c^2 = \frac{1}{8\pi G} \frac{b'(r)}{r^2}$$
+
+        <hr style="border: 1px solid rgba(232,196,106,0.1); margin: 1rem 0;">
+
+        <h3 style="color:var(--gold); font-family:var(--font-head); letter-spacing:0.15em;">4. PLANETARY HABITABILITY SCORING (ESI)</h3>
+        For Plan B, exoplanet viability is strictly quantified using a weighted multivariable Earth Similarity Index (ESI), measuring surface temperature, escape velocity, mean radius, and bulk density. 
+        
+        $$ESI = \prod_{i=1}^{n} \left( 1 - \left| \frac{x_i - x_{i0}}{x_i + x_{i0}} \right| \right)^{\frac{w_i}{n}}$$
+        
+        Atmospheric retention is evaluated against the Jeans escape mechanism. The flux of atmospheric particle loss is modeled as:
+        $$\Phi = \frac{n_c v_c}{2\sqrt{\pi}} (1 + \lambda_c) e^{-\lambda_c}$$
+        Where $\lambda_c = \frac{G M_p m}{k_B T_c r_c}$ represents the Jeans parameter.
+
+        <hr style="border: 1px solid rgba(232,196,106,0.1); margin: 1rem 0;">
+
+        <h3 style="color:var(--gold); font-family:var(--font-head); letter-spacing:0.15em;">5. TARS / CASE COGNITIVE MATRIX (PHYSICS-INFORMED AI)</h3>
+        The onboard artificial intelligence framework operating TARS and CASE Abandons standard statistical data-splitting. Instead, the cognitive architecture utilizes a physics-informed state space, modeling classification and decision-making as wave interference. 
+        
+        Biological telemetry from the crew in cryosleep is analyzed via holographic sub-units that employ non-monotonic kernels to detect complex, periodic physiological resonance patterns:
+        
+        $$\Psi(x, t) = \sum_{n} c_n e^{i(k_n x - \omega_n t)} K_{nm}(\theta)$$
+        
+        This architecture ensures absolute phase jitter robustness, maintaining near-perfect predictive accuracy even under extreme temporal dilation, noise, and systematic sensor faults. All inference pipelines are strictly parallelized and GPU-accelerated to prevent catastrophic forgetting during massive gravitational wavefronts.
+
+        <hr style="border: 1px solid rgba(232,196,106,0.1); margin: 1rem 0;">
+        
+        <h3 style="color:var(--gold); font-family:var(--font-head); letter-spacing:0.15em;">6. TESSERACT & BULK PROPAGATION</h3>
+        To transmit Murphy's equation across dimensional boundaries, the system models gravity bleeding into the 5-dimensional bulk. Assuming an Arkani-Hamed-Dimopoulos-Dvali (ADD) brane cosmology framework, the gravitational potential modifies at short distances (or inside the bulk):
+        
+        $$V(r) \approx - \frac{G_N M}{r} \left( 1 + \alpha e^{-r/\lambda} \right)$$
+        
+        The perturbation of the metric $h_{\mu\nu}$ driven by the watch's second hand across the bulk is governed by the linearized field equation containing a Dirac delta source term for the brane:
+        $$\nabla^2_{5D} h_{\mu\nu} = - 16 \pi G_{5D} T_{\mu\nu} \delta(y)$$
+        
+        </div>
+        """, unsafe_allow_html=True)
+
+
 def _render_gargantua_overview():
     """Render Gargantua schematic as matplotlib figure."""
     MPL_STYLE = {"figure.facecolor":"#04060c","axes.facecolor":"#04060c",
