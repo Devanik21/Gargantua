@@ -821,6 +821,28 @@ div[data-baseweb="notification"] {
 /* ── Make matplotlib figures seamless ── */
 .stImage img { max-width: 100%; border-radius: 3px; }
 [data-testid="stImage"] { border-radius: 3px; }
+/* ── GLOBAL 15% TRANSPARENCY OVERRIDE ── */
+    :root {
+      /* Overrides the variables used by 90% of your widgets (Dataframes, Metrics, Inputs, Cards) */
+      --glass: rgba(6, 10, 20, 0.15) !important;
+      --glass2: rgba(6, 10, 20, 0.15) !important;
+      --bg2: rgba(6, 10, 20, 0.15) !important;
+    }
+
+    /* Catches specific CSS classes that had hardcoded dark backgrounds */
+    .terminal-block, .tars-box, .js-plotly-plot {
+      background: rgba(6, 10, 20, 0.15) !important;
+    }
+
+    /* Catches the specific inline-styled HTML blocks (Mission Status, Blight Extinction, etc.) */
+    div[style*="background:rgba(4,6,12,0.90)"],
+    div[style*="background:rgba(6,10,20,0.80)"],
+    div[style*="background:rgba(4,6,12,0.80)"],
+    div[style*="background:rgba(6,10,20,0.90)"],
+    div[style*="background:rgba(6,10,20,.85)"],
+    div[style*="background:rgba(2,4,8,0.96)"] {
+      background: rgba(6, 10, 20, 0.15) !important;
+    }
 </style>
 
 <!-- Ambient background elements -->
