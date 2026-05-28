@@ -12,7 +12,7 @@ Seven scientific backends, one unified command centre.
 """
 import streamlit as st
 st.set_page_config(
-    page_title="INTERSTEllAR",
+    page_title="INTERSTELLAR",
     page_icon="♾️",
     layout="wide",
     initial_sidebar_state="expanded",
