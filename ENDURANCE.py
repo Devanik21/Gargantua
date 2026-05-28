@@ -1108,6 +1108,7 @@ def render_sidebar():
             "tesseract":  "#c040ff",
             "crew":       "#81C784",
             "mission":    "#FFD700",
+            "quantum":    "#8060ff",
             "system":     "#4FC3F7",
         }
         backend_map = {
@@ -1117,6 +1118,7 @@ def render_sidebar():
             "wormhole":   "wormhole_navigator",
             "tesseract":  "tesseract_decoder",
             "crew":       "crew_telemetry",
+            "quantum":    "quantum_singularity",
             "mission":    "mission_reporter",
         }
 
@@ -2219,6 +2221,8 @@ def render_system_status():
          "Crew health, TARS/CASE AI, Interstellar systems, cryosleep"),
         ("mission_reporter",      "Mission Reporter",    "▤", "#FFD700",
          "Lazarus archive, Plan A/B, blight model, achievements"),
+         ("quantum_singularity",   "Quantum Singularity", "⚛", "#8060ff",
+         "Planck scale, Loop Quantum Gravity, BKL oscillations, Page curve"),
     ]
 
     c1, c2 = st.columns(2)
@@ -2302,6 +2306,7 @@ def render_system_status():
         ("wormhole_navigator.py",   "Backend 4"),
         ("tesseract_decoder.py",    "Backend 5"),
         ("crew_telemetry.py",       "Backend 6"),
+        ("quantum_singularity.py",  "Backend 8"),
         ("mission_reporter.py",     "Backend 7"),
         ("bg.png",                  "Background image (optional)"),
         ("requirements.txt",        "Dependencies list"),
@@ -2548,6 +2553,14 @@ def main():
             "mission_reporter",
             "MISSION REPORTER",
             accent="#FFD700", icon="▤"
+        )
+
+    elif page == "quantum":
+        safe_render(
+            quantum_singularity_page,
+            "quantum_singularity",
+            "QUANTUM SINGULARITY",
+            accent="#8060ff", icon="⚛"
         )
 
     elif page == "system":
