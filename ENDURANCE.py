@@ -1555,7 +1555,7 @@ def render_overview():
 # ── Technical Appendix ────────────────────────────────────────────────
     section_rule()
     with st.expander("◈ TECHNICAL APPENDIX — SYSTEM CONTROL MATHEMATICS & CLOSED-FORM FIELD EQUATIONS (MAXIMAL EXPANSION)"):
-        st.markdown("""
+        st.markdown(r"""
         <div class="data-panel" style="font-size: 0.65rem; line-height: 2.0; color: var(--text-dim);">
         
         <h2 style="color:var(--gold); font-family:var(--font-head); letter-spacing:0.15em; font-size:1.1rem; margin-bottom:1rem;">
@@ -1565,7 +1565,7 @@ def render_overview():
         The structural framework of the gravity engine models the gravitational field of a rotating, uncharged supermassive black hole ($M \approx 10^8 M_\odot$) with an extreme dimensionless angular momentum spin parameter ($a^* = a/M \approx 1 - 10^{-14}$). 
         In standard Boyer-Lindquist coordinates $(t, r, \theta, \phi)$, the covariant components of the metric tensor $g_{\mu\nu}$ are written as a fully continuous tensor field matrix:
 
-        ``` math
+        ```math
         g_{\mu\nu} = \begin{pmatrix} 
         -\left(1 - \frac{r_s r}{\Sigma}\right)c^2 & 0 & 0 & -\frac{r_s r a \sin^2\theta}{\Sigma}c \\ 
         0 & \frac{\Sigma}{\Delta} & 0 & 0 \\ 
@@ -1576,35 +1576,23 @@ def render_overview():
 
         Where the topological scalar functions are explicitly calculated at every spatial cell using the auxiliary equations:
 
-        ``` math
-        r_s = \frac{2GM}{c^2}
-        ```
-
-        ``` math
-        a = \frac{J}{Mc}
-        ```
-
-        ``` math
-        \Sigma(r, \theta) = r^2 + a^2 \cos^2\theta
-        ```
-
-        ``` math
-        \Delta(r) = r^2 - r_s r + a^2
+        ```math
+        r_s = \frac{2GM}{c^2}, \quad a = \frac{J}{Mc}, \quad \Sigma(r, \theta) = r^2 + a^2 \cos^2\theta, \quad \Delta(r) = r^2 - r_s r + a^2
         ```
 
         The coordinate singularities occur at the roots of $\Delta(r) = 0$, giving the exact boundaries for the outer/inner event horizons ($r_\pm$) and the static limit ergosurface boundary ($r_E(\theta)$):
 
-        ``` math
+        ```math
         r_{\pm} = \frac{r_s \pm \sqrt{r_s^2 - 4a^2}}{2}
         ```
 
-        ``` math
+        ```math
         r_E(\theta) = \frac{r_s + \sqrt{r_s^2 - 4a^2 \cos^2\theta}}{2}
         ```
 
         Because Gargantua operates at an extreme mass configuration, the local Hawking evaporation rate is completely suppressed. The Hawking temperature $T_H$ and surface gravity $\kappa$ at the exterior horizon profile resolve to:
 
-        ``` math
+        ```math
         T_H = \frac{\hbar \kappa}{2\pi k_B c} = \frac{\hbar c}{4\pi k_B} \left( \frac{r_+ - r_-}{2r_+^2 + a^2} \right)
         ```
 
@@ -1617,34 +1605,34 @@ def render_overview():
         The temporal slippage ratio experienced by the crew on Miller's Planet (where 1 hour matches 7 Earth years, a factor of exactly $\gamma_{\text{total}} \approx 61,320$) requires solving the total proper time metric tracking along a stable circular equatorial orbit ($\theta = \pi/2$, $\dot{r} = 0$). 
         The invariant line element derivation translates directly into the closed-form time dilation equation:
 
-        ``` math
-        \frac{d\tau}{dt} = \sqrt{ -\left( g_{cc} + 2g_{t\phi}\frac{\Omega}{c} + g_{\phi\phi}\frac{\Omega^2}{c^2} \right) }
+        ```math
+        \frac{d\tau}{dt} = \sqrt{ -\left( g_{tt} + 2g_{t\phi}\frac{\Omega}{c} + g_{\phi\phi}\frac{\Omega^2}{c^2} \right) }
         ```
 
         Substituting the individual coordinate metric terms yields the full master tracking equation used by the relativity module:
 
-        ``` math
+        ```math
         \Delta t' = \Delta t \sqrt{ 1 - \frac{r_s r}{r^2 + a^2 \cos^2\theta} - \frac{\Sigma \dot{r}^2}{c^2 \Delta} - \frac{\Sigma \dot{\theta}^2}{c^2} - \frac{\sin^2\theta}{c^2}\left( r^2 + a^2 + \frac{r_s r a^2 \sin^2\theta}{\Sigma} \right) \left(\frac{d\phi}{dt}\right)^2 + \frac{2r_s r a \sin^2\theta}{c \Sigma}\left(\frac{d\phi}{dt}\right) }
         ```
 
         The angular orbital velocity $\Omega = \frac{d\phi}{dt}$ for a co-rotating equatorial particle at the innermost stable circular boundary is strictly constrained by the frame-dragging value of the Kerr background (Lense-Thirring frequency $\omega$):
 
-        ``` math
+        ```math
         \Omega = \frac{c}{e^{\psi - \nu} + \frac{g_{t\phi}}{g_{tt}}} = \frac{\sqrt{GM}}{r^{3/2} + a\sqrt{G M/c^2}}
         ```
 
-        ``` math
+        ```math
         \omega(r, \theta) = -\frac{g_{t\phi}}{g_{\phi\phi}} = \frac{r_s r a c}{(r^2 + a^2)\Sigma + r_s r a^2 \sin^2\theta}
         ```
 
         The integration tracking of the path uses the standard Christoffel symbol connection metrics to enforce total energy ($E$) and angular momentum ($L$) conservation parameters:
 
-        ``` math
+        ```math
         \frac{d^2 x^\mu}{d\tau^2} + \Gamma^\mu_{\alpha\beta} \frac{dx^\alpha}{d\tau} \frac{dx^\beta}{d\tau} = 0
         ```
 
-        ``` math
-        \Gamma^\mu_{\alpha\beta} = \frac{1}{2} g^{\mu\rho} \left( \partial_\alpha g_{\beta\rho} + \partial_\beta g_{\alpha\rho} - \partial/\partial x^\rho g_{\alpha\beta} \right)
+        ```math
+        \Gamma^\mu_{\alpha\beta} = \frac{1}{2} g^{\mu\rho} \left( \partial_\alpha g_{\beta\rho} + \partial_\beta g_{\alpha\rho} - \frac{\partial g_{\alpha\beta}}{\partial x^\rho} \right)
         ```
 
         <hr style="border: 1px solid rgba(232,196,106,0.1); margin: 1.5rem 0;">
@@ -1653,37 +1641,37 @@ def render_overview():
           III. WORMHOLE TOPOLOGY & EXOTIC MATTER FLUID COMPUTATIONS
         </h2>
         
-        The space layout for the Saturn transit gateway models a spherically symmetric, traversable Lorentzian wormhole via the exact Morris-Thorne metric formulation. To prevent immediate pinch-off and frame collapse, the throat must be artificially structured with an exotic matter fields profile that systematically violates the Null Energy Condition (NEC):
+        The space layout for the Saturn transit gateway models a spherically symmetric, traversable Lorentzian wormhole via the exact Morris-Thorne metric formulation. To prevent immediate pinch-off and frame collapse, the throat must be artificially structured with an exotic matter fields profile that systematically violates the Null Energy Condition (NEC).
 
-        ``` math
+        ```math
         ds^2 = -e^{2\Phi(r)}c^2 dt^2 + \frac{dr^2}{1 - \frac{b(r)}{r}} + r^2 \left( d\theta^2 + \sin^2\theta d\phi^2 \right)
         ```
 
         The stress-energy tensor components $T_{\hat{\mu}\hat{\nu}}$ in the orthonormal static reference frame are derived by matching this geometry directly through the Einstein field equations $G_{\mu\nu} = \frac{8\pi G}{c^4} T_{\mu\nu}$:
 
-        ``` math
+        ```math
         \rho(r)c^2 = T_{\hat{t}\hat{t}} = \frac{1}{8\pi G} \frac{b'(r)}{r^2}
         ```
 
-        ``` math
+        ```math
         \tau_r(r) = -T_{\hat{r}\hat{r}} = \frac{1}{8\pi G} \left[ \frac{b(r)}{r^3} - 2\left(1 - \frac{b(r)}{r}\right)\frac{\Phi'(r)}{r} \right]
         ```
 
-        ``` math
+        ```math
         p_t(r) = T_{\hat{\theta}\hat{\theta}} = T_{\hat{\phi}\hat{\phi}} = \frac{1}{8\pi G} \left( 1 - \frac{b(r)}{r} \right) \left[ \Phi''(r) + (\Phi'(r))^2 + \frac{\Phi'(r)}{r} - \frac{b'(r)r - b(r)}{2r(r - b(r))} \left( \Phi'(r) + \frac{1}{r} \right) \right]
         ```
 
         To enforce cross-boundary navigation safety for the Endurance ship hull, the exotic matter flux constraint for any null vector $k^\mu$ evaluates to a strictly negative parameter matching:
 
-        ``` math
+        ```math
         T_{\mu\nu} k^\mu k^\nu = \rho c^2 - \tau_r < 0
         ```
 
-        ``` math
+        ```math
         \rho c^2 - \tau_r = -\frac{1}{8\pi G} \left[ \frac{b(r) - b'(r)r}{r^3} + 2\left(1 - \frac{b(r)}{r}\right)\frac{\Phi'(r)}{r} \right] \Big|_{r=r_0} = -\frac{1}{8\pi G r_0^2} (1 - b'(r_0))
         ```
 
-        This directly proves that the flare-out condition requires $b'(r_0) < 1$ at the absolute coordinate throat throat radius $r_0$.
+        This directly proves that the flare-out condition requires $b'(r_0) < 1$ at the absolute coordinate throat radius $r_0$.
 
         <hr style="border: 1px solid rgba(232,196,106,0.1); margin: 1.5rem 0;">
 
@@ -1693,22 +1681,18 @@ def render_overview():
         
         Candidate verification pipelines for Plan B apply an empirical multi-factor Earth Similarity Index (ESI) mapping vector deviation profiles across multiple macroscopic geometric targets:
 
-        ``` math
+        ```math
         ESI = \left[ \left(1 - \left|\frac{R - R_0}{R + R_0}\right|\right)^{w_R} \cdot \left(1 - \left|\frac{\rho - \rho_0}{\rho + \rho_0}\right|\right)^{w_\rho} \cdot \left(1 - \left|\frac{v_e - v_{e0}}{v_e + v_{e0}}\right|\right)^{w_{v_e}} \cdot \left(1 - \left|\frac{T_s - T_{s0}}{T_s + T_{s0}}\right|\right)^{w_{T_s}} \right]^{\frac{1}{4}}
         ```
 
         Atmospheric thermal stripping and core density depletion ratios are calculated dynamically against the Jeans escape criteria to ensure long-term ecosystem stability for the frozen embryos bank. The global particle loss flux $\Phi_J$ is derived as:
 
-        ``` math
+        ```math
         \Phi_J = \frac{n_c v_{\text{th}}}{2\sqrt{\pi}} (1 + \lambda_c) e^{-\lambda_c}
         ```
 
-        ``` math
-        v_{\text{th}} = \sqrt{\frac{2 k_B T_c}{m}}
-        ```
-
-        ``` math
-        \lambda_c = \frac{v_e^2}{v_{\text{th}}^2} = \frac{G M_p m}{k_B T_c r_c}
+        ```math
+        v_{\text{th}} = \sqrt{\frac{2 k_B T_c}{m}}, \quad \lambda_c = \frac{v_e^2}{v_{\text{th}}^2} = \frac{G M_p m}{k_B T_c r_c}
         ```
 
         <hr style="border: 1px solid rgba(232,196,106,0.1); margin: 1.5rem 0;">
@@ -1717,21 +1701,21 @@ def render_overview():
           V. TARS / CASE MACHINE INTELLIGENCE MATRIX (HARMONIC RESONANCE FIELDS)
         </h2>
         
-        The cognitive processing architecture for TARS and CASE avoids standard data-splitting models. Instead, classification tasks are mapped directly to physics-informed quantum states where decision boundaries are modeled as complex wave interference fields. 
+        The cognitive processing architecture for TARS and CASE completely abandons standard statistical data-splitting models. Instead, classification tasks are mapped directly to physics-informed quantum states utilizing **Harmonic Resonance Fields (HRF)**, where decision boundaries are modeled as complex wave interference fields rather than linear separations. 
         
-        Biometric profiles and cryogenic telemetry fields from the crew are monitored via holographic units utilizing non-monotonic kernels to detect underlying periodic resonance signatures. The generalized field wavefunction $\Psi(\mathbf{x}, t)$ evolves under high-performance parallel computation:
+        Biometric profiles and cryogenic telemetry from the crew are monitored via a highly specialized **Holographic Soul Unit**, which deploys non-monotonic kernels to detect underlying periodic resonance signatures linked to complex physiological and consciousness states. The generalized field wavefunction $\Psi(\mathbf{x}, t)$ evolves under high-performance parallel computation:
 
-        ``` math
+        ```math
         \Psi(\mathbf{x}, t) = \sum_{n=1}^{N} c_n(t) \exp\left[ i \left( \mathbf{k}_n \cdot \mathbf{x} - \omega_n t \right) \right] \cdot \mathcal{K}_{nm}(\theta, \phi)
         ```
 
-        The non-monotonic resonance detection kernel function $\mathcal{K}_{nm}$ calculates phase matches across highly nonlinear signals using the expansion:
+        The non-monotonic resonance detection kernel function $\mathcal{K}_{nm}$ calculates phase matches across highly nonlinear biological signals (such as EEG states) using the expansion:
 
-        ``` math
+        ```math
         \mathcal{K}_{nm}(\theta, \phi) = \int_{0}^{\infty} H_n(\xi) e^{-\xi^2} \cos(m \xi \cdot \text{sgn}(\theta - \phi)) \, d\xi
         ```
 
-        This unique architecture provides absolute phase jitter robustness, maintaining near 100% predictive tracking accuracy even under massive temporal shifts, temporal dilation discontinuities, and noise. All linear systems are parallelized via low-level GPU acceleration to avoid any risk of catastrophic forgetting during extreme gravitational wave operations.
+        This unique topological architecture guarantees absolute **Phase Jitter Robustness**, maintaining near 100% predictive tracking accuracy even under massive temporal shifts, temporal dilation discontinuities, and noise. All linear systems are parallelized via low-level GPU acceleration (CuPy/RAPIDS architecture) to avoid any risk of catastrophic forgetting during extreme gravitational wave operations.
 
         <hr style="border: 1px solid rgba(232,196,106,0.1); margin: 1.5rem 0;">
 
@@ -1741,24 +1725,27 @@ def render_overview():
         
         To establish communication paths across time layout coordinates, gravity is modeled as a bulk-propagating gauge field moving through a 5-dimensional anti-de Sitter ($AdS_5$) bulk background. Following the Arkani-Hamed-Dimopoulos-Dvali (ADD) and Randall-Sundrum (RS) braneworld framework models, the effective gravitational potential on our local 3-brane updates at short distances to:
 
-        ``` math
+        ```math
         V(r) = - \frac{G_N M}{r} \left( 1 + \sum_{n=1}^{\infty} \alpha_n e^{-\frac{n r}{\lambda}} \right) \propto - \frac{G_{(4+n)} M}{r^{1+n}}
         ```
 
         The spatial metric perturbations $h_{\mu\nu}$ tracking through the hyper-volume grid are systematically generated by feeding specific localized stress tensor pulses (actuated via the watch mechanics) directly into the bulk field equations:
 
-        ``` math
+        ```math
         \left[ \eta^{\alpha\beta} \partial_\alpha \partial_\beta + \frac{\partial^2}{\partial y^2} - \frac{4}{y^2} \right] h_{\mu\nu}(x, y) = -16\pi G_{5D} \left[ T_{\mu\nu}(x) - \frac{1}{3}\eta_{\mu\nu}T^\alpha_\alpha(x) \right] \delta(y)
         ```
 
         Solving this via the 5D boundary Green's function allows the tesseract module to extract discrete gravity anomalies, allowing data symbols to be decoded backward through the history matrix:
 
-        ``` math
+        ```math
         \mathcal{G}_{5D}(x, y; x', y') = \int \frac{d^4 k}{(2\pi)^4} e^{i k \cdot (x - x')} \mathcal{R}_k(y, y')
         ```
 
         </div>
         """, unsafe_allow_html=True)
+
+        
+
 
 
 def _render_gargantua_overview():
