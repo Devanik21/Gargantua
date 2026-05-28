@@ -561,11 +561,11 @@ def make_earth() -> Planet:
         core_fraction = 0.32,
     )
 
-PLANET_REGISTRY: Dict[PlanetID, Planet] = {
-    PlanetID.MILLER:  make_miller(),
-    PlanetID.MANN:    make_mann(),
-    PlanetID.EDMUNDS: make_edmunds(),
-    PlanetID.EARTH:   make_earth(),
+PLANET_REGISTRY: Dict[str, Planet] = {
+    PlanetID.MILLER.value:  make_miller(),
+    PlanetID.MANN.value:    make_mann(),
+    PlanetID.EDMUNDS.value: make_edmunds(),
+    PlanetID.EARTH.value:   make_earth(),
 }
 
 
@@ -1285,7 +1285,7 @@ class MissionRiskAssessor:
 
     def tidal_risk(self) -> Tuple[MissionRisk, str]:
         """Tidal force risk (relevant for Miller near Gargantua)."""
-        if self.p.planet_id == PlanetID.MILLER:
+        if self.p.planet_id.value == PlanetID.MILLER.value:
             # Miller orbits Gargantua — massive tidal force
             garg_M   = 1e8 * M_SUN
             r_miller = 9.56e11  # approximate orbit radius [m]
@@ -1808,7 +1808,7 @@ def init_session_state():
 
     scorer = HabitabilityScorer()
     D: Dict[str, Any] = {
-        "plan_active_pid":    PlanetID.EDMUNDS,
+        "plan_active_pid":    PlanetID.EDMUNDS.value,
         "plan_planets":       PLANET_REGISTRY,
         "plan_scorer":        scorer,
         "plan_compare_df":    None,
@@ -1871,11 +1871,11 @@ def _mpl():
 # ══════════════════════════════════════════════════════════════════════════════
 
 PLANET_COLORS = {
-    PlanetID.MILLER:  "#4FC3F7",
-    PlanetID.MANN:    "#CE93D8",
-    PlanetID.EDMUNDS: "#81C784",
-    PlanetID.EARTH:   "#E8C46A",
-    PlanetID.CUSTOM:  "#FFB74D",
+    PlanetID.MILLER.value:  "#4FC3F7",
+    PlanetID.MANN.value:    "#CE93D8",
+    PlanetID.EDMUNDS.value: "#81C784",
+    PlanetID.EARTH.value:   "#E8C46A",
+    PlanetID.CUSTOM.value:  "#FFB74D",
 }
 
 # ── §13.1  Comparative radar/spider chart ─────────────────────────────────────
@@ -1901,7 +1901,7 @@ def _plot_radar(df: pd.DataFrame, planets: List[Planet]) -> plt.Figure:
             continue
         vals = [float(row[m].values[0]) for m in metrics]
         vals += vals[:1]
-        clr  = PLANET_COLORS.get(p.planet_id, "#fff")
+        clr  = PLANET_COLORS.get(p.planet_id.value, "#fff")
         ax1.plot(angles, vals, color=clr, lw=1.5, label=p.name, alpha=0.9)
         ax1.fill(angles, vals, color=clr, alpha=0.10)
 
@@ -1921,7 +1921,7 @@ def _plot_radar(df: pd.DataFrame, planets: List[Planet]) -> plt.Figure:
         row  = df[df["name"] == p.name]
         if row.empty: continue
         vals = [float(row[m].values[0]) for m in metrics]
-        clr  = PLANET_COLORS.get(p.planet_id, "#fff")
+        clr  = PLANET_COLORS.get(p.planet_id.value, "#fff")
         ax2.bar(x + i*w, vals, w, label=p.name, color=clr, alpha=0.82)
 
     ax2.set_xticks(x + w*len(planets)/2)
@@ -1962,7 +1962,7 @@ def _plot_hz_diagram(planets: List[Planet], scorer: HabitabilityScorer
         if p.semi_major_AU <= 0:
             continue
         L_sol = p.star_L_W / L_SUN
-        clr   = PLANET_COLORS.get(p.planet_id, "#fff")
+        clr   = PLANET_COLORS.get(p.planet_id.value, "#fff")
         ax1.scatter(p.semi_major_AU, L_sol, color=clr, s=120,
                     zorder=5, edgecolors="#E8C46A", lw=0.5)
         ax1.annotate(p.name, (p.semi_major_AU, L_sol),
@@ -1997,7 +1997,7 @@ def _plot_hz_diagram(planets: List[Planet], scorer: HabitabilityScorer
     for p in planets:
         if p.T_surf is None: continue
         esi  = scorer.global_ESI(p)
-        clr  = PLANET_COLORS.get(p.planet_id, "#fff")
+        clr  = PLANET_COLORS.get(p.planet_id.value, "#fff")
         ax2.scatter(p.T_surf-273.15, esi, color=clr, s=120, zorder=5,
                     edgecolors="#E8C46A", lw=0.5, label=p.name)
 
@@ -2062,7 +2062,7 @@ def _plot_spectrum(planet: Planet) -> plt.Figure:
     wl_ir  = np.linspace(2.50, 25.0, 600)   # MIR
 
     data = sp.combined_spectrum(wl_vis, wl_ir)
-    clr  = PLANET_COLORS.get(planet.planet_id, "#E8C46A")
+    clr  = PLANET_COLORS.get(planet.planet_id.value, "#E8C46A")
 
     # Reflectance spectrum
     ax1 = axes[0, 0]
@@ -2131,7 +2131,7 @@ def _plot_comparison_overview(df: pd.DataFrame,
     _mpl()
     fig, axes = plt.subplots(2, 3, figsize=(16, 9))
     fig.patch.set_facecolor("#06090e")
-    clrs  = [PLANET_COLORS.get(p.planet_id, "#fff") for p in planets]
+    clrs  = [PLANET_COLORS.get(p.planet_id.value, "#fff") for p in planets]
     names = [p.name for p in planets]
 
     def _bar(ax, col, ylabel, title, log=False):
@@ -2351,7 +2351,7 @@ def planet_analyzer_page():
                 pri  = float(row["overall_priority"].values[0])
                 T_c  = float(row["T_surf_C"].values[0])
                 hab  = row["habitability_class"].values[0]
-                clr  = PLANET_COLORS.get(p.planet_id, "#E8C46A")
+                clr  = PLANET_COLORS.get(p.planet_id.value, "#E8C46A")
                 esi_bar = "█" * int(esi*10) + "░"*(10-int(esi*10))
                 col.markdown(
                     f'<div style="background:rgba(8,12,24,.92);'
@@ -2390,15 +2390,14 @@ def planet_analyzer_page():
     with tab_single:
         pid_choice = st.selectbox(
             "Select planet", [p.value for p in PlanetID if p != PlanetID.CUSTOM])
-        pid  = PlanetID(pid_choice)
-        p    = S["plan_planets"].get(pid, make_earth())
-        S["plan_active_pid"] = pid
+        p    = S["plan_planets"].get(pid_choice, make_earth())
+        S["plan_active_pid"] = pid_choice
         rpt  = scorer.full_report(p)
         atm  = AtmosphericEngine(p)
 
         c1, c2, c3 = st.columns([1, 1, 2])
         with c1:
-            clr = PLANET_COLORS.get(pid, "#E8C46A")
+            clr = PLANET_COLORS.get(pid_choice, "#E8C46A")
             st.markdown(f"""
             <div style="font-family:monospace;font-size:.57rem;color:#c0c8e0;
                         background:rgba(8,12,24,.92);padding:.75rem;
@@ -2484,7 +2483,7 @@ def planet_analyzer_page():
         pid2  = st.selectbox("Planet for atmosphere",
                               [p.value for p in PlanetID if p != PlanetID.CUSTOM],
                               key="atm_sel")
-        p2    = S["plan_planets"].get(PlanetID(pid2), make_earth())
+        p2    = S["plan_planets"].get(pid2, make_earth())
         atm2  = AtmosphericEngine(p2)
 
         c1, c2 = st.columns([1, 3])
@@ -2533,7 +2532,7 @@ def planet_analyzer_page():
         pid3 = st.selectbox("Planet for spectrum",
                              [p.value for p in PlanetID if p != PlanetID.CUSTOM],
                              key="spec_sel")
-        p3   = S["plan_planets"].get(PlanetID(pid3), make_earth())
+        p3   = S["plan_planets"].get(pid3, make_earth())
         sp3  = SpectralEngine(p3)
         fig_s = _plot_spectrum(p3)
         st.pyplot(fig_s, width='stretch'); plt.close(fig_s)
@@ -2546,7 +2545,7 @@ def planet_analyzer_page():
     # TAB 5 — MILLER'S WORLD
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     with tab_miller:
-        miller = S["plan_planets"][PlanetID.MILLER]
+        miller = S["plan_planets"][PlanetID.MILLER.value]
         fig_m  = _plot_miller_special(miller)
         st.pyplot(fig_m, width='stretch'); plt.close(fig_m)
         rpt_m  = scorer.full_report(miller)
@@ -2608,7 +2607,7 @@ def planet_analyzer_page():
         pid5 = st.selectbox("Planet for risk assessment",
                              [p.value for p in PlanetID if p != PlanetID.CUSTOM],
                              key="risk_sel")
-        p5   = S["plan_planets"].get(PlanetID(pid5), make_earth())
+        p5   = S["plan_planets"].get(pid5, make_earth())
         risk5= MissionRiskAssessor(p5)
         rdf5, ov5 = risk5.full_risk_matrix()
         st.markdown(f"""
@@ -2666,7 +2665,7 @@ def planet_analyzer_page():
                 composition=comp_c, surface_type=stype,
                 ocean_fraction=c_ocean, ice_fraction=c_ice)
             S["plan_custom"] = p_c
-            S["plan_planets"][PlanetID.CUSTOM] = p_c
+            S["plan_planets"][PlanetID.CUSTOM.value] = p_c
 
         p_c = S.get("plan_custom")
         if p_c is not None:
