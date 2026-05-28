@@ -194,13 +194,6 @@ MASTER_CSS = """
 *, *::before, *::after { box-sizing: border-box; }
 
 html, body {
-  background: var(--bg0) !important;
-  color: var(--text) !important;
-  font-family: var(--font-body) !important;
-}
-
-[data-testid="stAppViewContainer"] {
-  background: transparent !important;
   color: var(--text) !important;
   font-family: var(--font-body) !important;
 }
