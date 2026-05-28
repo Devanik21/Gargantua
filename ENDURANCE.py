@@ -1,7 +1,7 @@
 """
-ENDURANCE.py — Mission Control Frontend | Interstellar Science Platform v3.0.0
+INTERSTELLAR.py — INTERSTELLAR Control Frontend | Interstellar Science Platform v3.0.0
 ═══════════════════════════════════════════════════════════════════════════════
-The ENDURANCE Mission Control Interface — A complete science platform
+The INTERSTELLAR Control Interface — A complete science platform
 built as a serious tribute to Christopher Nolan's Interstellar (2014).
 
 Seven scientific backends, one unified command centre.
@@ -125,7 +125,7 @@ INTERSTELLAR_QUOTES = [
 ]
 
 BOOT_LINES = [
-    "ENDURANCE MISSION CONTROL SYSTEM",
+    "INTERSTELLAR SYSTEM CONTROL",
     "Version 3.0.0 — Build 2067.730",
     "NASA Quantum Gravity Observatory — Deep Space Division",
     "",
@@ -145,7 +145,7 @@ BOOT_LINES = [
     "Blight spread model: CRITICAL",
     "",
     "ALL SYSTEMS NOMINAL",
-    "ENDURANCE MISSION CONTROL ONLINE",
+    "GARGANTUA SYSTEM ONLINE",
 ]
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1007,12 +1007,12 @@ def render_sidebar():
                       letter-spacing:0.30em;color:#E8C46A;
                       text-align:center;text-transform:uppercase;
                       text-shadow:0 0 20px rgba(232,196,106,0.30);">
-            ENDURANCE
+            INTERSTELLAR
           </div>
           <div style="font-family:monospace;font-size:0.52rem;
                       color:#4a5a7a;text-align:center;
                       letter-spacing:0.15em;margin-top:0.2rem;">
-            MISSION CONTROL  v3.0.0
+            CONTROL CENTER  v3.0.0
           </div>
           <div style="height:1px;background:linear-gradient(90deg,
               transparent,rgba(232,196,106,0.30),transparent);
@@ -1159,8 +1159,8 @@ def render_sidebar():
                     color:#2a3050;text-align:center;
                     margin-top:0.8rem;padding-top:0.4rem;
                     border-top:1px solid rgba(232,196,106,0.06);">
-          ENDURANCE MISSION CONTROL<br>
-          Interstellar Science Platform<br>
+          INTERSTELLAR CONTROL CENTER<br>
+          Gargantua Science Platform<br>
           Tribute to Christopher Nolan
         </div>""", unsafe_allow_html=True)
 
@@ -1183,7 +1183,7 @@ def render_boot_sequence():
     # Center boot content
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        # ENDURANCE logo
+        # INTERSTELLAR logo
         st.markdown("""
         <div style="text-align:center;margin-bottom:2.5rem;">
           <div style="font-family:'Rajdhani',sans-serif;
@@ -1194,12 +1194,12 @@ def render_boot_sequence():
                                   0 0 80px rgba(232,196,106,0.20);
                       text-transform:uppercase;
                       margin-bottom:0.3rem;">
-            ENDURANCE
+            INTERSTELLAR
           </div>
           <div style="font-family:monospace;font-size:0.68rem;
                       color:#4a5a7a;letter-spacing:0.30em;
                       text-transform:uppercase;">
-            MISSION CONTROL SYSTEM  ·  v3.0.0
+            GARGANTUA SYSTEM CONTROL  ·  v3.0.0
           </div>
           <div style="height:1px;background:linear-gradient(90deg,
               transparent,rgba(232,196,106,0.50),transparent);
@@ -1231,7 +1231,7 @@ def render_boot_sequence():
                     clr = "#E8C46A"
                 elif "Plan" in bl or "Murphy" in bl:
                     clr = "#FF8800"
-                elif bl.startswith("ENDURANCE") or bl.startswith("Version"):
+                elif bl.startswith("INTERSTELLAR") or bl.startswith("GARGANTUA") or bl.startswith("Version"):
                     clr = "#E8C46A"
                 else:
                     clr = "#81C784"
@@ -1254,7 +1254,7 @@ def render_boot_sequence():
 
         # Launch button
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("◉  ENTER MISSION CONTROL", width='stretch', type="primary"):
+        if st.button("◉  ENTER INTERSTELLAR CONTROL", width='stretch', type="primary"):
             S["boot_done"] = True
             st.rerun()
 
@@ -1267,7 +1267,7 @@ def render_overview():
 
     page_header(
         "MISSION OVERVIEW",
-        f"ENDURANCE · Day {S['mission_day']} · Gargantua System · "
+        f"INTERSTELLAR · Day {S['mission_day']} · Gargantua System · "
         f"Earth Year {MISSION_START_YEAR}",
         accent="#E8C46A", icon="✦"
     )
@@ -1477,7 +1477,7 @@ def render_overview():
          "4D geometry · Gravity signals · Murphy's equation · TARS crystal · Bulk channel",
          "#c040ff", "tesseract_decoder"),
         ("crew",       "⛨", "CREW TELEMETRY",
-         "Vitals · TARS/CASE AI · Endurance systems · Cryosleep · Communications",
+         "Vitals · TARS/CASE AI · Interstellar systems · Cryosleep · Communications",
          "#81C784", "crew_telemetry"),
         ("mission",    "▤", "MISSION REPORTER",
          "Lazarus archive · Plan A/B · Blight model · Achievements · NASA reports",
@@ -1667,7 +1667,7 @@ def render_system_status():
         ("tesseract_decoder",     "Tesseract Decoder",   "◈", "#c040ff",
          "4D geometry, gravity signals, Murphy's equation, TARS crystal"),
         ("crew_telemetry",        "Crew Telemetry",      "⛨", "#81C784",
-         "Crew health, TARS/CASE AI, Endurance ship systems, cryosleep"),
+         "Crew health, TARS/CASE AI, Interstellar systems, cryosleep"),
         ("mission_reporter",      "Mission Reporter",    "▤", "#FFD700",
          "Lazarus archive, Plan A/B, blight model, achievements"),
     ]
@@ -1776,7 +1776,7 @@ def render_system_status():
     section_rule()
 
     # Setup instructions
-    with st.expander("◈ SETUP INSTRUCTIONS — How to run ENDURANCE"):
+    with st.expander("◈ SETUP INSTRUCTIONS — How to run INTERSTELLAR"):
         st.markdown("""
         <div class="terminal-block">
         <div class="terminal-line-gold"># Install dependencies</div>
@@ -1893,7 +1893,7 @@ def render_welcome_banner():
                 display:flex;justify-content:space-between;
                 align-items:center;font-family:monospace;">
       <div style="font-size:0.58rem;color:#5a6a80;">
-        <span style="color:#E8C46A;">ENDURANCE</span>
+        <span style="color:#E8C46A;">INTERSTELLAR</span>
         &nbsp;·&nbsp;Mission Day <span style="color:#E8C46A;">{day}</span>
         &nbsp;·&nbsp;Earth Year <span style="color:#E8C46A;">{MISSION_START_YEAR}</span>
       </div>
@@ -2021,7 +2021,7 @@ def main():
                 display:flex;justify-content:space-between;
                 align-items:center;z-index:1000;">
       <span style="font-family:monospace;font-size:0.50rem;color:#2a3a50;">
-        ENDURANCE Mission Control  ·  Interstellar Science Platform v3.0.0
+        INTERSTELLAR Control Center  ·  Gargantua Science Platform v3.0.0
       </span>
       <span style="font-family:monospace;font-size:0.50rem;color:#2a3a50;">
         "Do not go gentle into that good night." — Dylan Thomas
