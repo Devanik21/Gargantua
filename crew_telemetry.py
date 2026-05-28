@@ -1329,7 +1329,7 @@ def init_session_state():
         "cryo_mgr":         CryosleepManager(n_pods=6),
         "comms":            CommunicationsRelay(),
         "physio":           PhysiologySimulator(fs=500.0),
-        "mission_phase":    MissionPhase.SATURN_TRANSIT,
+        "mission_phase":    MissionPhase.SATURN_TRANSIT.name,
         "mission_day":      0.0,
         "tars_humour":      TARS_DEFAULT_HUMOUR,
         "tars_honesty":     TARS_DEFAULT_HONESTY,
@@ -2109,10 +2109,19 @@ def crew_telemetry_page():
     # TAB 7 — MISSION CONTROL (master view)
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     with tab_mission:
+        curr_phase = S["mission_phase"]
+        curr_name = curr_phase.name if hasattr(curr_phase, "name") else str(curr_phase)
+        phase_names = [mp.name for mp in MissionPhase]
+        try:
+            phase_idx = phase_names.index(curr_name)
+        except ValueError:
+            phase_idx = 0
+
         phase = st.selectbox("Current Mission Phase",
                               [mp.value for mp in MissionPhase],
-                              index=list(MissionPhase).index(S["mission_phase"]))
-        S["mission_phase"] = next(mp for mp in MissionPhase if mp.value==phase)
+                              index=phase_idx)
+        chosen_mp = next(mp for mp in MissionPhase if mp.value == phase)
+        S["mission_phase"] = chosen_mp.name
 
         cols_kpi = st.columns(6)
         kpis = [
