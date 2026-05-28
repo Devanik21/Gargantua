@@ -173,7 +173,7 @@ CMAP_SYSTEMS = LinearSegmentedColormap.from_list("systems",
 class CrewID(Enum):
     COOPER  = "Joseph A. Cooper"
     BRAND   = "Dr. Amelia Brand"
-    ROMILLY = "Dr. Doyle Romilly"
+    ROMILLY = "Dr. Nikolai Romilly"
     DOYLE   = "Dr. Doyle"
     MURPH   = "Murphy Cooper (Earth)"
     MANN    = "Dr. Mann (Lazarus)"
@@ -316,7 +316,7 @@ class CrewMember:
     def to_summary_dict(self) -> Dict[str, Any]:
         v = self.vital_signs_noisy()
         return {
-            "Name":          self.crew_id.value.split()[0],
+            "Name":          self.crew_id.name.title(),
             "Role":          self.role,
             "Status":        self.status.value,
             "Age (launch)":  self.age_at_launch,
@@ -1406,7 +1406,7 @@ def _plot_crew_vitals(crew_dict: Dict[CrewID, CrewMember]) -> plt.Figure:
         t, ecg = physio.ecg_waveform(crew.hr_bpm, duration_s=5.0)
         clr = CREW_COLORS.get(crew.crew_id.name, "#E8C46A")
         ax.plot(t, ecg, color=clr, lw=0.9)
-        ax.set_title(f"{crew.crew_id.value.split()[0]}\n"
+        ax.set_title(f"{crew.crew_id.name.title()}\n"
                      f"HR={crew.hr_bpm:.0f}bpm  SpO₂={crew.spo2_pct:.1f}%", fontsize=7)
         ax.set_xlabel("Time [s]"); ax.set_ylabel("ECG [mV]")
         ax.set_facecolor("#030508")
@@ -1425,7 +1425,7 @@ def _plot_crew_vitals(crew_dict: Dict[CrewID, CrewMember]) -> plt.Figure:
         "Health\nscore":    [c.health_score()*100 for c in members],
     }
     for ax, (metric, vals) in zip(axes[1], metric_vals.items()):
-        names = [c.crew_id.value.split()[0] for c in members]
+        names = [c.crew_id.name.title() for c in members]
         colors= [CREW_COLORS.get(c.crew_id.name,"#E8C46A") for c in members]
         bars  = ax.bar(names, vals, color=colors, alpha=0.82, width=0.5)
         ax.bar_label(bars, fmt="%.0f", padding=2, fontsize=7, color="#fff")
@@ -1679,7 +1679,7 @@ def _plot_cryosleep(cryo: CryosleepManager) -> plt.Figure:
         ax1.add_patch(rect)
         ax1.text(x+0.5, y+0.75, f"POD {pod.pod_id}",
                  ha="center", fontsize=7, color="#E8C46A", fontfamily="monospace")
-        crew_txt = pod.assigned_crew.value.split()[0] if pod.assigned_crew else "EMPTY"
+        crew_txt = pod.assigned_crew.name.title() if pod.assigned_crew else "EMPTY"
         ax1.text(x+0.5, y+0.45, crew_txt,
                  ha="center", fontsize=6,
                  color="#4FC3F7" if pod.occupied else "#555",
@@ -1866,7 +1866,7 @@ def crew_telemetry_page():
                 f'border-top:2px solid {clr};padding:.6rem;border-radius:3px;'
                 f'font-family:monospace;">'
                 f'<div style="color:{clr};font-size:.70rem;font-weight:600;">'
-                f'{crew.crew_id.value.split()[0].upper()}</div>'
+                f'{crew.crew_id.name.upper()}</div>'
                 f'<div style="color:#888;font-size:.52rem;">{crew.role[:22]}</div>'
                 f'<div style="color:{al_c};font-size:.62rem;margin:.2rem 0;">◆ {al.name}</div>'
                 f'<div style="color:#aaa;font-size:.55rem;">HR: {v["HR (bpm)"]:.0f} bpm</div>'
