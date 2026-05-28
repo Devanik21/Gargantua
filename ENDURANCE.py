@@ -56,14 +56,15 @@ def _safe_import(module_name: str, attr: str = None):
         BACKEND_ERRORS[module_name]  = str(e)
         return None
 
-# Import all 7 backend page functions
-gravity_engine_page      = _safe_import("gravity_engine",     "gravity_engine_page")
+# Import all 8 backend page functions
+gravity_engine_page      = _safe_import("gravity_engine",      "gravity_engine_page")
 relativity_calculator_page=_safe_import("relativity_calculator","relativity_calculator_page")
-planet_analyzer_page     = _safe_import("planet_analyzer",    "planet_analyzer_page")
-wormhole_navigator_page  = _safe_import("wormhole_navigator", "wormhole_navigator_page")
-tesseract_decoder_page   = _safe_import("tesseract_decoder",  "tesseract_decoder_page")
-crew_telemetry_page      = _safe_import("crew_telemetry",     "crew_telemetry_page")
-mission_reporter_page    = _safe_import("mission_reporter",   "mission_reporter_page")
+planet_analyzer_page     = _safe_import("planet_analyzer",     "planet_analyzer_page")
+wormhole_navigator_page  = _safe_import("wormhole_navigator",  "wormhole_navigator_page")
+tesseract_decoder_page   = _safe_import("tesseract_decoder",   "tesseract_decoder_page")
+crew_telemetry_page      = _safe_import("crew_telemetry",      "crew_telemetry_page")
+mission_reporter_page    = _safe_import("mission_reporter",    "mission_reporter_page")
+quantum_singularity_page = _safe_import("quantum_singularity", "quantum_singularity_page")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # §2  CONSTANTS & MISSION DATA
@@ -88,6 +89,7 @@ NAV_PAGES = [
     ("◈",  "TESSERACT DECODER",   "tesseract"),
     ("⛨",  "CREW TELEMETRY",      "crew"),
     ("▤",  "MISSION REPORTER",    "mission"),
+    ("⚛",  "QUANTUM SINGULARITY", "quantum"),
     ("ℹ",  "SYSTEM STATUS",       "system"),
 ]
 
@@ -143,8 +145,12 @@ BOOT_LINES = [
     "Plan A progress: 71.4%",
     "Plan B embryo bank: 5,000 profiles loaded",
     "Blight spread model: CRITICAL",
+    "Loading Planck foam topology engine...",
+    "Initialising LQG spin network — area gap: 4√3π γ ℓ_P²",
+    "Calibrating BKL Kasner oscillation map...",
+    "Quantum Singularity Lab: ONLINE",
     "",
-    "ALL SYSTEMS NOMINAL",
+    "ALL SYSTEMS NOMINAL — 8 BACKENDS ONLINE",
     "GARGANTUA SYSTEM ONLINE",
 ]
 
@@ -1528,6 +1534,9 @@ def render_overview():
         ("mission",    "▤", "MISSION REPORTER",
          "Lazarus archive · Plan A/B · Blight model · Achievements · NASA reports",
          "#FFD700", "mission_reporter"),
+        ("quantum",    "⚛", "QUANTUM SINGULARITY",
+         "Planck foam · LQG · BKL oscillations · Page curve · Unruh · Holography · ER=EPR",
+         "#8060ff", "quantum_singularity"),
     ]
 
     cols_m = st.columns(4)
@@ -1739,6 +1748,304 @@ def render_overview():
 
         ```math
         \mathcal{G}_{5D}(x, y; x', y') = \int \frac{d^4 k}{(2\pi)^4} e^{i k \cdot (x - x')} \mathcal{R}_k(y, y')
+        ```
+
+        <hr style="border: 1px solid rgba(232,196,106,0.1); margin: 1.5rem 0;">
+
+        <h2 style="color:var(--gold); font-family:var(--font-head); letter-spacing:0.15em; font-size:1.1rem; margin-bottom:1rem;">
+          VII. QUANTUM SINGULARITY LAB — PLANCK SCALE, LOOP QUANTUM GRAVITY, BKL OSCILLATIONS, HAWKING PAGE CURVE, UNRUH VACUUM PHYSICS, QUANTUM CHAOS & HOLOGRAPHY
+        </h2>
+
+        <b style="color:var(--blue); font-size:0.72rem;">A. PLANCK UNITS & QUANTUM FOAM NUCLEATION</b><br><br>
+
+        The complete Planck unit system (CODATA 2018) defines the natural quantum gravity scale at which spacetime topology fluctuates. All four fundamental Planck constants emerge from dimensional analysis of $G$, $\hbar$, $c$, and $k_B$:
+
+        ```math
+        \ell_P = \sqrt{\frac{\hbar G}{c^3}} = 1.61626 \times 10^{-35}\,\text{m}, \quad
+        t_P = \frac{\ell_P}{c} = \sqrt{\frac{\hbar G}{c^5}} = 5.39116 \times 10^{-44}\,\text{s}
+        ```
+
+        ```math
+        m_P = \sqrt{\frac{\hbar c}{G}} = 2.17643 \times 10^{-8}\,\text{kg}, \quad
+        T_P = \frac{m_P c^2}{k_B} = \sqrt{\frac{\hbar c^5}{G k_B^2}} = 1.41678 \times 10^{32}\,\text{K}
+        ```
+
+        Virtual black hole nucleation in the quantum foam background proceeds via the Euclidean path integral. The dominant saddle-point configuration is the Hawking-Gibbons instanton, yielding a nucleation rate per unit Planck 4-volume proportional to the exponential of the negative Bekenstein-Hawking entropy:
+
+        ```math
+        \Gamma_{\rm foam} \sim m_P^{-4} \exp\!\left(-S_{\rm BH}\right) = m_P^{-4} \exp\!\left(-\frac{4\pi M^2}{m_P^2}\right)
+        ```
+
+        Wheeler's spacetime foam topology undergoes genus fluctuations at scale $\ell_P$. The genus spectrum for a 2-sphere of radius $r$ follows the Planck-suppressed distribution:
+
+        ```math
+        P(g, r) \sim \exp\!\left(-\frac{4\pi r^2}{\ell_P^2}\,g\right), \quad \langle g \rangle \sim \frac{\ell_P^2}{4\pi r^2}
+        ```
+
+        Lorentz dispersion receives quantum gravity corrections at order $(E/E_P)^n$ where $n=1$ (linear, LQG-favoured) or $n=2$ (quadratic, string-favoured). The modified dispersion relation and induced photon group velocity shift are:
+
+        ```math
+        \omega^2 = k^2 c^2 \left[1 \pm \xi_n \left(\frac{\hbar\omega}{E_P c^2}\right)^n\right], \quad
+        \frac{\delta v_g}{c} \approx \pm \frac{n+1}{2}\,\xi_n \left(\frac{E}{E_P}\right)^n
+        ```
+
+        <hr style="border: 1px solid rgba(128,96,255,0.12); margin: 1rem 0;">
+        <b style="color:var(--blue); font-size:0.72rem;">B. LOOP QUANTUM GRAVITY — SPIN NETWORKS & AREA/VOLUME SPECTRA</b><br><br>
+
+        In Loop Quantum Gravity (Ashtekar-Lewandowski formulation), geometric operators are promoted to well-defined self-adjoint operators on the kinematic Hilbert space $\mathcal{H}_{\rm kin}$. Spatial area is quantised with a discrete spectrum labelled by spin quantum numbers $j_i \in \{0, \tfrac{1}{2}, 1, \tfrac{3}{2}, \ldots\}$ intersecting a surface $S$:
+
+        ```math
+        \hat{A}_S \, |\Gamma, j_l, i_n\rangle = 8\pi\gamma\ell_P^2 \sum_{p\,\in\,S\cap\Gamma} \sqrt{j_p(j_p+1)}\; |\Gamma, j_l, i_n\rangle
+        ```
+
+        The Barbero-Immirzi parameter $\gamma = 0.2375$ (fixed by Domagala-Lewandowski black hole entropy counting) sets the absolute scale. The minimum non-zero area eigenvalue — the area gap — is:
+
+        ```math
+        \Delta_A = 4\sqrt{3}\,\pi\,\gamma\,\ell_P^2 \approx 1.0509 \times 10^{-69}\,\text{m}^2 \quad (j_{\rm min} = \tfrac{1}{2})
+        ```
+
+        Volume eigenvalues at a 4-valent node $n$ with intertwiners $i_n$ scale as:
+
+        ```math
+        V_n \sim (\gamma\,\ell_P^2)^{3/2}\,\sqrt{|i_n|}, \quad V_{\rm min} \sim \ell_P^3 \approx 4.22 \times 10^{-105}\,\text{m}^3
+        ```
+
+        The Loop Quantum Cosmology (LQC) effective Friedmann equation replaces the Big Bang singularity with a quantum bounce. The modified Hamiltonian constraint yields:
+
+        ```math
+        H^2 = \left(\frac{\dot{a}}{a}\right)^2 = \frac{8\pi G}{3}\,\rho\!\left(1 - \frac{\rho}{\rho_{\rm crit}}\right), \quad
+        \rho_{\rm crit} = \frac{3}{8\pi\gamma^2\lambda^2\kappa^2} \approx 0.41\,\rho_P
+        ```
+
+        where $\lambda^2 = 4\sqrt{3}\pi\gamma\ell_P^2$ is the minimum area eigenvalue in Planck units. The quantum-corrected Raychaudhuri equation:
+
+        ```math
+        \frac{\ddot{a}}{a} = -\frac{4\pi G}{3}\left(\rho + 3p\right)\left(1 - \frac{2\rho}{\rho_{\rm crit}}\right) + \frac{8\pi G}{3}\frac{\rho^2}{\rho_{\rm crit}}
+        ```
+
+        The Wheeler-DeWitt equation in LQC minisuperspace (with $\alpha = \ln a$ as the internal clock) takes the form of a difference equation with step $\lambda$, whose continuum limit recovers:
+
+        ```math
+        -\frac{\partial^2 \Psi}{\partial\alpha^2} + V(\alpha)\,\Psi = 0, \quad V(\alpha) = e^{6\alpha}\!\left[V_{\rm matter} - k\,e^{-2\alpha} + \Lambda\,e^{4\alpha}/3\right]
+        ```
+
+        <hr style="border: 1px solid rgba(128,96,255,0.12); margin: 1rem 0;">
+        <b style="color:var(--blue); font-size:0.72rem;">C. BKL OSCILLATIONS & KASNER SINGULARITY INTERIOR</b><br><br>
+
+        Near a spacelike singularity, the BKL (Belinskii-Khalatnikov-Lifshitz) analysis shows that spatial gradients decouple and each point evolves independently through a sequence of Kasner epochs. The general Kasner metric and exponent constraints are:
+
+        ```math
+        ds^2 = -dt^2 + \sum_{i=1}^{3} t^{2p_i}\,(dx^i)^2, \quad \sum_{i=1}^{3} p_i = 1, \quad \sum_{i=1}^{3} p_i^2 = 1
+        ```
+
+        Parametrising by the Lifshitz-Khalatnikov variable $u \geq 1$, the three Kasner exponents take the exact closed-form values:
+
+        ```math
+        p_1(u) = \frac{-u}{1+u+u^2},\quad p_2(u) = \frac{1+u}{1+u+u^2},\quad p_3(u) = \frac{u(1+u)}{1+u+u^2}
+        ```
+
+        The BKL map governs transitions between Kasner epochs as $t\to 0$. Each "bounce" off a potential wall exchanges which direction contracts fastest and which two are expanding:
+
+        ```math
+        u \;\mapsto\; \begin{cases} u - 1, & u > 2 \\ \dfrac{1}{u-1}, & 1 < u \leq 2 \end{cases}
+        ```
+
+        The Misner Mixmaster universe (Bianchi IX) undergoes a chaotic sequence of Kasner eras, each containing an integer number of epochs. The era lengths $k_n$ follow an approximation related to the Gauss-Kuzmin distribution for continued fractions:
+
+        ```math
+        u = k + \frac{1}{k_1 + \dfrac{1}{k_2 + \cdots}}, \quad \langle k\rangle = \frac{\pi^2}{6\ln 2} \approx 2.37
+        ```
+
+        The anisotropy parameter $\Omega_{\rm Bianchi}$ for Bianchi IX scale factors $(a, b, c)$ satisfies:
+
+        ```math
+        \Omega_{\rm Bianchi} = \frac{a^4 + b^4 + c^4 - 2(a^2 b^2 + b^2 c^2 + c^2 a^2)}{2(abc)^{4/3}}, \quad \Omega_{\rm Bianchi} \to \infty \;\text{at singularity}
+        ```
+
+        <hr style="border: 1px solid rgba(128,96,255,0.12); margin: 1rem 0;">
+        <b style="color:var(--blue); font-size:0.72rem;">D. HAWKING RADIATION, EVAPORATION & PAGE CURVE</b><br><br>
+
+        A Schwarzschild black hole of mass $M$ emits thermal Hawking radiation at temperature $T_H$ with a luminosity $\mathcal{L}$ that drives complete evaporation over time $t_{\rm evap}$:
+
+        ```math
+        T_H = \frac{\hbar c^3}{8\pi G M k_B}, \quad
+        \mathcal{L} = \frac{\hbar c^6}{15360\,\pi\, G^2 M^2}, \quad
+        \frac{dM}{dt} = -\frac{\hbar c^4}{15360\,\pi\,G^2 M^2}
+        ```
+
+        ```math
+        t_{\rm evap} = \frac{5120\,\pi\,G^2 M_0^3}{\hbar c^4}, \quad
+        M(t) = M_0\!\left(1 - \frac{t}{t_{\rm evap}}\right)^{1/3}
+        ```
+
+        The Bekenstein-Hawking entropy (in Planck units where $G = \hbar = c = 1$) and the scrambling time at inverse temperature $\beta = 1/(k_B T_H)$ are:
+
+        ```math
+        S_{\rm BH} = \frac{A}{4\ell_P^2} = \frac{4\pi G M^2}{\hbar c} = 4\pi M^2, \quad
+        t_{\rm Page} \approx \frac{t_{\rm evap}}{2}, \quad
+        t_{\rm scr} = \frac{\beta}{2\pi}\ln S_{\rm BH} = \frac{M}{2\pi}\ln(4\pi M^2)
+        ```
+
+        The Page curve describes the entanglement entropy $S_{\rm rad}(t)$ of the radiation. Before the Page time it grows (naive Hawking), after it falls back to zero (unitarity). The island rule corrects the entropy using a quantum extremal surface:
+
+        ```math
+        S_{\rm gen}[\mathcal{I}] = \frac{{\rm Area}(\partial\mathcal{I})}{4G} + S_{\rm bulk}[R\cup\mathcal{I}], \quad
+        S_{\rm rad}(t) = \min_{\mathcal{I}}\,{\rm ext}_{\mathcal{I}}\!\left[S_{\rm gen}[\mathcal{I}]\right]
+        ```
+
+        The two competing saddles (no-island and island) give the Page curve piecewise:
+
+        ```math
+        S_{\rm rad}(t) = \min\!\left\{ S_{\rm Hawking}(t),\; S_{\rm BH}^{\rm initial} - S_{\rm BH}(t) + S_{\rm bdy} \right\}
+        ```
+
+        <hr style="border: 1px solid rgba(128,96,255,0.12); margin: 1rem 0;">
+        <b style="color:var(--blue); font-size:0.72rem;">E. UNRUH EFFECT, CASIMIR PRESSURE & SCHWINGER PAIR PRODUCTION</b><br><br>
+
+        A uniformly accelerated observer (Rindler frame) perceives the Minkowski vacuum as a thermal bath at the Unruh temperature $T_U$. The full Planck spectrum seen by the Unruh-DeWitt detector with acceleration $a$ is:
+
+        ```math
+        T_U = \frac{\hbar a}{2\pi c k_B}, \quad
+        n(\omega) = \frac{1}{\exp\!\left(\frac{2\pi c\,\omega}{a}\right) - 1}, \quad
+        \mathcal{R}(\omega, a) = \frac{a^2}{4\pi^2 c^2}\,\frac{1}{e^{2\pi\omega c/a}-1}
+        ```
+
+        The Casimir effect between two perfectly conducting parallel plates of area $A$ separated by distance $d$ in vacuum gives an attractive pressure and energy:
+
+        ```math
+        P_{\rm Cas} = -\frac{\pi^2\hbar c}{240\,d^4}, \quad
+        E_{\rm Cas} = -\frac{\pi^2\hbar c\,A}{720\,d^3}, \quad
+        F_{\rm Cas} = -\frac{\partial E_{\rm Cas}}{\partial d} = -\frac{\pi^2\hbar c\,A}{240\,d^4}
+        ```
+
+        The Schwinger pair-production rate per unit 4-volume in an external electric field $E$ (with critical field $E_c = m_e^2 c^3/(e\hbar) \approx 1.32\times 10^{18}\,\text{V/m}$) summed over all Landau levels gives:
+
+        ```math
+        \frac{W}{V} = \frac{\alpha E^2}{\pi^2} \sum_{n=1}^{\infty} \frac{(-1)^{n+1}}{n} \exp\!\left(-\frac{n\pi E_c}{E}\right)
+        \;\approx\; \frac{\alpha E^2}{\pi^2}\exp\!\left(-\frac{\pi E_c}{E}\right) \quad (E \ll E_c)
+        ```
+
+        <hr style="border: 1px solid rgba(128,96,255,0.12); margin: 1rem 0;">
+        <b style="color:var(--blue); font-size:0.72rem;">F. QUANTUM CHAOS, OTOC SCRAMBLING & SYK MODEL</b><br><br>
+
+        The Maldacena-Shenker-Stanford (MSS) chaos bound states that the quantum Lyapunov exponent $\lambda_L$ governing out-of-time-order correlator (OTOC) growth is universally bounded:
+
+        ```math
+        \lambda_L \leq \frac{2\pi k_B T}{\hbar} \quad (\text{saturated by black holes and SYK})
+        ```
+
+        The OTOC diagnostic of quantum scrambling uses two operators $V, W$ separated in time and is defined as:
+
+        ```math
+        F(t) = \langle V^\dagger(t)\,W^\dagger\,V(t)\,W \rangle_\beta, \quad
+        F(t) \approx 1 - \frac{\varepsilon}{N}\,e^{\lambda_L t}, \quad t < t_{\rm scr}
+        ```
+
+        where $\varepsilon$ is an initial coupling strength and $N$ is the number of degrees of freedom. After the scrambling time $t_{\rm scr}$, $F(t)\to 0$ — information is fully scrambled.
+
+        The Sachdev-Ye-Kitaev (SYK) model of $N$ Majorana fermions $\chi_i$ with random all-to-all $q$-body couplings $J_{i_1\ldots i_q}$ has the Hamiltonian:
+
+        ```math
+        H_{\rm SYK} = i^{q/2}\!\sum_{1\leq i_1 < \cdots < i_q \leq N} J_{i_1\cdots i_q}\,\chi_{i_1}\cdots\chi_{i_q}, \quad
+        \langle J_{i_1\cdots i_q}^2\rangle = \frac{(q-1)!\,\mathcal{J}^2}{N^{q-1}}
+        ```
+
+        In the large-$q$ limit, the spectral density (Schwarzian/JT gravity regime) takes the exact semicircular-like form:
+
+        ```math
+        \rho(E) = \frac{1}{2\pi\tilde{\mathcal{J}}^2}\sqrt{4\tilde{\mathcal{J}}^2 - E^2}, \quad
+        \tilde{\mathcal{J}} = \mathcal{J}\sqrt{\binom{N}{q/2}}\,2^{-N/2}
+        ```
+
+        Level spacing statistics in the chaotic phase obey the Gaussian Unitary Ensemble (GUE) Wigner-Dyson distribution:
+
+        ```math
+        P(s) = \frac{32}{\pi^2}\,s^2\,\exp\!\left(-\frac{4s^2}{\pi}\right), \quad \langle s\rangle = 1
+        ```
+
+        <hr style="border: 1px solid rgba(128,96,255,0.12); margin: 1rem 0;">
+        <b style="color:var(--blue); font-size:0.72rem;">G. HOLOGRAPHIC ENTANGLEMENT ENTROPY & ER=EPR</b><br><br>
+
+        The Ryu-Takayanagi (RT) formula computes the entanglement entropy of a boundary region $A$ in a holographic CFT via the area of the minimal bulk surface $\gamma_A$ homologous to $A$:
+
+        ```math
+        S_{\rm EE}(A) = \frac{{\rm Area}(\gamma_A)}{4G_N}, \quad \delta S_{\rm EE} = \frac{\delta{\rm Area}(\gamma_A)}{4G_N} \quad (\text{Faulkner-Lewkowycz-Maldacena})
+        ```
+
+        For a 2D CFT in vacuum with central charge $c$, a single interval of length $\ell$ with UV cutoff $\varepsilon$, and at finite inverse temperature $\beta$:
+
+        ```math
+        S(A)\big|_{T=0} = \frac{c}{3}\ln\!\frac{\ell}{\varepsilon}, \qquad
+        S(A)\big|_{T>0} = \frac{c}{3}\ln\!\left[\frac{\beta}{\pi\varepsilon}\sinh\!\frac{\pi\ell}{\beta}\right]
+        ```
+
+        Holographic mutual information $I(A:B) = S_A + S_B - S_{A\cup B}$ undergoes a first-order phase transition (connected $\to$ disconnected RT surface) at a critical separation $d_c$:
+
+        ```math
+        I(A:B) = \begin{cases} \dfrac{c}{3}\ln\dfrac{\ell_A\ell_B}{(\ell_A+d+\ell_B)\,d\,\varepsilon^2} & d < d_c \\ 0 & d \geq d_c \end{cases}
+        ```
+
+        The Maldacena-Susskind ER=EPR conjecture identifies the maximally entangled Einstein-Rosen bridge between two black holes with the thermofield double state of two CFTs:
+
+        ```math
+        |\text{TFD}\rangle = \frac{1}{\sqrt{Z(\beta)}}\sum_n e^{-\beta E_n/2}\,|n\rangle_L\otimes|n\rangle_R, \quad
+        Z(\beta) = \text{Tr}\!\left[e^{-\beta H}\right]
+        ```
+
+        Holographic complexity (CV conjecture) equates the complexity of the boundary state to the volume of the maximal Cauchy slice anchored to the boundary time slice, growing linearly at late times:
+
+        ```math
+        \mathcal{C} = \frac{{\rm Vol}(\Sigma_{\rm max})}{G_N\,\ell_{\rm AdS}}, \quad
+        \frac{d\mathcal{C}}{dt} \xrightarrow{t\to\infty} \frac{2M}{\pi} = \frac{2E}{\pi}
+        ```
+
+        <hr style="border: 1px solid rgba(128,96,255,0.12); margin: 1rem 0;">
+        <b style="color:var(--blue); font-size:0.72rem;">H. COOPER'S SINGULARITY CROSSING (KERR INTERIOR & BEKENSTEIN BOUND)</b><br><br>
+
+        Inside the Kerr black hole, Cooper's geodesic from just inside the event horizon to the ring singularity follows the cycloid proper-time parameterisation (radial equatorial infall, $L=0$, $E=mc^2$):
+
+        ```math
+        r(\eta) = \frac{r_s}{2}(1 + \cos\eta), \quad
+        \tau(\eta) = \frac{r_s}{2c}(\eta + \sin\eta), \quad \eta \in [0,\pi]
+        ```
+
+        The maximum proper time available from crossing at $r \approx r_s$ to encountering the singularity at $r=0$ provides the absolute upper bound on information processing and communication time inside the black hole:
+
+        ```math
+        \tau_{\rm max} = \frac{\pi r_s}{2c} = \frac{\pi G M}{c^3} \approx 1.55\,\text{hr} \left(\frac{M}{10^8 M_\odot}\right)
+        ```
+
+        Cauchy horizon mass-inflation instability at the inner horizon $r_-$ causes the Weyl curvature tensor component to diverge exponentially with advanced time $v$:
+
+        ```math
+        C_{\mu\nu\rho\sigma}C^{\mu\nu\rho\sigma} \sim e^{2\kappa_- v} \to \infty, \quad
+        \kappa_- = \frac{c^2(r_+ - r_-)}{2(r_+^2 + a^2)}
+        ```
+
+        The Bekenstein information bound on the maximum entropy (number of bits $I_{\rm max}$) storable in the TARS quantum data crystal of radius $R$ and total energy $E$:
+
+        ```math
+        I_{\rm max} = \frac{S_{\rm max}}{k_B\ln 2} \leq \frac{2\pi R E}{\hbar c \ln 2} \quad (\text{Bekenstein 1981})
+        ```
+
+        The Randall-Sundrum bulk transmission amplitude for a graviton signal propagating a bulk transverse distance $y$ through the $AdS_5$ background with curvature scale $k = 1/\ell_{\rm AdS}$ determines the signal fidelity from Cooper's position to the brane:
+
+        ```math
+        |\mathcal{T}(y)|^2 = e^{-2ky}, \quad
+        \mathcal{F}_{\rm signal}(y) = \exp\!\left(-\frac{2y}{\ell_{\rm AdS}}\right)
+        ```
+
+        The quantum decoherence timescale for Cooper's state inside the Gargantua interior (at local Hawking temperature $T_H$) sets the maximum coherence window for information encoding onto the singularity worldsheet:
+
+        ```math
+        \tau_{\rm dec} = \frac{\hbar}{k_B T_H} = \frac{8\pi G M}{c^3}, \quad
+        \tau_{\rm dec}\big|_{\rm Gargantua} \approx 9.84 \times 10^{11}\,\text{yr} \quad (M = 10^8 M_\odot, a^* \approx 1)
+        ```
+
+        The Shannon capacity of the gravity wave channel through which Murphy decodes Cooper's message from the tesseract, modelled as an additive Gaussian noise channel with signal power $P_s$ and noise spectral density $N_0$, is bounded by:
+
+        ```math
+        C_{\rm Murphy} = \Delta f \log_2\!\left(1 + \frac{P_s}{N_0\,\Delta f}\right) \leq \frac{P_s}{N_0 \ln 2} \quad (\text{bits/s})
         ```
 
         </div>
