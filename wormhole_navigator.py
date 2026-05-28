@@ -1804,7 +1804,7 @@ def wormhole_navigator_page():
         "⬡ EXOTIC MATTER",
         "⇌ TRAVERSAL PHYSICS",
         "∿ SHAPE FAMILIES",
-        "🛸 ORBITAL MECHANICS",
+        "⟳ ORBITAL MECHANICS",
         "↻ GRAVITY ASSIST",
         "▲ MISSION Δv BUDGET",
     ])

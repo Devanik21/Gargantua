@@ -1595,13 +1595,13 @@ def mission_reporter_page():
     (tab_lazarus, tab_plan_ab, tab_blight,
      tab_achieve, tab_drives,
      tab_nasa, tab_timeline) = st.tabs([
-        "🛸 LAZARUS ARCHIVE",
+        "◈ LAZARUS ARCHIVE",
         "◎ PLAN A / PLAN B",
-        "🌾 BLIGHT MODEL",
+        "☙ BLIGHT MODEL",
         "★ ACHIEVEMENTS",
         "⧇ DATA DRIVES",
-        "📋 NASA REPORT",
-        "📅 MISSION TIMELINE",
+        "▤ NASA REPORT",
+        "⧗ MISSION TIMELINE",
     ])
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1759,7 +1759,7 @@ def mission_reporter_page():
     # TAB 6 — NASA REPORT
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     with tab_nasa:
-        if st.button("📋 GENERATE NASA FINAL REPORT",
+        if st.button("▤ GENERATE NASA FINAL REPORT",
                      width='stretch', type="primary"):
             S["nasa_report"] = R.generate_nasa_report()
         if S.get("nasa_report"):

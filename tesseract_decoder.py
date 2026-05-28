@@ -1881,7 +1881,7 @@ def tesseract_decoder_page():
         "⇣ DECODE SIGNAL",
         "Ψ MURPHY'S EQUATION",
         "◈ TARS DATA CRYSTAL",
-        "📍 COORDINATE DECODER",
+        "⌖ COORDINATE DECODER",
         "∿ BULK CHANNEL",
     ])
 

@@ -900,7 +900,7 @@ class CryosleepManager:
         return msg
 
     def revive(self, crew: CrewID, emergency: bool = False) -> List[str]:
-        pod = next((p for p in self.pods if p.assigned_crew == crew), None)
+        pod = next((p for p in self.pods if p.assigned_crew and p.assigned_crew.name == crew.name), None)
         if pod is None:
             return [f"ERROR: {crew.value} not in cryosleep"]
         steps = pod.revival_protocol(emergency)
@@ -1382,10 +1382,10 @@ MPL_STYLE = {
 def _mpl(): plt.rcParams.update(MPL_STYLE)
 
 CREW_COLORS = {
-    CrewID.COOPER:  "#E8C46A",
-    CrewID.BRAND:   "#81C784",
-    CrewID.ROMILLY: "#4FC3F7",
-    CrewID.DOYLE:   "#CE93D8",
+    "COOPER":  "#E8C46A",
+    "BRAND":   "#81C784",
+    "ROMILLY": "#4FC3F7",
+    "DOYLE":   "#CE93D8",
 }
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1404,7 +1404,7 @@ def _plot_crew_vitals(crew_dict: Dict[CrewID, CrewMember]) -> plt.Figure:
     # Top row: ECG waveforms
     for ax, crew in zip(axes[0], members):
         t, ecg = physio.ecg_waveform(crew.hr_bpm, duration_s=5.0)
-        clr = CREW_COLORS.get(crew.crew_id, "#E8C46A")
+        clr = CREW_COLORS.get(crew.crew_id.name, "#E8C46A")
         ax.plot(t, ecg, color=clr, lw=0.9)
         ax.set_title(f"{crew.crew_id.value.split()[0]}\n"
                      f"HR={crew.hr_bpm:.0f}bpm  SpO₂={crew.spo2_pct:.1f}%", fontsize=7)
@@ -1426,7 +1426,7 @@ def _plot_crew_vitals(crew_dict: Dict[CrewID, CrewMember]) -> plt.Figure:
     }
     for ax, (metric, vals) in zip(axes[1], metric_vals.items()):
         names = [c.crew_id.value.split()[0] for c in members]
-        colors= [CREW_COLORS.get(c.crew_id,"#E8C46A") for c in members]
+        colors= [CREW_COLORS.get(c.crew_id.name,"#E8C46A") for c in members]
         bars  = ax.bar(names, vals, color=colors, alpha=0.82, width=0.5)
         ax.bar_label(bars, fmt="%.0f", padding=2, fontsize=7, color="#fff")
         ax.set_ylim(0, 110)
@@ -1834,9 +1834,9 @@ def crew_telemetry_page():
         "⚇ CREW VITALS",
         "⚕ PHYSIOLOGY",
         "⚙ TARS/CASE AI",
-        "🛸 SHIP SYSTEMS",
-        "❄️ CRYOSLEEP",
-        "📡 COMMUNICATIONS",
+        "⌬ SHIP SYSTEMS",
+        "❅ CRYOSLEEP",
+        "∿ COMMUNICATIONS",
         "⧖ MISSION CONTROL",
     ])
 
@@ -1858,7 +1858,7 @@ def crew_telemetry_page():
             v   = crew.vital_signs_noisy()
             hs  = crew.health_score()
             al  = crew.alert_level()
-            clr = CREW_COLORS.get(crew.crew_id, "#E8C46A")
+            clr = CREW_COLORS.get(crew.crew_id.name, "#E8C46A")
             al_c= {"GREEN":"#81C784","YELLOW":"#FFD700","ORANGE":"#FF8800",
                    "RED":"#D154FF","CRITICAL":"#CE93D8"}.get(al.name,"#888")
             col.markdown(
@@ -1894,7 +1894,7 @@ def crew_telemetry_page():
                                      [c.crew_id.name for c in crew_reg.values()])
             sel_days = st.slider("Mission duration (days)", 30, 1000, 700, 10)
             ex_hrs   = st.slider("Exercise hours/day", 0.0, 4.0, 1.0, 0.25)
-            sel_crew = crew_reg[CrewID[sel_name]]
+            sel_crew = next((c for c in crew_reg.values() if c.crew_id.name == sel_name), None)
             if st.button("🩺 COMPUTE PHYSIOLOGY PROFILE",
                          width='stretch', type="primary"):
                 physio = PhysiologySimulator(fs=1.0)

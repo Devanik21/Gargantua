@@ -2276,7 +2276,7 @@ def relativity_calculator_page():
                 margin-bottom:1.2rem;background:rgba(79,195,247,0.03);
                 font-family:monospace;">
     <div style="color:#4FC3F7;font-size:.95rem;letter-spacing:.12em;
-                font-weight:600;">⏱ RELATIVITY CALCULATOR &amp; MISSION TIME ENGINE</div>
+                font-weight:600;">◷ RELATIVITY CALCULATOR &amp; MISSION TIME ENGINE</div>
     <div style="color:#5a6a90;font-size:.62rem;margin-top:.2rem;">
     SR: Lorentz, dilation, aberration, Doppler, twin paradox, rocket equation  ·
     GR: Schwarzschild, Kerr, geodesics, light bending, Shapiro delay  ·
@@ -2290,7 +2290,7 @@ def relativity_calculator_page():
         "⚇ TWIN PARADOX",
         "⌬ GENERAL RELATIVITY",
         "⧗ MISSION TIMELINE",
-        "🌊 MILLER'S WORLD",
+        "≋ MILLER'S WORLD",
         "⬡ GEODESICS",
         "▲ ROCKET EQUATION",
     ])

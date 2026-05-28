@@ -2316,7 +2316,7 @@ def planet_analyzer_page():
                 margin-bottom:1.2rem;background:rgba(129,199,132,0.03);
                 font-family:monospace;">
     <div style="color:#81C784;font-size:.95rem;letter-spacing:.12em;
-                font-weight:600;">🪐 PLANETARY SCIENCE &amp; HABITABILITY LABORATORY</div>
+                font-weight:600;">◓ PLANETARY SCIENCE &amp; HABITABILITY LABORATORY</div>
     <div style="color:#5a6a90;font-size:.62rem;margin-top:.2rem;">
     Miller's World · Mann's Planet · Edmunds' Planet · Custom Planet Builder  ·
     ESI · SHI · BCI · HZ Analysis · Spectroscopy · Biosignatures · Mission Risk
@@ -2328,13 +2328,13 @@ def planet_analyzer_page():
     (tab_overview, tab_single, tab_atm,
      tab_spectrum, tab_miller,
      tab_hz, tab_risk, tab_custom) = st.tabs([
-        "🌍 COMPARATIVE OVERVIEW",
-        "🔭 SINGLE PLANET DETAIL",
-        "🌬 ATMOSPHERE",
-        "🌈 SPECTRUM & BIOSIG",
-        "🌊 MILLER'S WORLD",
+        "▤ COMPARATIVE OVERVIEW",
+        "✦ SINGLE PLANET DETAIL",
+        "∿ ATMOSPHERE",
+        "⌬ SPECTRUM & BIOSIG",
+        "≋ MILLER'S WORLD",
         "◎ HABITABLE ZONE",
-        "⚠ MISSION RISK",
+        "◬ MISSION RISK",
         "⚙ CUSTOM PLANET",
     ])
 
@@ -2342,7 +2342,7 @@ def planet_analyzer_page():
     # TAB 1 — COMPARATIVE OVERVIEW
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     with tab_overview:
-        if st.button("🌍 COMPUTE FULL COMPARATIVE ANALYSIS",
+        if st.button("▤ COMPUTE FULL COMPARATIVE ANALYSIS",
                      width='stretch', type="primary"):
             with st.spinner("Scoring all planets..."):
                 S["plan_compare_df"] = scorer.comparative_table(planets)

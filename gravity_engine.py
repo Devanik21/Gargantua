@@ -2605,7 +2605,7 @@ def gravity_engine_page():
         "◎ ACCRETION DISK",
         "〜 GRAVITATIONAL WAVES",
         "⊛ TIDAL FORCES",
-        "⏱ MILLER'S WORLD",
+        "◷ MILLER'S WORLD",
         "◈ RADIAL PROFILES",
         "◇ PENROSE DIAGRAM",
     ])
