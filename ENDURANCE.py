@@ -876,20 +876,32 @@ def inject_background(b64_str: Optional[str]):
         return
     st.markdown(f"""
     <style>
+    /* 1. Bind the background directly to Streamlit's native root containers */
+    /* We apply a dark gradient overlay so your UI text remains perfectly readable */
+    [data-testid="stAppViewContainer"], .stApp {{
+        background: 
+            linear-gradient(
+                rgba(2, 4, 8, 0.75), 
+                rgba(4, 6, 12, 0.90)
+            ),
+            url('{b64_str}') !important;
+        background-size: cover !important;
+        background-position: center 30% !important;
+        background-repeat: no-repeat !important;
+        background-attachment: fixed !important;
+    }}
+    
+    /* 2. Ensure the main block remains transparent to reveal the root background */
+    [data-testid="stAppViewContainer"] > .main {{
+        background: transparent !important;
+    }}
+    
+    /* 3. Neutralise the previous pseudo-element to keep the DOM clean */
     .star-field::before {{
-      content: '';
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background-image: url('{b64_str}');
-      background-size: cover;
-      background-position: center 30%;
-      background-repeat: no-repeat;
-      opacity: 0.90;
-      pointer-events: none;
+        display: none !important;
     }}
     </style>""", unsafe_allow_html=True)
-
+  
 # ══════════════════════════════════════════════════════════════════════════════
 # §6  UTILITY COMPONENTS
 # ══════════════════════════════════════════════════════════════════════════════
