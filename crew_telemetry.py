@@ -2026,12 +2026,12 @@ def crew_telemetry_page():
             st.markdown('<div style="font-family:monospace;font-size:.60rem;color:#81C784;">PROPULSION</div>',
                         unsafe_allow_html=True)
             st.dataframe(pd.DataFrame([ship.propulsion.status_dict()]).T.rename(
-                columns={0:"Value"}), width='stretch')
+                columns={0:"Value"}).astype(str), width='stretch')
         with c4:
             st.markdown('<div style="font-family:monospace;font-size:.60rem;color:#81C784;">LIFE SUPPORT</div>',
                         unsafe_allow_html=True)
             st.dataframe(pd.DataFrame([ship.life_support.status_dict()]).T.rename(
-                columns={0:"Value"}), width='stretch')
+                columns={0:"Value"}).astype(str), width='stretch')
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # TAB 5 — CRYOSLEEP
