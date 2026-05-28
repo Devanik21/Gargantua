@@ -12,8 +12,8 @@ Seven scientific backends, one unified command centre.
 """
 import streamlit as st
 st.set_page_config(
-    page_title="ENDURANCE — Mission Control",
-    page_icon="✦",
+    page_title="Interstellar",
+    page_icon="♾️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
