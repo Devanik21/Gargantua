@@ -2028,28 +2028,6 @@ def main():
         S["page"] = "overview"
         st.rerun()
 
-    # ── Footer ─────────────────────────────────────────────────────────────
-    st.markdown("""
-    <div style="position:fixed;bottom:0;left:0;right:0;
-                background:linear-gradient(90deg,
-                  rgba(2,4,8,0.98) 0%,
-                  rgba(4,6,12,0.98) 50%,
-                  rgba(2,4,8,0.98) 100%);
-                border-top:1px solid rgba(232,196,106,0.10);
-                padding:0.25rem 1.2rem;
-                display:flex;justify-content:space-between;
-                align-items:center;z-index:1000;">
-      <span style="font-family:monospace;font-size:0.50rem;color:#2a3a50;">
-        INTERSTELLAR  ·  Gargantua Science Platform v3.0.0
-      </span>
-      <span style="font-family:monospace;font-size:0.50rem;color:#2a3a50;">
-        "Do not go gentle into that good night." — Dylan Thomas
-      </span>
-      <span style="font-family:monospace;font-size:0.50rem;color:#2a3a50;">
-        A tribute to Christopher Nolan's Interstellar (2014)
-      </span>
-    </div>""", unsafe_allow_html=True)
-
 
 # ══════════════════════════════════════════════════════════════════════════════
 # §15  ENTRY POINT
