@@ -869,14 +869,9 @@ def inject_background(b64_str: Optional[str]):
         return
     st.markdown(f"""
     <style>
-    /* 1. Bind the background to the absolute root element and add a crisp dark gradient overlay */
+    /* 1. Bind the background to the absolute root element with NO opacity overlay (full brightness) */
     html, body, .stApp {{
-        background: 
-            linear-gradient(
-                rgba(2, 4, 8, 0.70), 
-                rgba(4, 6, 12, 0.85)
-            ),
-            url('{b64_str}') !important;
+        background: url('{b64_str}') !important;
         background-size: cover !important;
         background-position: center 30% !important;
         background-repeat: no-repeat !important;
