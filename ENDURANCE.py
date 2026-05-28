@@ -1487,6 +1487,7 @@ def render_overview():
     cols_m = st.columns(4)
     for i, (pg, icon, title, desc, clr, backend) in enumerate(modules_info):
         col = cols_m[i % 4]
+        loaded = BACKENDS_LOADED.get(backend, True)
         st_txt = ("" if loaded else "○ OFFLINE")
         st_clr = ("#81C784" if loaded else "#D154FF")
         with col:
