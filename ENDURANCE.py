@@ -4,7 +4,7 @@ ENDURANCE.py — Mission Control Frontend | Interstellar Science Platform v3.0.0
 The ENDURANCE Mission Control Interface — A complete science platform
 built as a serious tribute to Christopher Nolan's Interstellar (2014).
 
-Seven scientific backends, one unified command centre. 
+Seven scientific backends, one unified command centre.
 
 "Mankind was born on Earth. It was never meant to die here."
                                          — Cooper, 2067
@@ -13,7 +13,7 @@ Seven scientific backends, one unified command centre.
 import streamlit as st
 st.set_page_config(
     page_title="ENDURANCE — Mission Control",
-    page_icon="♾️",
+    page_icon="✦",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -1073,15 +1073,19 @@ def render_sidebar():
             clr        = page_colors.get(page_key, "#E8C46A")
             bmod       = backend_map.get(page_key)
             loaded_ok  = BACKENDS_LOADED.get(bmod, True)
-            status_dot = ("🟢" if loaded_ok else "🔴") if bmod else "🔵"
+            status_dot = ("●" if loaded_ok else "○") if bmod else ""
             btn_style = (
                 f"border-left:2px solid {clr};"
                 f"background:rgba({_hex_to_rgb(clr)},0.08);"
                 f"color:{clr};"
             ) if is_active else ""
 
+            lbl = f"{icon}  {label}"
+            if status_dot:
+                lbl += f"  {status_dot}"
+
             if st.button(
-                f"{icon}  {label}  {status_dot}",
+                lbl,
                 key=f"nav_{page_key}",
                 width='stretch',
             ):
@@ -1484,7 +1488,7 @@ def render_overview():
     for i, (pg, icon, title, desc, clr, backend) in enumerate(modules_info):
         col = cols_m[i % 4]
         loaded = BACKENDS_LOADED.get(backend, True)
-        st_txt = ("🟢 ONLINE" if loaded else "🔴 OFFLINE")
+        st_txt = ("● ONLINE" if loaded else "○ OFFLINE")
         st_clr = ("#81C784" if loaded else "#D154FF")
         with col:
             st.markdown(f"""
