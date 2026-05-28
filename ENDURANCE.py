@@ -82,7 +82,7 @@ TARS_HUMOUR          = 75
 NAV_PAGES = [
     ("✦",  "MISSION OVERVIEW",    "overview"),
     ("⬡",  "GRAVITY ENGINE",      "gravity"),
-    ("⧖",  "RELATIVITY CALC",     "relativity"),
+    ("⏱",  "RELATIVITY CALC",     "relativity"),
     ("🪐",  "PLANET SCANNER",      "planets"),
     ("⟳",  "WORMHOLE NAVIGATOR",  "wormhole"),
     ("◈",  "TESSERACT DECODER",   "tesseract"),
@@ -1464,7 +1464,7 @@ def render_overview():
         ("gravity",    "⬡", "GRAVITY ENGINE",
          "Kerr BH · Accretion disk · GW synthesis · Tidal forces · Hawking radiation",
          "#FF8800", "gravity_engine"),
-        ("relativity", "⧖", "RELATIVITY CALC",
+        ("relativity", "⏱", "RELATIVITY CALC",
          "SR/GR · Time dilation · Cooper-Murph divergence · Geodesics · Twin paradox",
          "#4FC3F7", "relativity_calculator"),
         ("planets",    "🪐", "PLANET SCANNER",
@@ -1657,7 +1657,7 @@ def render_system_status():
     backend_info = [
         ("gravity_engine",        "Gravity Engine",      "⬡", "#FF8800",
          "Kerr BH physics, GW synthesis, accretion disk, tidal forces"),
-        ("relativity_calculator", "Relativity Calc",     "⧖", "#4FC3F7",
+        ("relativity_calculator", "Relativity Calc",     "⏱", "#4FC3F7",
          "SR/GR time dilation, twin paradox, Cooper-Murph timeline"),
         ("planet_analyzer",       "Planet Scanner",      "🪐", "#81C784",
          "Habitability scoring, atmosphere, spectroscopy, biosignatures"),
@@ -1957,7 +1957,7 @@ def main():
             relativity_calculator_page,
             "relativity_calculator",
             "RELATIVITY CALCULATOR",
-            accent="#4FC3F7", icon="⧖"
+            accent="#4FC3F7", icon="⏱"
         )
 
     elif page == "planets":
