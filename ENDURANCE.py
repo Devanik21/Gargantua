@@ -1012,7 +1012,7 @@ def render_sidebar():
           <div style="font-family:monospace;font-size:0.52rem;
                       color:#4a5a7a;text-align:center;
                       letter-spacing:0.15em;margin-top:0.2rem;">
-            CONTROL CENTER  v3.0.0
+              v3.0.0
           </div>
           <div style="height:1px;background:linear-gradient(90deg,
               transparent,rgba(232,196,106,0.30),transparent);
@@ -1159,7 +1159,7 @@ def render_sidebar():
                     color:#2a3050;text-align:center;
                     margin-top:0.8rem;padding-top:0.4rem;
                     border-top:1px solid rgba(232,196,106,0.06);">
-          INTERSTELLAR CONTROL CENTER<br>
+          INTERSTELLAR <br>
           Gargantua Science Platform<br>
           Tribute to Christopher Nolan
         </div>""", unsafe_allow_html=True)
@@ -2021,7 +2021,7 @@ def main():
                 display:flex;justify-content:space-between;
                 align-items:center;z-index:1000;">
       <span style="font-family:monospace;font-size:0.50rem;color:#2a3a50;">
-        INTERSTELLAR Control Center  ·  Gargantua Science Platform v3.0.0
+        INTERSTELLAR   ·  Gargantua Science Platform v3.0.0
       </span>
       <span style="font-family:monospace;font-size:0.50rem;color:#2a3a50;">
         "Do not go gentle into that good night." — Dylan Thomas
