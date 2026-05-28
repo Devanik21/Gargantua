@@ -2333,7 +2333,7 @@ def planet_analyzer_page():
         "🌬 ATMOSPHERE",
         "🌈 SPECTRUM & BIOSIG",
         "🌊 MILLER'S WORLD",
-        "🟢 HABITABLE ZONE",
+        "◎ HABITABLE ZONE",
         "⚠ MISSION RISK",
         "⚙ CUSTOM PLANET",
     ])

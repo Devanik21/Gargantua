@@ -2096,11 +2096,11 @@ def crew_telemetry_page():
             fig_cm = _plot_comms(comms, dist_AU)
             st.pyplot(fig_cm, width='stretch'); plt.close(fig_cm)
             inbox_df, outbox_df = comms.message_queue_df()
-            st.markdown('<div style="font-family:monospace;font-size:.60rem;color:#CE93D8;">📥 INBOX</div>',
+            st.markdown('<div style="font-family:monospace;font-size:.60rem;color:#CE93D8;">⤓ INBOX</div>',
                         unsafe_allow_html=True)
             if not inbox_df.empty:
                 st.dataframe(inbox_df, width='stretch', hide_index=True)
-            st.markdown('<div style="font-family:monospace;font-size:.60rem;color:#4FC3F7;">📤 OUTBOX</div>',
+            st.markdown('<div style="font-family:monospace;font-size:.60rem;color:#4FC3F7;">⤒ OUTBOX</div>',
                         unsafe_allow_html=True)
             if not outbox_df.empty:
                 st.dataframe(outbox_df, width='stretch', hide_index=True)

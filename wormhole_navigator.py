@@ -1806,7 +1806,7 @@ def wormhole_navigator_page():
         "∿ SHAPE FAMILIES",
         "🛸 ORBITAL MECHANICS",
         "↻ GRAVITY ASSIST",
-        "🚀 MISSION Δv BUDGET",
+        "▲ MISSION Δv BUDGET",
     ])
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2061,7 +2061,7 @@ def wormhole_navigator_page():
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     with tab_mission:
         planner = S["orb_planner"]
-        if st.button("🚀 COMPUTE FULL Δv BUDGET",
+        if st.button("▲ COMPUTE FULL Δv BUDGET",
                      width='stretch', type="primary"):
             S["orb_dv_budget"] = planner.full_dv_budget()
 

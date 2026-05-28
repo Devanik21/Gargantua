@@ -1598,8 +1598,8 @@ def mission_reporter_page():
         "🛸 LAZARUS ARCHIVE",
         "◎ PLAN A / PLAN B",
         "🌾 BLIGHT MODEL",
-        "🏆 ACHIEVEMENTS",
-        "💾 DATA DRIVES",
+        "★ ACHIEVEMENTS",
+        "⧇ DATA DRIVES",
         "📋 NASA REPORT",
         "📅 MISSION TIMELINE",
     ])
@@ -1694,10 +1694,10 @@ def mission_reporter_page():
         with c1:
             unlk = st.selectbox("Unlock achievement",
                                  [a["name"] for a in ACHIEVEMENT_CATALOGUE])
-            if st.button("🏆 UNLOCK", width='stretch', type="primary"):
+            if st.button("★ UNLOCK", width='stretch', type="primary"):
                 result = R.scorer.unlock(unlk)
                 if result:
-                    st.success(f"🏆 {result.name} — {result.points} pts!")
+                    st.success(f"★ {result.name} — {result.points} pts!")
                 else:
                     st.info("Already unlocked or not found.")
             pts   = R.scorer.total_points()
@@ -1733,7 +1733,7 @@ def mission_reporter_page():
             d_coeff = st.slider("Murphy coefficients", 0, 42, int(S["drive_coeffs"]), 1)
             S["drive_content"] = d_cont; S["drive_size_mb"] = d_size
             S["drive_is_crystal"] = d_xtal; S["drive_coeffs"] = d_coeff
-            if st.button("💾 SUBMIT DRIVE", width='stretch', type="primary"):
+            if st.button("⧇ SUBMIT DRIVE", width='stretch', type="primary"):
                 drive = R.drives.submit_drive(
                     d_cont, int(d_size*1e6), is_tars=d_xtal, coeffs=d_coeff)
                 st.success(f"Drive {drive.drive_id} submitted — SHA: {drive.sha256_hash[:12]}...")
