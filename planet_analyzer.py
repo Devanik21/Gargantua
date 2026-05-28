@@ -2131,12 +2131,19 @@ def _plot_comparison_overview(df: pd.DataFrame,
     _mpl()
     fig, axes = plt.subplots(2, 3, figsize=(16, 9))
     fig.patch.set_facecolor("#06090e")
-    clrs  = [PLANET_COLORS.get(p.planet_id.value, "#fff") for p in planets]
-    names = [p.name for p in planets]
+    
+    # Only include planets that are present in the comparative dataframe
+    df_names = df["name"].tolist() if "name" in df.columns else []
+    active_planets = [p for p in planets if p.name in df_names]
+    
+    clrs  = [PLANET_COLORS.get(p.planet_id.value, "#fff") for p in active_planets]
+    names = [p.name for p in active_planets]
 
     def _bar(ax, col, ylabel, title, log=False):
         vals = [float(df[df["name"]==p.name][col].values[0])
-                for p in planets if col in df.columns]
+                for p in active_planets if col in df.columns]
+        if not vals:
+            return
         if log:
             ax.bar(names, np.abs(vals)+1e-30, color=clrs, alpha=0.85)
             ax.set_yscale("log")
