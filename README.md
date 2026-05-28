@@ -16,15 +16,6 @@
 ---
 
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-4FC3F7?style=flat-square&logo=python&logoColor=white)
-![Streamlit](https://img.shields.io/badge/Streamlit-1.30%2B-E8C46A?style=flat-square&logo=streamlit&logoColor=white)
-![NumPy](https://img.shields.io/badge/NumPy-Scientific-8060ff?style=flat-square&logo=numpy&logoColor=white)
-![SciPy](https://img.shields.io/badge/SciPy-Physics-81C784?style=flat-square&logo=scipy&logoColor=white)
-![Lines](https://img.shields.io/badge/Lines%20of%20Code-21%2C573-E8C46A?style=flat-square)
-![Modules](https://img.shields.io/badge/Science%20Modules-8-FF8800?style=flat-square)
-![License](https://img.shields.io/badge/License-MIT-CE93D8?style=flat-square)
-
-<br>
 
 ## ◈ About This Repository
 
@@ -1143,3 +1134,13 @@ This project is released under the **MIT License**. You are welcome to use, modi
 
   **Author: Devanik**
   **May 2026**
+
+![Python](https://img.shields.io/badge/Python-3.10%2B-4FC3F7?style=flat-square&logo=python&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.30%2B-E8C46A?style=flat-square&logo=streamlit&logoColor=white)
+![NumPy](https://img.shields.io/badge/NumPy-Scientific-8060ff?style=flat-square&logo=numpy&logoColor=white)
+![SciPy](https://img.shields.io/badge/SciPy-Physics-81C784?style=flat-square&logo=scipy&logoColor=white)
+![Lines](https://img.shields.io/badge/Lines%20of%20Code-21%2C573-E8C46A?style=flat-square)
+![Modules](https://img.shields.io/badge/Science%20Modules-8-FF8800?style=flat-square)
+![License](https://img.shields.io/badge/License-MIT-CE93D8?style=flat-square)
+
+<br>
