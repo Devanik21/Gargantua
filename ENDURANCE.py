@@ -1393,7 +1393,7 @@ def render_overview():
         ]
         for name, emoji, esi, clr, status in planets_data:
             st.markdown(f"""
-            <div style="background:rgba(6,10,20,0.80);
+            <div style="background:transparent;
                         border:1px solid rgba(232,196,106,0.08);
                         border-left:2px solid {clr};
                         border-radius:3px;padding:0.4rem 0.6rem;
