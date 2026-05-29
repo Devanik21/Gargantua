@@ -1389,7 +1389,7 @@ def render_overview():
         planets_data = [
             ("Miller's World", "🌊", 0.68, "#4FC3F7",  "SURVEYED"),
             ("Mann's Planet",  "🧊", 0.12, "#CE93D8",  "FALSIFIED"),
-            ("Edmunds' World", "🌿", 0.85, "#81C784",  "CONFIRMED ✓"),
+            ("Edmunds' World", "🌿", 0.85, "#81C784",  "CONFIRMED"),
             ("Halsey's World", "🌋", 0.04, "#d1a019",  "SIGNAL LOST ⚠"),
         ]
         for name, emoji, esi, clr, status in planets_data:
