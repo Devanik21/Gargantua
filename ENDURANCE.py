@@ -2199,7 +2199,7 @@ def _render_plan_progress():
                   padding-bottom:0.4rem;margin-bottom:0.5rem;">
         <span style="color:#c040ff;font-family:'Rajdhani',sans-serif;
                      font-size:0.75rem;font-weight:700;letter-spacing:0.15em;">
-          ◈ BULK-FIELD GRAVITY STRAIN
+           BULK-FIELD GRAVITY STRAIN
         </span>
         <span style="color:#81C784;font-size:0.50rem;font-weight:600;
                      letter-spacing:0.1em;border:1px solid rgba(129,199,132,0.3);
