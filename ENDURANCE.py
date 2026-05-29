@@ -1074,7 +1074,7 @@ def render_sidebar():
         # ── Mission status strip ──────────────────────────────────────────
         st.markdown(f"""
         <div style="font-family:monospace;font-size:0.55rem;
-                    background:rgba(4,6,12,0.90);
+                    background:transparent;
                     border:1px solid rgba(232,196,106,0.10);
                     border-radius:3px;padding:0.5rem 0.6rem;
                     margin-bottom:0.8rem;line-height:2.0;">
