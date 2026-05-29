@@ -2173,7 +2173,7 @@ def _render_plan_progress():
 
     st.markdown("""
     <div style="font-family:monospace;font-size:0.54rem;
-                background:rgba(4,6,12,0.80);
+                background:transparent;
                 border:1px solid rgba(232,196,106,0.08);
                 border-radius:3px;padding:0.5rem 0.6rem;
                 margin-top:0.4rem;line-height:1.8;color:#5a6a80;">
