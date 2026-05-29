@@ -2062,7 +2062,7 @@ def render_overview():
 
 def _render_gargantua_overview():
     """Render Gargantua schematic as matplotlib figure."""
-    MPL_STYLE = {"figure.facecolor":"#04060c","axes.facecolor":"#04060c",
+    MPL_STYLE = {"figure.facecolor":"none","axes.facecolor":"#04060c",
                  "text.color":"#E8C46A","font.family":"monospace"}
     plt.rcParams.update(MPL_STYLE)
     fig, ax = plt.subplots(figsize=(8, 5))
