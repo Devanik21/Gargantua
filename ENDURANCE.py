@@ -2194,10 +2194,11 @@ def _render_plan_progress():
                 margin-top:0.4rem;line-height:1.8;color:#5a6a80;">
       <div style="display:flex;justify-content:space-between;margin-bottom:0.2rem;">
         <span style="color:#c040ff;letter-spacing:0.1em;font-weight:600;">BULK-FIELD GRAVITY STRAIN</span>
-        <span style="color:#81C784;">ANOMALY DETECTED ◈</span>
+        <span style="color:#81C784;">ANOMALY DETECTED </span>
       </div>
       Location: <span style="color:#E8C46A;">Earth Coordinates [N 40°, W 104°]</span>  ·  Source: <span style="color:#c040ff;">5D Bulk Tesseract</span><br>
-      Strain amplitude: <span style="color:#4FC3F7;">h ~ 10⁻¹²</span>  ·  Pattern: <span style="color:#FF8800;">Non-random (Binary/Morse)</span><br>
+      Strain amplitude: <span style="color:#4FC3F7;">h ~ 10⁻¹²</span><br>
+      Pattern: <span style="color:#FF8800;">Non-random (Binary/Morse)</span><br>
       Status: <span style="color:#E8C46A;">Translating quantum data crystal...</span>
     </div>""", unsafe_allow_html=True)
 
