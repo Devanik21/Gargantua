@@ -379,7 +379,7 @@ html, body {
 .stDataFrame, [data-testid="stDataFrame"] {
   border: 1px solid rgba(232,196,106,0.12) !important;
   border-radius: 3px !important;
-  background: var(--glass2) !important;
+  background: transparent !important;
   font-family: var(--font-mono) !important;
   font-size: 0.60rem !important;
 }
@@ -411,14 +411,14 @@ html, body {
   letter-spacing: 0.06em !important;
 }
 .streamlit-expanderContent {
-  background: var(--glass2) !important;
+  background: transparent !important;
   border: 1px solid var(--border2) !important;
   border-top: none !important;
 }
 
 /* ── Metric widget ── */
 [data-testid="stMetric"] {
-  background: var(--glass2) !important;
+  background: transparent !important;
   border: 1px solid var(--border) !important;
   border-radius: 3px !important;
   padding: 0.6rem !important;
@@ -461,7 +461,7 @@ div[data-baseweb="notification"] {
 
 /* ── Charts ── */
 .js-plotly-plot {
-  background: var(--bg2) !important;
+  background: transparent !important;
 }
 
 /* ── Custom component classes ── */
@@ -827,22 +827,23 @@ div[data-baseweb="notification"] {
 /* ── Make matplotlib figures seamless ── */
 .stImage img { max-width: 100%; border-radius: 3px; }
 [data-testid="stImage"] { border-radius: 3px; }
-/* ── GLOBAL 15% TRANSPARENCY OVERRIDE ── */
+/* ── GLOBAL TRANSPARENCY OVERRIDE ── */
     :root {
-      --glass: rgba(6, 10, 20, 0.15) !important;
-      --glass2: rgba(6, 10, 20, 0.15) !important;
-      --bg2: rgba(6, 10, 20, 0.15) !important;
+      --glass: transparent !important;
+      --glass2: transparent !important;
+      --bg2: transparent !important;
     }
     .terminal-block, .tars-box, .js-plotly-plot {
-      background: rgba(6, 10, 20, 0.15) !important;
+      background: transparent !important;
     }
     div[style*="background:rgba(4,6,12,0.90)"],
     div[style*="background:rgba(6,10,20,0.80)"],
     div[style*="background:rgba(4,6,12,0.80)"],
     div[style*="background:rgba(6,10,20,0.90)"],
     div[style*="background:rgba(6,10,20,.85)"],
-    div[style*="background:rgba(2,4,8,0.96)"] {
-      background: rgba(6, 10, 20, 0.15) !important;
+    div[style*="background:rgba(2,4,8,0.96)"],
+    div[style*="background:rgba(2,4,8,0.95)"] {
+      background: transparent !important;
     }
 
     /* ── STRIP NATIVE STREAMLIT WRAPPER BACKGROUNDS ── */
