@@ -461,7 +461,7 @@ div[data-baseweb="notification"] {
 
 /* ── Charts ── */
 .js-plotly-plot {
-  background: transparent !important;
+  background: var(--bg2) !important;
 }
 
 /* ── Custom component classes ── */
@@ -546,7 +546,7 @@ div[data-baseweb="notification"] {
 }
 
 .terminal-block {
-  background: transparent;
+  background: rgba(2,4,8,0.95);
   border: 1px solid rgba(232,196,106,0.18);
   border-radius: 3px;
   padding: 0.8rem 1rem;
@@ -833,27 +833,16 @@ div[data-baseweb="notification"] {
       --glass2: rgba(6, 10, 20, 0.15) !important;
       --bg2: rgba(6, 10, 20, 0.15) !important;
     }
-    .terminal-block, .tars-box, .js-plotly-plot,
-    .data-panel, .kpi-card, .module-card, .planet-card {
-      background: transparent !important;
-    }
-    /* Plotly chart backgrounds */
-    .js-plotly-plot .plotly, .js-plotly-plot .plotly .main-svg,
-    .js-plotly-plot .plotly .svg-container {
-      background: transparent !important;
+    .terminal-block, .tars-box, .js-plotly-plot {
+      background: rgba(6, 10, 20, 0.15) !important;
     }
     div[style*="background:rgba(4,6,12,0.90)"],
     div[style*="background:rgba(6,10,20,0.80)"],
     div[style*="background:rgba(4,6,12,0.80)"],
     div[style*="background:rgba(6,10,20,0.90)"],
     div[style*="background:rgba(6,10,20,.85)"],
-    div[style*="background:rgba(2,4,8,0.96)"],
-    div[style*="background:rgba(6,10,20,0.92)"],
-    div[style*="background:rgba(4,6,12,0.88)"],
-    div[style*="background: rgba(6,10,20,0.90)"],
-    div[style*="background: rgba(6,10,20,0.92)"],
-    div[style*="background: rgba(4,6,12,0.88)"] {
-      background: transparent !important;
+    div[style*="background:rgba(2,4,8,0.96)"] {
+      background: rgba(6, 10, 20, 0.15) !important;
     }
 
     /* ── STRIP NATIVE STREAMLIT WRAPPER BACKGROUNDS ── */
@@ -1198,7 +1187,7 @@ def render_sidebar():
         if S.get("tars_dialogue"):
             st.markdown(f"""
             <div style="font-family:monospace;font-size:0.57rem;
-                        background:transparent;
+                        background:rgba(232,196,106,0.04);
                         border:1px solid rgba(232,196,106,0.12);
                         border-radius:3px;padding:0.5rem 0.6rem;
                         color:#c0c0a0;font-style:italic;
@@ -1311,7 +1300,7 @@ def render_boot_sequence():
                     f'style="{"display:inline" if j==len(display)-1 else "display:none"}">▌</span>'
                     f'</div>')
             boot_placeholder.markdown(
-                f'<div style="background:transparent;'
+                f'<div style="background:rgba(2,4,8,0.96);'
                 f'border:1px solid rgba(232,196,106,0.18);'
                 f'border-radius:4px;padding:1.2rem 1.4rem;'
                 f'min-height:14rem;">{html_lines}</div>',
@@ -2078,8 +2067,8 @@ def _render_gargantua_overview():
                  "text.color":"#E8C46A","font.family":"monospace"}
     plt.rcParams.update(MPL_STYLE)
     fig, ax = plt.subplots(figsize=(8, 5))
-    fig.patch.set_facecolor("none")
-    ax.set_facecolor("none")
+    fig.patch.set_facecolor("#04060c")
+    ax.set_facecolor("#020408")
 
     # Gargantua accretion disk (colour gradient)
     from matplotlib.colors import LinearSegmentedColormap
@@ -2142,7 +2131,7 @@ def _render_plan_progress():
     c1, c2 = st.columns(2)
     with c1:
         st.markdown(f"""
-        <div style="background:transparent;
+        <div style="background:rgba(255,136,0,0.06);
                     border:1px solid rgba(255,136,0,0.20);
                     border-radius:3px;padding:0.6rem;
                     font-family:monospace;text-align:center;">
@@ -2163,7 +2152,7 @@ def _render_plan_progress():
         </div>""", unsafe_allow_html=True)
     with c2:
         st.markdown(f"""
-        <div style="background:transparent;
+        <div style="background:rgba(79,195,247,0.06);
                     border:1px solid rgba(79,195,247,0.20);
                     border-radius:3px;padding:0.6rem;
                     font-family:monospace;text-align:center;">
@@ -2240,7 +2229,7 @@ def _render_plan_progress():
         </div>
       </div>
       
-      <div style="background:transparent;border:1px solid rgba(192,64,255,0.1);
+      <div style="background:rgba(4,6,12,0.3);border:1px solid rgba(192,64,255,0.1);
                   padding:0.4rem 0.5rem;border-radius:2px;">
         <div style="display:flex;justify-content:space-between;font-size:0.50rem;margin-bottom:0.25rem;">
           <span style="color:#E8C46A;">DECODING QUANTUM DATA CRYSTAL...</span>
@@ -2307,7 +2296,7 @@ def render_system_status():
             status_clr = "#81C784" if loaded else "#D154FF"
             status_txt = "ONLINE" if loaded else "OFFLINE"
             st.markdown(f"""
-            <div style="background:transparent;
+            <div style="background:rgba(6,10,20,0.90);
                         border:1px solid rgba(232,196,106,0.08);
                         border-left:2px solid {clr if loaded else '#D154FF'};
                         border-radius:3px;padding:0.6rem 0.8rem;
@@ -2352,7 +2341,7 @@ def render_system_status():
         except ImportError:
             ver = "MISSING"; status_c = "#D154FF"; status_t = "✗"
         col.markdown(
-            f'<div style="background:transparent;'
+            f'<div style="background:rgba(6,10,20,.85);'
             f'border:1px solid rgba(232,196,106,0.08);'
             f'border-radius:3px;padding:0.4rem;'
             f'font-family:monospace;text-align:center;">'
@@ -2459,8 +2448,8 @@ def safe_render(page_fn, backend_mod: str, title: str,
 # ══════════════════════════════════════════════════════════════════════════════
 def apply_global_mpl_style():
     plt.rcParams.update({
-        "figure.facecolor":  "none",
-        "axes.facecolor":    "none",
+        "figure.facecolor":  "#04060c",
+        "axes.facecolor":    "#060a14",
         "axes.edgecolor":    "#101830",
         "axes.labelcolor":   "#E8C46A",
         "axes.grid":         True,
@@ -2476,11 +2465,11 @@ def apply_global_mpl_style():
         "axes.titlecolor":   "#E8C46A",
         "text.color":        "#E8C46A",
         "font.family":       "monospace",
-        "legend.facecolor":  "none",
+        "legend.facecolor":  "#06090f",
         "legend.edgecolor":  "#101830",
         "legend.fontsize":   6,
         "figure.dpi":        110,
-        "savefig.facecolor": "none",
+        "savefig.facecolor": "#04060c",
         "axes.spines.top":   False,
         "axes.spines.right": False,
     })
