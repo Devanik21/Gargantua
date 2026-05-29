@@ -1160,7 +1160,10 @@ def render_sidebar():
             "Mission day", 0, 3000, int(S["mission_day"]), 1,
             help="Advance mission timeline")
 
-        S["show_bg"] = st.checkbox("Background image", value=bool(S["show_bg"]))
+        new_bg = st.checkbox("Background image", value=bool(S["show_bg"]))
+        if new_bg != S["show_bg"]:
+            S["show_bg"] = new_bg
+            st.rerun()
 
         # ── TARS quick dialogue ───────────────────────────────────────────
         section_rule()
