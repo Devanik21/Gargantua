@@ -2062,7 +2062,7 @@ def render_overview():
 
 def _render_gargantua_overview():
     """Render Gargantua schematic as matplotlib figure."""
-    MPL_STYLE = {"figure.facecolor":"none","axes.facecolor":"#04060c",
+    MPL_STYLE = {"figure.facecolor":"none","axes.facecolor":"none",
                  "text.color":"#E8C46A","font.family":"monospace"}
     plt.rcParams.update(MPL_STYLE)
     fig, ax = plt.subplots(figsize=(8, 5))
@@ -2114,7 +2114,7 @@ def _render_gargantua_overview():
     ax.set_title("GARGANTUA — Kerr BH  a*≈1−10⁻¹⁴  ·  Accretion Disk (NT Model)",
                  fontsize=7, color="#E8C46A", pad=8)
 
-    st.pyplot(fig, width='stretch')
+    st.pyplot(fig, transparent=True, use_container_width=True)
     plt.close(fig)
 
 
