@@ -2296,7 +2296,7 @@ def render_system_status():
             status_clr = "#81C784" if loaded else "#D154FF"
             status_txt = "ONLINE" if loaded else "OFFLINE"
             st.markdown(f"""
-            <div style="background:rgba(6,10,20,0.90);
+            <div style="background:transparent;
                         border:1px solid rgba(232,196,106,0.08);
                         border-left:2px solid {clr if loaded else '#D154FF'};
                         border-radius:3px;padding:0.6rem 0.8rem;
@@ -2341,7 +2341,7 @@ def render_system_status():
         except ImportError:
             ver = "MISSING"; status_c = "#D154FF"; status_t = "✗"
         col.markdown(
-            f'<div style="background:rgba(6,10,20,.85);'
+            f'<div style="background:transparent;'
             f'border:1px solid rgba(232,196,106,0.08);'
             f'border-radius:3px;padding:0.4rem;'
             f'font-family:monospace;text-align:center;">'
@@ -2448,8 +2448,8 @@ def safe_render(page_fn, backend_mod: str, title: str,
 # ══════════════════════════════════════════════════════════════════════════════
 def apply_global_mpl_style():
     plt.rcParams.update({
-        "figure.facecolor":  "#04060c",
-        "axes.facecolor":    "#060a14",
+        "figure.facecolor":  "none",
+        "axes.facecolor":    "none",
         "axes.edgecolor":    "#101830",
         "axes.labelcolor":   "#E8C46A",
         "axes.grid":         True,
@@ -2465,11 +2465,11 @@ def apply_global_mpl_style():
         "axes.titlecolor":   "#E8C46A",
         "text.color":        "#E8C46A",
         "font.family":       "monospace",
-        "legend.facecolor":  "#06090f",
+        "legend.facecolor":  "none",
         "legend.edgecolor":  "#101830",
         "legend.fontsize":   6,
         "figure.dpi":        110,
-        "savefig.facecolor": "#04060c",
+        "savefig.facecolor": "none",
         "axes.spines.top":   False,
         "axes.spines.right": False,
     })
@@ -2500,9 +2500,7 @@ def render_welcome_banner():
             break
 
     st.markdown(f"""
-    <div style="background:linear-gradient(135deg,
-                  rgba(232,196,106,0.06) 0%,
-                  rgba(4,6,12,0.90) 100%);
+    <div style="background:transparent;
                 border:1px solid rgba(232,196,106,0.12);
                 border-radius:4px;padding:0.5rem 1rem;
                 margin-bottom:0.8rem;
