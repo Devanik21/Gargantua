@@ -2186,20 +2186,61 @@ def _render_plan_progress():
     </div>""", unsafe_allow_html=True)
 
     st.markdown("""
-    <div style="font-family:monospace;font-size:0.54rem;
+    <div style="font-family:monospace;font-size:0.55rem;
                 background:transparent;
-                border:1px solid rgba(128,96,255,0.15);
-                border-left:2px solid #8060ff;
-                border-radius:3px;padding:0.5rem 0.6rem;
-                margin-top:0.4rem;line-height:1.8;color:#5a6a80;">
-      <div style="display:flex;justify-content:space-between;margin-bottom:0.2rem;">
-        <span style="color:#c040ff;letter-spacing:0.1em;font-weight:600;">BULK-FIELD GRAVITY STRAIN</span>
-        <span style="color:#81C784;">ANOMALY DETECTED </span>
+                border:1px solid rgba(192,64,255,0.25);
+                border-left:3px solid #c040ff;
+                border-radius:3px;padding:0.6rem 0.8rem;
+                margin-top:0.5rem;color:#5a6a80;
+                box-shadow: 0 0 15px rgba(128,96,255,0.08);">
+      
+      <div style="display:flex;justify-content:space-between;align-items:center;
+                  border-bottom:1px solid rgba(192,64,255,0.15);
+                  padding-bottom:0.4rem;margin-bottom:0.5rem;">
+        <span style="color:#c040ff;font-family:'Rajdhani',sans-serif;
+                     font-size:0.75rem;font-weight:700;letter-spacing:0.15em;">
+          ◈ BULK-FIELD GRAVITY STRAIN
+        </span>
+        <span style="color:#81C784;font-size:0.50rem;font-weight:600;
+                     letter-spacing:0.1em;border:1px solid rgba(129,199,132,0.3);
+                     background:rgba(129,199,132,0.08);padding:0.15rem 0.4rem;
+                     border-radius:2px;">
+          ANOMALY DETECTED
+        </span>
       </div>
-      Location: <span style="color:#E8C46A;">Earth Coordinates [N 40°, W 104°]</span>  ·  Source: <span style="color:#c040ff;">5D Bulk Tesseract</span><br>
-      Strain amplitude: <span style="color:#4FC3F7;">h ~ 10⁻¹²</span><br>
-      Pattern: <span style="color:#FF8800;">Non-random (Binary/Morse)</span><br>
-      Status: <span style="color:#E8C46A;">Translating quantum data crystal...</span>
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;
+                  line-height:1.5;margin-bottom:0.6rem;">
+        <div>
+          <span style="color:#5a6a80;font-size:0.48rem;text-transform:uppercase;letter-spacing:0.05em;">Location</span><br>
+          <span style="color:#E8C46A;">Earth [N 40°, W 104°]</span>
+        </div>
+        <div>
+          <span style="color:#5a6a80;font-size:0.48rem;text-transform:uppercase;letter-spacing:0.05em;">Source</span><br>
+          <span style="color:#c040ff;">5D Bulk Tesseract</span>
+        </div>
+        <div>
+          <span style="color:#5a6a80;font-size:0.48rem;text-transform:uppercase;letter-spacing:0.05em;">Strain Amp</span><br>
+          <span style="color:#4FC3F7;">h ~ 10⁻¹²</span>
+        </div>
+        <div>
+          <span style="color:#5a6a80;font-size:0.48rem;text-transform:uppercase;letter-spacing:0.05em;">Pattern</span><br>
+          <span style="color:#FF8800;">Binary/Morse (Non-random)</span>
+        </div>
+      </div>
+      
+      <div style="background:rgba(4,6,12,0.3);border:1px solid rgba(192,64,255,0.1);
+                  padding:0.4rem 0.5rem;border-radius:2px;">
+        <div style="display:flex;justify-content:space-between;font-size:0.50rem;margin-bottom:0.25rem;">
+          <span style="color:#E8C46A;">DECODING QUANTUM DATA CRYSTAL...</span>
+          <span style="color:#c040ff;font-weight:600;">71.4%</span>
+        </div>
+        <div style="height:3px;background:rgba(192,64,255,0.12);border-radius:2px;overflow:hidden;">
+          <div style="width:71.4%;height:100%;background:#c040ff;
+                      box-shadow:0 0 8px #c040ff;"></div>
+        </div>
+      </div>
+      
     </div>""", unsafe_allow_html=True)
 
 
