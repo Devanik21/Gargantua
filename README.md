@@ -68,6 +68,9 @@ INTERSTELLAR/
 
 ---
 
+<img width="1339" height="591" alt="image" src="https://github.com/user-attachments/assets/b66987dc-5ada-4562-9ffc-2b50cc916d6e" />
+
+
 ## ◈ Navigation Map
 
 ```
@@ -86,6 +89,9 @@ SIDEBAR MODULES
 ```
 
 ---
+
+<img width="1340" height="582" alt="image" src="https://github.com/user-attachments/assets/e85c66e1-886a-49ce-a7b5-d66f771308db" />
+
 
 ## ◈ Module I — Gravity Engine
 
