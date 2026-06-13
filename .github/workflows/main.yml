@@ -2,9 +2,6 @@ name: Docs Steward
 
 on:
   schedule:
-    # Vary the possible execution window across the day.
-    # GitHub cron is fixed, so this uses 8 windows and a date-based gate
-    # to choose one daily run honestly.
     - cron: "17 0 * * *"
     - cron: "17 3 * * *"
     - cron: "17 6 * * *"
@@ -40,17 +37,15 @@ jobs:
 
           if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "today=$(date +%F)" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-
-
 
           export TZ="Asia/Kolkata"
           TODAY="$(date +%F)"
           HOUR_UTC="$(date -u +%H)"
           SLOT=$((10#$HOUR_UTC / 3))
 
-          # Deterministic daily slot selection: one slot per day.
           DIGEST="$(printf '%s' "$TODAY" | sha256sum | cut -c1-2)"
           TARGET=$((16#$DIGEST % 8))
 
@@ -72,20 +67,18 @@ jobs:
         run: |
           set -euo pipefail
 
-          mkdir -p docs
           mkdir -p docs/generated/history
           mkdir -p docs/.bot
 
           python3 <<'PY'
           from __future__ import annotations
 
-          import ast
           import hashlib
           import json
           import os
           import re
           import subprocess
-          from datetime import datetime, timedelta
+          from datetime import datetime
           from pathlib import Path
 
           repo = Path(".").resolve()
@@ -101,7 +94,7 @@ jobs:
               return path.read_text(encoding="utf-8", errors="ignore")
 
           def write_if_changed(path: Path, content: str) -> bool:
-              if path.exists() and path.read_text(encoding="utf-8", errors="ignore") == content:
+              if path.exists() and read_text(path) == content:
                   return False
               path.parent.mkdir(parents=True, exist_ok=True)
               path.write_text(content, encoding="utf-8")
@@ -116,6 +109,10 @@ jobs:
               h.update(b"\0")
               h.update(path.read_bytes())
               return h.hexdigest()
+
+          def lines_or_default(items, default):
+              items = list(items)
+              return items if items else [default]
 
           def find_main_file() -> Path | None:
               candidates = sorted(repo.glob("*.py"))
@@ -132,7 +129,6 @@ jobs:
           main_file = find_main_file()
           main_text = read_text(main_file) if main_file else ""
 
-          # Watch only meaningful project sources, not generated docs.
           watch_patterns = [
               "*.py",
               "README*",
@@ -164,12 +160,12 @@ jobs:
           changed_files = sorted([name for name, digest in watch_map.items() if prev_files.get(name) != digest])
           deleted_files = sorted([name for name in prev_files.keys() if name not in watch_map])
 
-          # Pull real structure from the code and README.
           safe_imports = re.findall(r'_safe_import\("([^"]+)"', main_text)
           backend_pages = re.findall(
               r'\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)',
               main_text,
           )
+
           constants = {}
           for key in [
               "MISSION_START_YEAR",
@@ -185,7 +181,6 @@ jobs:
               if m:
                   constants[key] = m.group(1).strip()
 
-          # README-driven architecture summary
           readme = None
           for p in sorted(repo.glob("README*")):
               if p.is_file():
@@ -193,22 +188,22 @@ jobs:
                   break
           readme_text = read_text(readme) if readme else ""
 
-          module_names = []
+          module_lines = []
           for line in readme_text.splitlines():
               if "← Module" in line or "← Mission Control Frontend" in line:
-                  module_names.append(line.strip())
+                  module_lines.append(line.strip())
 
           feature_checks = [
               ("Streamlit mission-control frontend", "st.set_page_config" in main_text),
               ("Safe backend import layer", "_safe_import(" in main_text),
               ("Boot sequence", "render_boot_sequence" in main_text),
               ("Mission overview dashboard", "render_overview" in main_text),
-              ("System status diagnostics", "SYSTEM STATUS" in main_text or "file system check" in main_text.lower()),
+              ("System status diagnostics", "render_system_status" in main_text or "SYSTEM STATUS" in main_text),
               ("Global matplotlib theming", "apply_global_mpl_style" in main_text),
               ("Welcome banner", "render_welcome_banner" in main_text),
               ("TARS dialogue layer", "tars_dialogue" in main_text or "TARS" in main_text),
               ("Background image handling", "load_background" in main_text and "inject_background" in main_text),
-              ("Navigation router", "Main router" in main_text or "page ==" in main_text),
+              ("Navigation router", "page ==" in main_text or "Main router" in main_text),
           ]
           detected_features = [label for label, ok in feature_checks if ok]
 
@@ -225,13 +220,8 @@ jobs:
 
           recent_diff = git_diff_names()
 
-          # Stable docs files.
-          feature_map = docs / "feature-map.md"
-          system_status = docs / "system-status.md"
-          repo_index = docs / "index.md"
-          daily_note = history_dir / f"{today}.md"
-          changelog = docs / "changelog.md"
-          roadmap = docs / "roadmap.md"
+          def list_block(title: str, items: list[str], default: str) -> list[str]:
+              return [title, "", *lines_or_default(items, default), ""]
 
           feature_map_content = "\n".join([
               "# Feature map",
@@ -239,7 +229,7 @@ jobs:
               f"Generated: {now_utc}",
               "",
               "## Detected architecture",
-              *( [f"- {x}" for x in detected_features] if detected_features else ["- No features detected."] ),
+              *[f"- {x}" for x in detected_features] if detected_features else ["- No features detected."],
               "",
               "## Main frontend",
               f"- `{main_file.name}`" if main_file else "- Not found.",
@@ -248,16 +238,13 @@ jobs:
               *[f"- `{x}`" for x in sorted(set(safe_imports))] if safe_imports else ["- None detected."],
               "",
               "## Navigation pages detected in the frontend",
-              *[
-                  f"- `{label}` ({key}) {icon}"
-                  for icon, label, key in backend_pages
-              ] if backend_pages else ["- None detected."],
+              *[f"- `{label}` ({key}) {icon}" for icon, label, key in backend_pages] if backend_pages else ["- None detected."],
               "",
               "## Important constants from the frontend",
               *[f"- `{k}` = `{v}`" for k, v in sorted(constants.items())] if constants else ["- None detected."],
               "",
               "## README module list",
-              *[f"- {line}" for line in module_names] if module_names else ["- README module layout not parsed."],
+              *[f"- {line}" for line in module_lines] if module_lines else ["- README module layout not parsed."],
               "",
           ]) + "\n"
 
@@ -272,8 +259,8 @@ jobs:
               f"- Deleted source files since last snapshot: {len(deleted_files)}",
               "",
               "## Source file changes",
-              *([f"- Changed: `{x}`" for x in changed_files] if changed_files else ["- No source file changes detected."]),
-              *([f"- Deleted: `{x}`" for x in deleted_files] if deleted_files else []),
+              *[f"- Changed: `{x}`" for x in changed_files] if changed_files else ["- No source file changes detected."],
+              *[f"- Deleted: `{x}`" for x in deleted_files] if deleted_files else [],
               "",
               "## README / frontend alignment",
               "- The frontend uses safe imports and fallback UI for missing modules.",
@@ -316,20 +303,19 @@ jobs:
               "",
           ]) + "\n"
 
-          # Daily note: a genuine snapshot keyed by date.
           daily_lines = [
               f"# Daily snapshot — {today}",
               "",
               f"Generated: {now_utc}",
               "",
               "## What changed in the codebase",
-              *([f"- {x}" for x in changed_files] if changed_files else ["- No source changes detected in the current comparison window."]),
+              *[f"- {x}" for x in changed_files] if changed_files else ["- No source changes detected in the current comparison window."],
               "",
               "## Detected project features",
               *[f"- {x}" for x in detected_features] if detected_features else ["- No project features detected."],
               "",
               "## Visible backend list from the README",
-              *[f"- {line}" for line in module_names] if module_names else ["- README module layout not found."],
+              *[f"- {line}" for line in module_lines] if module_lines else ["- README module layout not found."],
               "",
               "## Notes",
               "- This entry is generated from the real repository state.",
@@ -339,36 +325,40 @@ jobs:
           ]
           daily_content = "\n".join(daily_lines).replace("\n\n\n", "\n\n") + "\n"
 
-          # Changelog only grows when the repository meaningfully changes.
+          changelog_path = docs / "changelog.md"
           changelog_header = [
               "# Changelog",
               "",
               "This file is updated only when source content changes.",
               "",
           ]
-          changelog_existing = changelog.read_text(encoding="utf-8", errors="ignore") if changelog.exists() else "\n".join(changelog_header)
+          existing_changelog = read_text(changelog_path) if changelog_path.exists() else "\n".join(changelog_header)
+
           changelog_entries = []
           if changed_files or deleted_files:
               changelog_entries.extend([
                   f"## {today}",
                   "",
-                  *([f"- Changed: `{x}`" for x in changed_files] if changed_files else ["- No changed files listed."]),
-                  *([f"- Deleted: `{x}`" for x in deleted_files] if deleted_files else []),
+                  *[f"- Changed: `{x}`" for x in changed_files] if changed_files else ["- No changed files listed."],
+                  *[f"- Deleted: `{x}`" for x in deleted_files] if deleted_files else [],
                   "",
               ])
-          if changelog_existing.strip().startswith("# Changelog"):
-              new_changelog = changelog_existing.rstrip() + ("\n\n" + "\n".join(changelog_entries).rstrip() if changelog_entries else "") + "\n"
+
+          if existing_changelog.strip().startswith("# Changelog"):
+              new_changelog = existing_changelog.rstrip()
+              if changelog_entries:
+                  new_changelog += "\n\n" + "\n".join(changelog_entries).rstrip()
+              new_changelog += "\n"
           else:
               new_changelog = "\n".join(changelog_header + changelog_entries) + "\n"
 
-          write_if_changed(feature_map, feature_map_content)
-          write_if_changed(system_status, system_status_content)
-          write_if_changed(repo_index, repo_index_content)
-          write_if_changed(roadmap, roadmap_content)
-          write_if_changed(daily_note, daily_content)
-          write_if_changed(changelog, new_changelog)
+          write_if_changed(docs / "feature-map.md", feature_map_content)
+          write_if_changed(docs / "system-status.md", system_status_content)
+          write_if_changed(docs / "index.md", repo_index_content)
+          write_if_changed(docs / "roadmap.md", roadmap_content)
+          write_if_changed(history_dir / f"{today}.md", daily_content)
+          write_if_changed(changelog_path, new_changelog)
 
-          # Save snapshot state for next genuine comparison.
           state = {
               "root_fingerprint": root_fingerprint,
               "files": watch_map,
