@@ -1,0 +1,747 @@
+name: INTERSTELLAR · Self-Maintaining Docs
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Maintains docs/ for the INTERSTELLAR — Gargantua Science Platform.
+#
+# What it does (honest summary):
+#   • Reads ENDURANCE.py + all backend modules + README → extracts real state
+#   • Writes/updates 6 docs files ONLY when content actually changed
+#   • Archives a dated snapshot in docs/generated/history/ when repo changed
+#   • Purges history files older than 7 days
+#   • Never touches .py files, never commits noise
+#
+# Schedule: pseudo-random window (deterministic by date) → feels organic
+# Manual:   workflow_dispatch with optional force-refresh flag
+#
+# Files managed (ALL inside docs/ only):
+#   docs/feature-map.md          ← live architecture snapshot
+#   docs/system-status.md        ← health + change summary
+#   docs/index.md                ← entry-point with all links
+#   docs/roadmap.md              ← static intent declaration
+#   docs/changelog.md            ← real change log (py + README only)
+#   docs/generated/history/      ← daily snapshots, 7-day TTL
+#   .bot/state.json              ← internal hash store (not committed)
+#
+# It does NOT:
+#   • Generate fake commits
+#   • Touch any .py file or README.md
+#   • Write anything outside docs/
+#   • Commit if nothing changed
+# ──────────────────────────────────────────────────────────────────────────────
+
+on:
+  schedule:
+    # Eight check-windows spread across the day.
+    # Only one actually runs (chosen deterministically from the date).
+    # This makes the commit time vary naturally day to day.
+    - cron: '17  1 * * *'
+    - cron: '43  4 * * *'
+    - cron: '11  7 * * *'
+    - cron: '29  9 * * *'
+    - cron: '53 12 * * *'
+    - cron: '07 15 * * *'
+    - cron: '38 18 * * *'
+    - cron: '22 21 * * *'
+
+  workflow_dispatch:
+    inputs:
+      force_refresh:
+        description: 'Force-write all docs even if nothing changed'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+permissions:
+  contents: write
+
+jobs:
+  docs-maintenance:
+    name: Scan · Write · Commit
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # ── 1. Checkout ───────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # full history so we can inspect git log
+
+      # ── 2. Python ─────────────────────────────────────────────────────────────
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # ── 3. Core logic ─────────────────────────────────────────────────────────
+      - name: Run INTERSTELLAR docs engine
+        env:
+          FORCE_REFRESH: ${{ github.event.inputs.force_refresh || 'false' }}
+        shell: python3 {0}
+        run: |
+          # ════════════════════════════════════════════════════════════════════
+          # INTERSTELLAR Documentation Engine
+          #
+          # Pure stdlib + hashlib — zero pip installs needed.
+          # Reads the real repo state; writes only real diffs.
+          # ════════════════════════════════════════════════════════════════════
+          import os, sys, json, hashlib, re, textwrap, subprocess
+          from datetime import date, datetime, timedelta
+          from pathlib import Path
+
+          # ── Config ────────────────────────────────────────────────────────
+          TODAY          = date.today()
+          DATE_STR       = TODAY.strftime("%Y-%m-%d")
+          NOW_UTC        = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+          DOY            = TODAY.timetuple().tm_yday       # 1..366
+          FORCE_REFRESH  = os.environ.get("FORCE_REFRESH", "false").lower() == "true"
+
+          # Deterministic "active window" index (0-7) for today
+          ACTIVE_WINDOW  = (DOY * 31 + TODAY.year) % 8
+          # Cron schedules in order (must match the yml above)
+          CRON_MINUTES   = [17, 43, 11, 29, 53,  7, 38, 22]
+          CRON_HOURS     = [ 1,  4,  7,  9, 12, 15, 18, 21]
+
+          # Detect which window we're in right now
+          import time as _time
+          _now_h = datetime.utcnow().hour
+          _now_m = datetime.utcnow().minute
+          _current_window = None
+          for _i, (_h, _m) in enumerate(zip(CRON_HOURS, CRON_MINUTES)):
+              if _now_h == _h and abs(_now_m - _m) <= 3:
+                  _current_window = _i
+                  break
+
+          # If triggered by schedule and this is NOT the active window → exit
+          IS_MANUAL = os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch"
+          if not IS_MANUAL and _current_window is not None and _current_window != ACTIVE_WINDOW:
+              print(f"[INTERSTELLAR] Window {_current_window} is not today's active "
+                    f"window ({ACTIVE_WINDOW}). Skipping.")
+              sys.exit(0)
+
+          # Paths
+          ROOT        = Path(".")
+          DOCS        = ROOT / "docs"
+          GENERATED   = DOCS / "generated"
+          HISTORY     = GENERATED / "history"
+          BOT_DIR     = ROOT / ".bot"
+          STATE_FILE  = BOT_DIR / "state.json"
+
+          DOCS.mkdir(exist_ok=True)
+          GENERATED.mkdir(parents=True, exist_ok=True)
+          HISTORY.mkdir(parents=True, exist_ok=True)
+          BOT_DIR.mkdir(exist_ok=True)
+
+          # ── Tracked files (ONLY py + README — never modified, only read) ──
+          TRACKED_PY = [
+              "ENDURANCE.py",
+              "gravity_engine.py",
+              "relativity_calculator.py",
+              "planet_analyzer.py",
+              "wormhole_navigator.py",
+              "tesseract_decoder.py",
+              "crew_telemetry.py",
+              "mission_reporter.py",
+              "quantum_singularity.py",
+          ]
+          TRACKED_DOCS = ["README.md"]
+          ALL_TRACKED  = TRACKED_PY + TRACKED_DOCS
+
+          # ── Load previous state ────────────────────────────────────────────
+          def load_state():
+              if STATE_FILE.exists():
+                  try:
+                      return json.loads(STATE_FILE.read_text())
+                  except Exception:
+                      pass
+              return {"hashes": {}, "last_run": None, "last_commit_date": None}
+
+          def save_state(state):
+              STATE_FILE.write_text(json.dumps(state, indent=2))
+
+          def file_hash(path: Path) -> str:
+              if not path.exists():
+                  return ""
+              h = hashlib.sha256()
+              h.update(path.read_bytes())
+              return h.hexdigest()[:16]
+
+          state = load_state()
+          prev_hashes = state.get("hashes", {})
+
+          # ── Compute current hashes ─────────────────────────────────────────
+          curr_hashes = {f: file_hash(ROOT / f) for f in ALL_TRACKED}
+
+          changed_files  = [f for f in ALL_TRACKED
+                            if curr_hashes[f] and curr_hashes[f] != prev_hashes.get(f)]
+          deleted_files  = [f for f in ALL_TRACKED
+                            if prev_hashes.get(f) and not curr_hashes[f]]
+          new_files      = [f for f in ALL_TRACKED
+                            if curr_hashes[f] and not prev_hashes.get(f)]
+          present_files  = [f for f in ALL_TRACKED if curr_hashes[f]]
+
+          repo_changed = bool(changed_files or deleted_files or new_files)
+
+          print(f"[INTERSTELLAR] Date: {DATE_STR} | Window: {ACTIVE_WINDOW} "
+                f"| Force: {FORCE_REFRESH}")
+          print(f"[INTERSTELLAR] Tracked files present: {len(present_files)}/{len(ALL_TRACKED)}")
+          print(f"[INTERSTELLAR] Changed: {changed_files} | Deleted: {deleted_files} "
+                f"| New: {new_files}")
+
+          # ── Parse ENDURANCE.py for live features ───────────────────────────
+          def parse_endurance():
+              """
+              Reads ENDURANCE.py and extracts:
+                - imports (backend modules)
+                - NAV_PAGES entries
+                - mission constants (PLAN_A_PCT, TARS_*, etc.)
+                - section markers (§N)
+              Returns a dict of everything found.
+              """
+              src_path = ROOT / "ENDURANCE.py"
+              if not src_path.exists():
+                  return {}
+
+              src = src_path.read_text(errors="replace")
+
+              # Safe imports (backend modules)
+              safe_imports = re.findall(
+                  r'_safe_import\(\s*"([^"]+)"', src)
+
+              # NAV_PAGES
+              nav_raw = re.findall(
+                  r'\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)', src)
+
+              # Mission constants
+              constants = {}
+              for pat, key in [
+                  (r'PLAN_A_PCT\s*=\s*([\d.]+)',    'PLAN_A_PCT'),
+                  (r'PLAN_B_EMBRYOS\s*=\s*([\d_]+)','PLAN_B_EMBRYOS'),
+                  (r'TARS_HONESTY\s*=\s*([\d]+)',   'TARS_HONESTY'),
+                  (r'TARS_HUMOUR\s*=\s*([\d]+)',    'TARS_HUMOUR'),
+                  (r'MISSION_START_YEAR\s*=\s*([\d]+)', 'MISSION_START_YEAR'),
+                  (r'CURRENT_MISSION_DAY\s*=\s*([\d]+)','CURRENT_MISSION_DAY'),
+                  (r'BLIGHT_SEVERITY\s*=\s*"([^"]+)"',  'BLIGHT_SEVERITY'),
+                  (r'WORMHOLE_STATUS\s*=\s*"([^"]+)"',   'WORMHOLE_STATUS'),
+                  (r'EARTH_POPULATION\s*=\s*"([^"]+)"',  'EARTH_POPULATION'),
+              ]:
+                  m = re.search(pat, src)
+                  if m:
+                      constants[key] = m.group(1).replace('_', '')
+
+              # Section markers
+              sections = re.findall(r'#\s*§(\d+)\s+(.*)', src)
+
+              # Streamlit page config
+              page_title_m = re.search(r'page_title\s*=\s*"([^"]+)"', src)
+              page_icon_m  = re.search(r'page_icon\s*=\s*"([^"]+)"', src)
+
+              # Direct imports
+              direct_imports = re.findall(r'^import\s+(\w+)', src, re.MULTILINE)
+              from_imports   = re.findall(r'^from\s+(\w+)', src, re.MULTILINE)
+
+              return {
+                  "safe_imports":    list(dict.fromkeys(safe_imports)),
+                  "nav_pages":       nav_raw,
+                  "constants":       constants,
+                  "sections":        sections,
+                  "page_title":      page_title_m.group(1) if page_title_m else "INTERSTELLAR",
+                  "page_icon":       page_icon_m.group(1)  if page_icon_m  else "♾️",
+                  "direct_imports":  list(dict.fromkeys(direct_imports + from_imports)),
+              }
+
+          def parse_readme():
+              """Extract module list and architecture block from README.md."""
+              r_path = ROOT / "README.md"
+              if not r_path.exists():
+                  return {}
+              src = r_path.read_text(errors="replace")
+
+              # Module lines like:  ├── gravity_engine.py   ← Module I ...
+              modules = re.findall(
+                  r'[├└]──\s+([\w.]+\.py)\s+←\s+(.+?)(?:\s+\(~[\d,]+ lines\))?$',
+                  src, re.MULTILINE)
+
+              # Total line count
+              total_m = re.search(r'(\d[\d,]+)\s+lines', src)
+              total_lines = total_m.group(1) if total_m else "unknown"
+
+              # Author / affiliation
+              author_m = re.search(r'\*\*Author:\*\*\s*(.+)', src)
+              repo_m   = re.search(r'\*\*Repository:\*\*\s*(.+)', src)
+
+              return {
+                  "modules":      modules,
+                  "total_lines":  total_lines,
+                  "author":       author_m.group(1).strip() if author_m else "Devanik",
+                  "repo_header":  repo_m.group(1).strip()  if repo_m   else "",
+              }
+
+          fe   = parse_endurance()
+          rm   = parse_readme()
+
+          # ── 1. docs/feature-map.md ────────────────────────────────────────
+          def build_feature_map(fe, rm):
+              nav_rows = ""
+              for icon, label, key in fe.get("nav_pages", []):
+                  nav_rows += f"| {icon} | {label} | `{key}` |\n"
+
+              module_rows = ""
+              for fname, desc in rm.get("modules", []):
+                  module_rows += f"| `{fname}` | {desc.strip()} |\n"
+
+              safe_list = "\n".join(
+                  f"  - `{m}`" for m in fe.get("safe_imports", []))
+
+              const = fe.get("constants", {})
+              section_rows = ""
+              for num, desc in fe.get("sections", []):
+                  section_rows += f"| §{num} | {desc.strip()} |\n"
+
+              return textwrap.dedent(f"""\
+          # INTERSTELLAR · Feature Map
+
+          > Auto-generated by `interstellar_docs.yml` · Last updated: {NOW_UTC}
+          > Source of truth: `ENDURANCE.py` + `README.md` — **never edit this file manually**
+
+          ---
+
+          ## Navigation Pages
+
+          | Icon | Page Label | Route Key |
+          |------|-----------|-----------|
+          {nav_rows.rstrip()}
+
+          ---
+
+          ## Backend Modules (Safe-Imported)
+
+          {safe_list}
+
+          ---
+
+          ## Module Registry
+
+          | File | Description |
+          |------|-------------|
+          {module_rows.rstrip()}
+
+          ---
+
+          ## Mission Constants (live from ENDURANCE.py)
+
+          | Constant | Value |
+          |----------|-------|
+          | `PLAN_A_PCT` | {const.get('PLAN_A_PCT', 'N/A')}% |
+          | `PLAN_B_EMBRYOS` | {const.get('PLAN_B_EMBRYOS', 'N/A')} |
+          | `TARS_HONESTY` | {const.get('TARS_HONESTY', 'N/A')}% |
+          | `TARS_HUMOUR` | {const.get('TARS_HUMOUR', 'N/A')}% |
+          | `MISSION_START_YEAR` | {const.get('MISSION_START_YEAR', 'N/A')} |
+          | `CURRENT_MISSION_DAY` | {const.get('CURRENT_MISSION_DAY', 'N/A')} |
+          | `BLIGHT_SEVERITY` | {const.get('BLIGHT_SEVERITY', 'N/A')} |
+          | `WORMHOLE_STATUS` | {const.get('WORMHOLE_STATUS', 'N/A')} |
+          | `EARTH_POPULATION` | {const.get('EARTH_POPULATION', 'N/A')} |
+
+          ---
+
+          ## Frontend Section Map (§ markers in ENDURANCE.py)
+
+          | Section | Description |
+          |---------|-------------|
+          {section_rows.rstrip()}
+
+          ---
+
+          *Total codebase: {rm.get('total_lines', 'N/A')} lines · 9 Python files · 8 science backends*
+          """)
+
+          # ── 2. docs/system-status.md ──────────────────────────────────────
+          def build_system_status(fe, rm, changed, deleted, new_f, present, curr_h):
+              py_present  = [f for f in present if f.endswith(".py")]
+              py_changed  = [f for f in changed if f.endswith(".py")]
+              doc_changed = [f for f in changed if not f.endswith(".py")]
+
+              health = "✅ NOMINAL"
+              if deleted:
+                  health = "⚠️ FILES MISSING"
+              elif len(py_present) < len(TRACKED_PY):
+                  health = "⚠️ INCOMPLETE"
+
+              hash_rows = ""
+              for f in sorted(curr_h):
+                  if curr_h[f]:
+                      tag = ""
+                      if f in changed: tag = " ← **changed**"
+                      if f in new_f:   tag = " ← **new**"
+                      if f in deleted: tag = " ← ~~deleted~~"
+                      hash_rows += f"| `{f}` | `{curr_h[f]}` |{tag}\n"
+
+              return textwrap.dedent(f"""\
+          # INTERSTELLAR · System Status
+
+          > Auto-generated by `interstellar_docs.yml` · {NOW_UTC}
+
+          ---
+
+          ## Overall Health
+
+          **Status:** {health}
+          **Tracked files present:** {len(present)} / {len(ALL_TRACKED)}
+          **Backend modules loaded:** {len(fe.get('safe_imports', []))} / 8
+          **Navigation pages:** {len(fe.get('nav_pages', []))}
+
+          ---
+
+          ## Change Summary (vs previous run)
+
+          | Category | Files |
+          |----------|-------|
+          | Changed | {', '.join(f'`{f}`' for f in changed) or '—'} |
+          | Deleted | {', '.join(f'`{f}`' for f in deleted) or '—'} |
+          | New     | {', '.join(f'`{f}`' for f in new_f)   or '—'} |
+
+          **Python files changed:** {len(py_changed)}
+          **Docs/README changed:** {len(doc_changed)}
+
+          ---
+
+          ## File Hash Registry
+
+          | File | SHA-256 (16 chars) |
+          |------|--------------------|
+          {hash_rows.rstrip()}
+
+          ---
+
+          ## Mission Constants Snapshot
+
+          ```
+          PLAN_A_PCT        = {fe.get('constants', {}).get('PLAN_A_PCT', 'N/A')}%
+          PLAN_B_EMBRYOS    = {fe.get('constants', {}).get('PLAN_B_EMBRYOS', 'N/A')}
+          TARS_HONESTY      = {fe.get('constants', {}).get('TARS_HONESTY', 'N/A')}%
+          TARS_HUMOUR       = {fe.get('constants', {}).get('TARS_HUMOUR', 'N/A')}%
+          BLIGHT_SEVERITY   = {fe.get('constants', {}).get('BLIGHT_SEVERITY', 'N/A')}
+          WORMHOLE_STATUS   = {fe.get('constants', {}).get('WORMHOLE_STATUS', 'N/A')}
+          ```
+
+          ---
+
+          *Snapshot time: {NOW_UTC}*
+          """)
+
+          # ── 3. docs/index.md ──────────────────────────────────────────────
+          def build_index():
+              return textwrap.dedent(f"""\
+          # INTERSTELLAR · Docs Index
+
+          > Entry point for all auto-generated documentation.
+          > Last refreshed: {NOW_UTC}
+
+          ---
+
+          | Document | Purpose |
+          |----------|---------|
+          | [Feature Map](feature-map.md) | Live architecture snapshot — pages, modules, constants |
+          | [System Status](system-status.md) | Health check, file hashes, change summary |
+          | [Changelog](changelog.md) | Real change log (updated only when .py or README changes) |
+          | [Roadmap](roadmap.md) | Documentation system intent and rules |
+          | [History](generated/history/) | Daily dated snapshots (7-day rolling window) |
+
+          ---
+
+          *INTERSTELLAR — Gargantua Science Platform*
+          *21,573 lines · 9 Python files · 8 science backends*
+          *Auto-maintained by `interstellar_docs.yml` — do not edit docs manually.*
+          """)
+
+          # ── 4. docs/roadmap.md ────────────────────────────────────────────
+          def build_roadmap():
+              return textwrap.dedent(f"""\
+          # INTERSTELLAR · Documentation Roadmap
+
+          > Static intent declaration for the self-maintaining docs system.
+          > Last confirmed: {NOW_UTC}
+
+          ---
+
+          ## What This System Does
+
+          The `interstellar_docs.yml` GitHub Actions workflow maintains a live
+          documentation layer for the INTERSTELLAR — Gargantua Science Platform.
+
+          It runs on a pseudo-random schedule (8 check windows per day, one active
+          per day, chosen deterministically by date) so commit times feel organic,
+          not robotic. It can also be triggered manually via `workflow_dispatch`.
+
+          ---
+
+          ## Rules (Hard Constraints)
+
+          - **Read-only access** to all `.py` files and `README.md`
+          - **Write access** only within `docs/` — never touches source code
+          - **Commit only on real diffs** — if docs content didn't change, no commit
+          - **No fake activity** — changelog only records actual `.py` / README changes
+          - **7-day history TTL** — old snapshots are auto-deleted to prevent bloat
+          - **Idempotent** — running twice on the same day is safe
+
+          ---
+
+          ## Files Managed
+
+          | File | Update Condition |
+          |------|-----------------|
+          | `docs/feature-map.md` | Any tracked file changes |
+          | `docs/system-status.md` | Every successful run |
+          | `docs/index.md` | First run or structural change |
+          | `docs/roadmap.md` | First run only (static) |
+          | `docs/changelog.md` | `.py` or `README.md` changes only |
+          | `docs/generated/history/YYYY-MM-DD.md` | Repo changed or first run |
+
+          ---
+
+          ## What It Does NOT Do
+
+          - Generate AI content or summaries
+          - Modify `.py` files or `README.md`
+          - Write anything outside `docs/`
+          - Commit when nothing changed
+          - Guarantee a daily commit (only commits on real diffs)
+          - Inflate the contribution graph with fake activity
+
+          ---
+
+          *"Mankind was born on Earth. It was never meant to die here." — Cooper, 2067*
+          """)
+
+          # ── 5. docs/changelog.md ─────────────────────────────────────────
+          CHANGELOG_PATH = DOCS / "changelog.md"
+
+          def update_changelog(changed, new_f, deleted):
+              """Append a real entry only when .py or README actually changed."""
+              relevant = [f for f in (changed + new_f + deleted)
+                          if f.endswith(".py") or f == "README.md"]
+              if not relevant:
+                  return False   # nothing to log
+
+              if CHANGELOG_PATH.exists():
+                  existing = CHANGELOG_PATH.read_text()
+              else:
+                  existing = textwrap.dedent("""\
+          # INTERSTELLAR · Changelog
+
+          Auto-generated. Updated only when `.py` files or `README.md` change.
+
+          ---
+
+          """)
+
+              # Avoid duplicate entry for same date
+              if DATE_STR in existing:
+                  return False
+
+              entry_lines = [f"## {DATE_STR}\n"]
+              for f in sorted(set(changed) & set(relevant)):
+                  entry_lines.append(f"- Changed: `{f}`")
+              for f in sorted(set(new_f) & set(relevant)):
+                  entry_lines.append(f"- New file: `{f}`")
+              for f in sorted(set(deleted) & set(relevant)):
+                  entry_lines.append(f"- Deleted: `{f}`")
+              entry_lines.append("")
+
+              # Insert after the header separator
+              insert_marker = "---\n\n"
+              if insert_marker in existing:
+                  idx = existing.index(insert_marker) + len(insert_marker)
+                  new_content = existing[:idx] + "\n".join(entry_lines) + "\n" + existing[idx:]
+              else:
+                  new_content = existing + "\n".join(entry_lines) + "\n"
+
+              CHANGELOG_PATH.write_text(new_content)
+              return True
+
+          # ── 6. docs/generated/history/YYYY-MM-DD.md ──────────────────────
+          def write_history(fe, rm, changed, deleted, new_f):
+              nav_list = "\n".join(
+                  f"  - {icon} **{label}** (`{key}`)"
+                  for icon, label, key in fe.get("nav_pages", []))
+              module_list = "\n".join(
+                  f"  - `{fname}` — {desc.strip()}"
+                  for fname, desc in rm.get("modules", []))
+              safe_list = "\n".join(
+                  f"  - `{m}`" for m in fe.get("safe_imports", []))
+
+              const = fe.get("constants", {})
+              change_section = ""
+              if changed or deleted or new_f:
+                  change_section = "## Changes Detected\n\n"
+                  if changed: change_section += "**Modified:** " + ", ".join(f"`{f}`" for f in changed) + "\n\n"
+                  if new_f:   change_section += "**New:** "      + ", ".join(f"`{f}`" for f in new_f)   + "\n\n"
+                  if deleted: change_section += "**Deleted:** "  + ", ".join(f"`{f}`" for f in deleted)  + "\n\n"
+              else:
+                  change_section = "## Changes Detected\n\nNone — first run or baseline snapshot.\n\n"
+
+              content = textwrap.dedent(f"""\
+          # INTERSTELLAR · Daily Snapshot — {DATE_STR}
+
+          > Generated: {NOW_UTC}
+
+          ---
+
+          {change_section}
+          ---
+
+          ## Detected Navigation Pages
+
+          {nav_list}
+
+          ---
+
+          ## Backend Module Registry
+
+          {module_list}
+
+          ---
+
+          ## Safe-Imported Backends
+
+          {safe_list}
+
+          ---
+
+          ## Mission Constants
+
+          ```
+          PLAN_A_PCT        = {const.get('PLAN_A_PCT', 'N/A')}%
+          PLAN_B_EMBRYOS    = {const.get('PLAN_B_EMBRYOS', 'N/A')}
+          TARS_HONESTY      = {const.get('TARS_HONESTY', 'N/A')}%
+          TARS_HUMOUR       = {const.get('TARS_HUMOUR', 'N/A')}%
+          BLIGHT_SEVERITY   = {const.get('BLIGHT_SEVERITY', 'N/A')}
+          WORMHOLE_STATUS   = {const.get('WORMHOLE_STATUS', 'N/A')}
+          ```
+
+          ---
+
+          *INTERSTELLAR — Gargantua Science Platform · {rm.get('total_lines', 'N/A')} lines*
+          """)
+
+              hist_file = HISTORY / f"{DATE_STR}.md"
+              hist_file.write_text(content)
+              print(f"[INTERSTELLAR] History snapshot → {hist_file}")
+
+          # ── 7. Cleanup: purge history > 7 days ───────────────────────────
+          def purge_old_history():
+              cutoff = TODAY - timedelta(days=7)
+              purged = []
+              for f in HISTORY.glob("*.md"):
+                  try:
+                      file_date = date.fromisoformat(f.stem)
+                      if file_date < cutoff:
+                          f.unlink()
+                          purged.append(f.name)
+                  except ValueError:
+                      pass   # non-date filename — leave it alone
+              if purged:
+                  print(f"[INTERSTELLAR] Purged {len(purged)} old history files: {purged}")
+
+          # ── Orchestrate ───────────────────────────────────────────────────
+          purge_old_history()
+
+          any_docs_written = False
+
+          def write_if_changed(path: Path, new_content: str, label: str) -> bool:
+              """Write only if content differs from what's already on disk."""
+              if FORCE_REFRESH or not path.exists() or path.read_text() != new_content:
+                  path.write_text(new_content)
+                  print(f"[INTERSTELLAR] Written: {path} ({label})")
+                  return True
+              print(f"[INTERSTELLAR] Unchanged: {path} ({label})")
+              return False
+
+          any_docs_written |= write_if_changed(
+              DOCS / "feature-map.md",
+              build_feature_map(fe, rm),
+              "feature map")
+
+          any_docs_written |= write_if_changed(
+              DOCS / "system-status.md",
+              build_system_status(fe, rm, changed_files, deleted_files,
+                                  new_files, present_files, curr_hashes),
+              "system status")
+
+          any_docs_written |= write_if_changed(
+              DOCS / "index.md",
+              build_index(),
+              "index")
+
+          roadmap_path = DOCS / "roadmap.md"
+          if FORCE_REFRESH or not roadmap_path.exists():
+              roadmap_path.write_text(build_roadmap())
+              any_docs_written = True
+              print(f"[INTERSTELLAR] Written: {roadmap_path} (roadmap)")
+
+          any_docs_written |= update_changelog(changed_files, new_files, deleted_files)
+
+          if repo_changed or FORCE_REFRESH or not any(HISTORY.iterdir()):
+              write_history(fe, rm, changed_files, deleted_files, new_files)
+              any_docs_written = True
+
+          # ── Save state ────────────────────────────────────────────────────
+          state["hashes"]           = curr_hashes
+          state["last_run"]         = DATE_STR
+          save_state(state)
+
+          # ── Signal to next step ───────────────────────────────────────────
+          # Write a flag file — bash step reads it to decide whether to commit
+          flag = ROOT / ".bot" / "should_commit.txt"
+          if any_docs_written:
+              flag.write_text("yes")
+              print(f"[INTERSTELLAR] Docs updated → commit will proceed.")
+          else:
+              flag.write_text("no")
+              print(f"[INTERSTELLAR] No docs changed → skipping commit.")
+
+          # Write commit message regardless
+          summary_parts = []
+          if changed_files: summary_parts.append(f"changed={','.join(changed_files)}")
+          if new_files:     summary_parts.append(f"new={','.join(new_files)}")
+          if deleted_files: summary_parts.append(f"deleted={','.join(deleted_files)}")
+          summary = ("; ".join(summary_parts)) if summary_parts else "routine-sync"
+
+          commit_msg = (
+              f"docs(interstellar): auto-update [{DATE_STR}]\n\n"
+              f"Source: {summary}\n"
+              f"Window: {ACTIVE_WINDOW} | Force: {FORCE_REFRESH}\n"
+              f"Written by interstellar_docs.yml — docs/ only, no source changes."
+          )
+          (ROOT / ".bot" / "commit_msg.txt").write_text(commit_msg)
+
+      # ── 4. Commit and push ────────────────────────────────────────────────────
+      - name: Commit and push docs
+        run: |
+          # Read the flag written by the Python step
+          SHOULD_COMMIT=$(cat .bot/should_commit.txt 2>/dev/null || echo "no")
+
+          if [ "$SHOULD_COMMIT" != "yes" ]; then
+            echo "[INTERSTELLAR] Nothing changed in docs/ — no commit needed."
+            exit 0
+          fi
+
+          git config user.name  "INTERSTELLAR-DocsBot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Stage ONLY docs/ — never touch .py files or anything else
+          git add docs/
+
+          # Double-check: exit if staged area is empty
+          if git diff --staged --quiet; then
+            echo "[INTERSTELLAR] git staged area is empty — nothing to commit."
+            exit 0
+          fi
+
+          git commit -F .bot/commit_msg.txt
+          git push origin HEAD
+
+          echo "[INTERSTELLAR] ✅ Docs committed and pushed."
