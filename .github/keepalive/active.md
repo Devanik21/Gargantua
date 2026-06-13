@@ -3,7 +3,7 @@
 This file is rewritten on every docs run to guarantee the repository
 is never flagged as inactive by GitHub's 60-day scheduler-pause policy.
 
-**Last updated:** 2026-06-13 14:40:51 UTC
+**Last updated:** 2026-06-13 20:06:32 UTC
 **Date:** 2026-06-13
 
 > *"Do not go gentle into that good night."*

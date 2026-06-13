@@ -2,7 +2,7 @@
 
 > Live operations log for the self-maintaining docs system.
 > Updated automatically twice daily — every entry is a real run.
-> **Last update: 2026-06-13 14:40:50 UTC**
+> **Last update: 2026-06-13 20:06:32 UTC**
 
 ---
 
@@ -10,14 +10,14 @@
 
 | Field | Value |
 |-------|-------|
-| Timestamp (UTC) | `2026-06-13 14:40:50 UTC` |
-| Cron Slot | manual |
-| Workflow Run # | 2 |
+| Timestamp (UTC) | `2026-06-13 20:06:32 UTC` |
+| Cron Slot | B (evening) |
+| Workflow Run # | 3 |
 | Total Docs Runs | 1 |
 | Runs Today | 1 |
 | Uptime (days since first run) | 0 |
 | First Run Date | 2026-06-13 |
-| Trigger | Manual |
+| Trigger | Scheduled |
 
 ---
 
@@ -54,7 +54,7 @@
 
 | Timestamp (UTC) | Slot | Run # | Source Delta |
 |-----------------|------|-------|--------------|
-| 2026-06-13 14:40:50 UTC | Slot manual | #1 | Modified: `ENDURANCE.py`, `gravity_engine.py`, `relativity_calculator.py`, `plan |
+| 2026-06-13 20:06:32 UTC | Slot B (evening) | #1 | Modified: `ENDURANCE.py`, `gravity_engine.py`, `relativity_calculator.py`, `plan |
 
 ---
 

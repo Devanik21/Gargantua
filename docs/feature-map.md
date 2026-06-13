@@ -1,6 +1,6 @@
 # INTERSTELLAR · Feature Map
 
-> Auto-generated · Last updated: 2026-06-13 14:40 UTC
+> Auto-generated · Last updated: 2026-06-13 20:06 UTC
 > Source of truth: `ENDURANCE.py` + `README.md` — never edit manually
 
 ---
