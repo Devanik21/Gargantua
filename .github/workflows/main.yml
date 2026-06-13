@@ -239,7 +239,7 @@ jobs:
               f"Generated: {now_utc}",
               "",
               "## Detected architecture",
-              *[f"- {x}" for x in detected_features] if detected_features else ["- No features detected."],
+              *( [f"- {x}" for x in detected_features] if detected_features else ["- No features detected."] ),
               "",
               "## Main frontend",
               f"- `{main_file.name}`" if main_file else "- Not found.",
