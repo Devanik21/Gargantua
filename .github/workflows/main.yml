@@ -38,6 +38,13 @@ jobs:
         run: |
           set -euo pipefail
 
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+
+
           export TZ="Asia/Kolkata"
           TODAY="$(date +%F)"
           HOUR_UTC="$(date -u +%H)"
@@ -58,7 +65,7 @@ jobs:
           fi
 
       - name: Build docs artifacts
-        if: steps.gate.outputs.run == 'true' || github.event_name == 'workflow_dispatch'
+        if: steps.gate.outputs.run == 'true'
         shell: bash
         env:
           TODAY: ${{ steps.gate.outputs.today }}
@@ -373,7 +380,7 @@ jobs:
           PY
 
       - name: Prune generated history older than 7 days
-        if: steps.gate.outputs.run == 'true' || github.event_name == 'workflow_dispatch'
+        if: steps.gate.outputs.run == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -381,7 +388,7 @@ jobs:
           find docs/generated/history -type d -empty -delete 2>/dev/null || true
 
       - name: Commit docs changes once
-        if: steps.gate.outputs.run == 'true' || github.event_name == 'workflow_dispatch'
+        if: steps.gate.outputs.run == 'true'
         shell: bash
         run: |
           set -euo pipefail
