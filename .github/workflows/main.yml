@@ -110,10 +110,6 @@ jobs:
               h.update(path.read_bytes())
               return h.hexdigest()
 
-          def lines_or_default(items, default):
-              items = list(items)
-              return items if items else [default]
-
           def find_main_file() -> Path | None:
               candidates = sorted(repo.glob("*.py"))
               for p in candidates:
@@ -125,6 +121,10 @@ jobs:
                   if "st.set_page_config" in txt:
                       return p
               return candidates[0] if candidates else None
+
+          def list_lines(items, default):
+              items = list(items)
+              return items if items else [default]
 
           main_file = find_main_file()
           main_text = read_text(main_file) if main_file else ""
@@ -220,35 +220,43 @@ jobs:
 
           recent_diff = git_diff_names()
 
-          def list_block(title: str, items: list[str], default: str) -> list[str]:
-              return [title, "", *lines_or_default(items, default), ""]
-
-          feature_map_content = "\n".join([
+          feature_map_lines = [
               "# Feature map",
               "",
               f"Generated: {now_utc}",
               "",
               "## Detected architecture",
-              *[f"- {x}" for x in detected_features] if detected_features else ["- No features detected."],
+          ]
+          feature_map_lines.extend(list_lines((f"- {x}" for x in detected_features), "- No features detected."))
+          feature_map_lines.extend([
               "",
               "## Main frontend",
               f"- `{main_file.name}`" if main_file else "- Not found.",
               "",
               "## Safe imports detected in the frontend",
-              *[f"- `{x}`" for x in sorted(set(safe_imports))] if safe_imports else ["- None detected."],
+          ])
+          feature_map_lines.extend(list_lines((f"- `{x}`" for x in sorted(set(safe_imports))), "- None detected."))
+          feature_map_lines.extend([
               "",
               "## Navigation pages detected in the frontend",
-              *[f"- `{label}` ({key}) {icon}" for icon, label, key in backend_pages] if backend_pages else ["- None detected."],
+          ])
+          feature_map_lines.extend(
+              list_lines((f"- `{label}` ({key}) {icon}" for icon, label, key in backend_pages), "- None detected.")
+          )
+          feature_map_lines.extend([
               "",
               "## Important constants from the frontend",
-              *[f"- `{k}` = `{v}`" for k, v in sorted(constants.items())] if constants else ["- None detected."],
+          ])
+          feature_map_lines.extend(list_lines((f"- `{k}` = `{v}`" for k, v in sorted(constants.items())), "- None detected."))
+          feature_map_lines.extend([
               "",
               "## README module list",
-              *[f"- {line}" for line in module_lines] if module_lines else ["- README module layout not parsed."],
-              "",
-          ]) + "\n"
+          ])
+          feature_map_lines.extend(list_lines((f"- {line}" for line in module_lines), "- README module layout not parsed."))
+          feature_map_lines.append("")
+          feature_map_content = "\n".join(feature_map_lines)
 
-          system_status_content = "\n".join([
+          system_status_lines = [
               "# System status",
               "",
               f"Generated: {now_utc}",
@@ -259,15 +267,18 @@ jobs:
               f"- Deleted source files since last snapshot: {len(deleted_files)}",
               "",
               "## Source file changes",
-              *[f"- Changed: `{x}`" for x in changed_files] if changed_files else ["- No source file changes detected."],
-              *[f"- Deleted: `{x}`" for x in deleted_files] if deleted_files else [],
+          ]
+          system_status_lines.extend(list_lines((f"- Changed: `{x}`" for x in changed_files), "- No source file changes detected."))
+          system_status_lines.extend([f"- Deleted: `{x}`" for x in deleted_files])
+          system_status_lines.extend([
               "",
               "## README / frontend alignment",
               "- The frontend uses safe imports and fallback UI for missing modules.",
               "- The README describes a multi-module science platform with a Streamlit command centre.",
               "- This workflow keeps its writes inside `docs/` only.",
               "",
-          ]) + "\n"
+          ])
+          system_status_content = "\n".join(system_status_lines)
 
           repo_index_content = "\n".join([
               "# Documentation index",
@@ -284,7 +295,7 @@ jobs:
               "## Latest snapshot",
               f"- {today}",
               "",
-          ]) + "\n"
+          ])
 
           roadmap_content = "\n".join([
               "# Docs roadmap",
@@ -301,7 +312,7 @@ jobs:
               "- No source files are touched.",
               "- Commits happen only when there is a real diff.",
               "",
-          ]) + "\n"
+          ])
 
           daily_lines = [
               f"# Daily snapshot — {today}",
@@ -309,21 +320,27 @@ jobs:
               f"Generated: {now_utc}",
               "",
               "## What changed in the codebase",
-              *[f"- {x}" for x in changed_files] if changed_files else ["- No source changes detected in the current comparison window."],
+          ]
+          daily_lines.extend(list_lines((f"- {x}" for x in changed_files), "- No source changes detected in the current comparison window."))
+          daily_lines.extend([
               "",
               "## Detected project features",
-              *[f"- {x}" for x in detected_features] if detected_features else ["- No project features detected."],
+          ])
+          daily_lines.extend(list_lines((f"- {x}" for x in detected_features), "- No project features detected."))
+          daily_lines.extend([
               "",
               "## Visible backend list from the README",
-              *[f"- {line}" for line in module_lines] if module_lines else ["- README module layout not found."],
+          ])
+          daily_lines.extend(list_lines((f"- {line}" for line in module_lines), "- README module layout not found."))
+          daily_lines.extend([
               "",
               "## Notes",
               "- This entry is generated from the real repository state.",
               "- It is kept under `docs/generated/history/`.",
               "- Older daily entries are removed after 7 days.",
               "",
-          ]
-          daily_content = "\n".join(daily_lines).replace("\n\n\n", "\n\n") + "\n"
+          ])
+          daily_content = "\n".join(daily_lines)
 
           changelog_path = docs / "changelog.md"
           changelog_header = [
@@ -339,10 +356,10 @@ jobs:
               changelog_entries.extend([
                   f"## {today}",
                   "",
-                  *[f"- Changed: `{x}`" for x in changed_files] if changed_files else ["- No changed files listed."],
-                  *[f"- Deleted: `{x}`" for x in deleted_files] if deleted_files else [],
-                  "",
               ])
+              changelog_entries.extend(list_lines((f"- Changed: `{x}`" for x in changed_files), "- No changed files listed."))
+              changelog_entries.extend([f"- Deleted: `{x}`" for x in deleted_files])
+              changelog_entries.append("")
 
           if existing_changelog.strip().startswith("# Changelog"):
               new_changelog = existing_changelog.rstrip()
