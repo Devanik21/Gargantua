@@ -58,7 +58,7 @@ jobs:
           fi
 
       - name: Build docs artifacts
-        if: steps.gate.outputs.run == 'true'
+        if: steps.gate.outputs.run == 'true' || github.event_name == 'workflow_dispatch'
         shell: bash
         env:
           TODAY: ${{ steps.gate.outputs.today }}
@@ -373,7 +373,7 @@ jobs:
           PY
 
       - name: Prune generated history older than 7 days
-        if: steps.gate.outputs.run == 'true'
+        if: steps.gate.outputs.run == 'true' || github.event_name == 'workflow_dispatch'
         shell: bash
         run: |
           set -euo pipefail
@@ -381,7 +381,7 @@ jobs:
           find docs/generated/history -type d -empty -delete 2>/dev/null || true
 
       - name: Commit docs changes once
-        if: steps.gate.outputs.run == 'true'
+        if: steps.gate.outputs.run == 'true' || github.event_name == 'workflow_dispatch'
         shell: bash
         run: |
           set -euo pipefail
@@ -396,4 +396,4 @@ jobs:
 
           git add docs
           git commit -m "docs: refresh Interstellar documentation"
-          git push
+          git push origin "HEAD:${GITHUB_REF_NAME}"
