@@ -1,6 +1,7 @@
 # INTERSTELLAR · System Status
 
-> Auto-generated · 2026-06-13 20:06 UTC
+> Auto-generated · `2026-06-14 06:38:10 UTC`
+> Run #1 | Slot M (manual) | SHA `6f01b13`
 
 ---
 
@@ -8,8 +9,12 @@
 
 **Status:** ✅ NOMINAL
 **Tracked files present:** 10 / 10
-**Backend modules detected:** 8 / 8
+**Python files in root:** 9
+**Backend modules:** 8
 **Navigation pages:** 27
+**Bot uptime:** 0 days
+**Total bot runs:** 1
+**Git commits (all-time):** 113
 
 ---
 
@@ -17,19 +22,35 @@
 
 | Category | Files |
 |----------|-------|
-| Changed | `ENDURANCE.py`, `gravity_engine.py`, `relativity_calculator.py`, `planet_analyzer.py`, `wormhole_navigator.py`, `tesseract_decoder.py`, `crew_telemetry.py`, `mission_reporter.py`, `quantum_singularity.py`, `README.md` |
-| Deleted | — |
-| New     | `ENDURANCE.py`, `gravity_engine.py`, `relativity_calculator.py`, `planet_analyzer.py`, `wormhole_navigator.py`, `tesseract_decoder.py`, `crew_telemetry.py`, `mission_reporter.py`, `quantum_singularity.py`, `README.md` |
+| Modified | `ENDURANCE.py`, `crew_telemetry.py`, `gravity_engine.py`, `mission_reporter.py`, `planet_analyzer.py`, `quantum_singularity.py`, `relativity_calculator.py`, `tesseract_decoder.py`, `wormhole_navigator.py`, `README.md` |
+| Added    | `ENDURANCE.py`, `crew_telemetry.py`, `gravity_engine.py`, `mission_reporter.py`, `planet_analyzer.py`, `quantum_singularity.py`, `relativity_calculator.py`, `tesseract_decoder.py`, `wormhole_navigator.py`, `README.md` |
+| Deleted  | — |
 
-**Python files changed:** 9
-**Docs / README changed:** 1
+**Repo changed this run:** Yes
+
+---
+
+## Python File Metrics
+
+| File | Lines | Functions | Classes | Imports |
+|------|------:|----------:|--------:|--------:|
+| `ENDURANCE.py` | 2,640 | 25 | 0 | 18 |
+| `crew_telemetry.py` | 2,179 | 13 | 21 | 20 |
+| `gravity_engine.py` | 3,036 | 15 | 14 | 20 |
+| `mission_reporter.py` | 1,808 | 10 | 18 | 16 |
+| `planet_analyzer.py` | 2,706 | 14 | 15 | 20 |
+| `quantum_singularity.py` | 2,200 | 12 | 12 | 20 |
+| `relativity_calculator.py` | 2,801 | 9 | 13 | 18 |
+| `tesseract_decoder.py` | 2,176 | 9 | 13 | 20 |
+| `wormhole_navigator.py` | 2,088 | 9 | 13 | 20 |
+| **TOTAL** | **21,634** | **116** | **119** | — |
 
 ---
 
 ## File Hash Registry
 
-| File | SHA-256 (16 chars) |
-|------|--------------------|
+| File | SHA-256 (16 chars) | |
+|------|--------------------|-|
 | `ENDURANCE.py` | `73a8735d2ff295cb` | ← **new**
 | `README.md` | `c648deec70fa849f` | ← **new**
 | `crew_telemetry.py` | `9fdd5e1309a959ef` | ← **new**
@@ -43,17 +64,12 @@
 
 ---
 
-## Mission Constants Snapshot
+## Git Activity (last 30 days)
 
 ```
-PLAN_A_PCT        = 71.4%
-PLAN_B_EMBRYOS    = 5000
-TARS_HONESTY      = 90%
-TARS_HUMOUR       = 75%
-BLIGHT_SEVERITY   = CRITICAL
-WORMHOLE_STATUS   = STABLE
+N/A
 ```
 
 ---
 
-*Snapshot: 2026-06-13 20:06:32 UTC*
+*Generated: 2026-06-14 06:38:10 UTC*
