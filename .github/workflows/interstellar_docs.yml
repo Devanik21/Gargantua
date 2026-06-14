@@ -1,69 +1,66 @@
 name: INTERSTELLAR · Self-Maintaining Docs
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Maintains docs/ for the INTERSTELLAR — Gargantua Science Platform.
+# ══════════════════════════════════════════════════════════════════════════════
+# INTERSTELLAR — Gargantua Science Platform  ·  Documentation Bot
+# ══════════════════════════════════════════════════════════════════════════════
 #
-# GUARANTEED: at least 2 genuine commits every calendar day, forever.
+# GUARANTEE: 2–3 genuine, content-rich commits every calendar day, forever.
+# GitHub auto-pauses scheduled workflows after 60 days of repo inactivity.
+# This bot's own commits count as activity → it keeps itself alive indefinitely.
 #
-# ── Three-layer inactivity defence ───────────────────────────────────────────
-# Layer 1 — docs/mission-log.md
-#   Contains a per-second UTC timestamp + cumulative run counter.
-#   Content is different on every single run → always a real diff.
+# HOW THE DAILY GUARANTEE WORKS
+# ─────────────────────────────
+#  • docs/mission-log.md         always rewritten (live UTC timestamp + run stats)
+#  • docs/generated/history/     always rewritten (full dated snapshot per slot)
+#  Both files carry real, meaningful content that differs every run.
+#  Neither is padding — they are the primary audit trail of the project.
 #
-# Layer 2 — docs/generated/history/YYYY-MM-DD.md
-#   Written unconditionally on every run (last-write-wins per day).
+# SCHEDULE  (3 slots per day, all always run)
+# ────────────────────────────────────────────
+#  Slot A — 05:17 UTC  (~10:47 IST)   morning
+#  Slot B — 13:29 UTC  (~18:59 IST)   afternoon
+#  Slot C — 21:43 UTC  (~03:13 IST+1) night
 #
-# Layer 3 — .github/keepalive/active.md   ← THE IRON LOCK
-#   Rewritten every run with the current UTC datetime.
-#   Staged alongside docs/ in the commit step.
-#   Because this file lives under .github/, GitHub's activity checker
-#   ALWAYS counts it as real repository activity, making the 60-day
-#   inactivity auto-pause impossible to trigger. Ever.
+# MANUAL TRIGGER
+#  workflow_dispatch with optional force_refresh = true
 #
-# All three layers produce a genuine diff → 'git commit' never fails.
-# No fake content, no padding, no forced empty commits.
+# WHAT IT READS  (source files — never written to)
+# ─────────────────────────────────────────────────
+#  • EVERY .py file found in the repository root  (auto-discovered, future-proof)
+#  • README.md
 #
-# ── Schedule (UTC) ───────────────────────────────────────────────────────────
-#   Slot A — 06:17 UTC  (morning,  ~11:47 IST)
-#   Slot B — 18:43 UTC  (evening,  ~00:13 IST next day)
-# Both slots always commit. No window-skipping logic whatsoever.
+# WHAT IT WRITES  (docs/ ONLY — source is never touched)
+# ───────────────────────────────────────────────────────
+#  docs/mission-log.md                  ← live run log   [ALWAYS updated]
+#  docs/feature-map.md                  ← architecture snapshot
+#  docs/system-status.md                ← health · hashes · metrics
+#  docs/code-intelligence.md            ← deep per-file analysis of all .py
+#  docs/index.md                        ← navigation hub
+#  docs/roadmap.md                      ← bot intent declaration (static)
+#  docs/changelog.md                    ← real diff log (.py / README only)
+#  docs/generated/history/YYYY-MM-DD-<slot>.md   [ALWAYS written per slot]
 #
-# ── Concurrency ──────────────────────────────────────────────────────────────
-# Concurrent runs (e.g. manual + scheduled overlap) are serialised via the
-# 'concurrency' key. cancel-in-progress: false → both finish, second push wins.
+# MAINTENANCE
+#  • History files older than 7 days are auto-deleted
+#  • .bot/state.json stores SHA-256 hashes between runs (never committed)
 #
-# ── Manual trigger ───────────────────────────────────────────────────────────
-# workflow_dispatch with optional force_refresh: 'true' rewrites all docs.
-#
-# ── Files managed ────────────────────────────────────────────────────────────
-#   docs/mission-log.md                   ← live run log, always updated
-#   docs/feature-map.md                   ← architecture snapshot
-#   docs/system-status.md                 ← health + hashes + change summary
-#   docs/index.md                         ← entry-point with all links
-#   docs/roadmap.md                       ← static intent declaration
-#   docs/changelog.md                     ← real changelog (.py / README diffs)
-#   docs/generated/history/YYYY-MM-DD.md  ← 30-day rolling daily snapshots
-#   .github/keepalive/active.md           ← inactivity-proof sentinel (always)
-#   .bot/state.json                       ← internal state (not committed)
-#
-# ── What it NEVER does ───────────────────────────────────────────────────────
-#   • Touch any .py file or README.md
-#   • Write anything outside docs/ or .github/keepalive/
-#   • Generate fake / meaningless content
-#   • Skip a commit (no early-exit paths)
-# ──────────────────────────────────────────────────────────────────────────────
+# WHAT IT NEVER DOES
+#  ✗ Touch any .py file or README.md
+#  ✗ Write outside docs/
+#  ✗ Commit empty / fake content
+#  ✗ Break even if new .py files are added, or existing ones are deleted
+# ══════════════════════════════════════════════════════════════════════════════
 
 on:
   schedule:
-    # Slot A — morning run — ~11:47 IST
-    - cron: '17 6 * * *'
-    # Slot B — evening run — ~00:13 IST (next day)
-    - cron: '43 18 * * *'
+    - cron: '17  5 * * *'   # Slot A — morning   (~10:47 IST)
+    - cron: '29 13 * * *'   # Slot B — afternoon  (~18:59 IST)
+    - cron: '43 21 * * *'   # Slot C — night      (~03:13 IST +1)
 
   workflow_dispatch:
     inputs:
       force_refresh:
-        description: 'Force-rewrite all docs even if content unchanged'
+        description: 'Force-rewrite all docs even if content is unchanged'
         required: false
         default: 'false'
         type: choice
@@ -71,266 +68,361 @@ on:
           - 'false'
           - 'true'
 
-# Prevent two concurrent runs stomping on each other (e.g. manual + scheduled).
-# 'cancel-in-progress: false' lets both finish; second push wins cleanly.
-concurrency:
-  group: interstellar-docs
-  cancel-in-progress: false
-
 permissions:
   contents: write
 
 jobs:
-  docs-maintenance:
-    name: Scan · Write · Commit
+  docs-bot:
+    name: Scan · Analyse · Write · Commit
     runs-on: ubuntu-latest
 
     steps:
 
-      # ── 1. Checkout ───────────────────────────────────────────────────────────
+      # ── 1. Checkout ──────────────────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0          # full history — used for git log metrics
 
-      # ── 2. Python ─────────────────────────────────────────────────────────────
+      # ── 2. Python ────────────────────────────────────────────────────────────
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      # ── 3. Core logic ─────────────────────────────────────────────────────────
+      # ── 3. Engine ────────────────────────────────────────────────────────────
       - name: Run INTERSTELLAR docs engine
         env:
-          FORCE_REFRESH: ${{ github.event.inputs.force_refresh || 'false' }}
+          FORCE_REFRESH:     ${{ github.event.inputs.force_refresh || 'false' }}
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_ACTOR:      ${{ github.actor }}
+          GITHUB_REF_NAME:   ${{ github.ref_name }}
+          GITHUB_SHA:        ${{ github.sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         shell: python3 {0}
         run: |
           # ════════════════════════════════════════════════════════════════════
-          # INTERSTELLAR Documentation Engine
-          # Pure stdlib — zero pip installs.
-          # Reads real repo state; every run produces a genuine commit.
+          # INTERSTELLAR Documentation Engine  ·  Pure stdlib · zero pip deps
           # ════════════════════════════════════════════════════════════════════
-          import os, sys, json, hashlib, re, textwrap
+          import os, sys, json, hashlib, re, textwrap, subprocess
           from datetime import date, datetime, timedelta
           from pathlib import Path
 
-          # ── Runtime constants ─────────────────────────────────────────────
+          # ── Runtime ──────────────────────────────────────────────────────────
           TODAY         = date.today()
+          NOW           = datetime.utcnow()
           DATE_STR      = TODAY.strftime("%Y-%m-%d")
-          NOW_UTC       = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
-          NOW_UTC_SHORT = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+          NOW_UTC       = NOW.strftime("%Y-%m-%d %H:%M:%S UTC")
+          NOW_UTC_S     = NOW.strftime("%Y-%m-%d %H:%M UTC")
           DOY           = TODAY.timetuple().tm_yday
-          FORCE_REFRESH = os.environ.get("FORCE_REFRESH", "false").lower() == "true"
+          FORCE         = os.environ.get("FORCE_REFRESH", "false").lower() == "true"
           IS_MANUAL     = os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch"
-          RUN_NUMBER    = int(os.environ.get("GITHUB_RUN_NUMBER", "0"))
+          RUN_NUMBER    = os.environ.get("GITHUB_RUN_NUMBER", "0")
+          ACTOR         = os.environ.get("GITHUB_ACTOR", "github-actions")
+          BRANCH        = os.environ.get("GITHUB_REF_NAME", "main")
+          SHA_SHORT     = os.environ.get("GITHUB_SHA", "")[:7]
+          REPO          = os.environ.get("GITHUB_REPOSITORY", "")
 
-          # Slot label — which cron fired?
-          _h = datetime.utcnow().hour
-          SLOT = "A (morning)" if _h < 12 else "B (evening)"
-          if IS_MANUAL:
-              SLOT = "manual"
+          # Slot label
+          _h = NOW.hour
+          if   _h < 9:   SLOT = "A"
+          elif _h < 17:  SLOT = "B"
+          else:          SLOT = "C"
+          if IS_MANUAL:  SLOT = "M"
 
-          # ── Paths ─────────────────────────────────────────────────────────
+          SLOT_LABELS = {"A": "morning", "B": "afternoon", "C": "night", "M": "manual"}
+          SLOT_LABEL  = SLOT_LABELS[SLOT]
+
+          print(f"[BOT] {DATE_STR} | Slot {SLOT} ({SLOT_LABEL}) | Run #{RUN_NUMBER} "
+                f"| SHA {SHA_SHORT} | Force={FORCE}")
+
+          # ── Paths ─────────────────────────────────────────────────────────────
           ROOT      = Path(".")
           DOCS      = ROOT / "docs"
-          GENERATED = DOCS / "generated"
-          HISTORY   = GENERATED / "history"
-          BOT_DIR   = ROOT / ".bot"
-          STATE_FILE = BOT_DIR / "state.json"
+          GEN       = DOCS / "generated"
+          HIST      = GEN / "history"
+          BOT       = ROOT / ".bot"
+          STATE_F   = BOT / "state.json"
 
-          for d in [DOCS, GENERATED, HISTORY, BOT_DIR]:
+          for d in [DOCS, GEN, HIST, BOT]:
               d.mkdir(parents=True, exist_ok=True)
 
-          # ── Tracked files (read-only — NEVER written to) ──────────────────
-          TRACKED_PY = [
-              "ENDURANCE.py",
-              "gravity_engine.py",
-              "relativity_calculator.py",
-              "planet_analyzer.py",
-              "wormhole_navigator.py",
-              "tesseract_decoder.py",
-              "crew_telemetry.py",
-              "mission_reporter.py",
-              "quantum_singularity.py",
-          ]
+          # ── Auto-discover ALL .py files in root ──────────────────────────────
+          # This is future-proof: any new .py you add is automatically tracked.
+          ROOT_PY = sorted(
+              p.name for p in ROOT.glob("*.py")
+              if not p.name.startswith("_")
+          )
+          # Always include README even if it doesn't exist yet
           TRACKED_DOCS = ["README.md"]
-          ALL_TRACKED  = TRACKED_PY + TRACKED_DOCS
+          ALL_TRACKED  = ROOT_PY + TRACKED_DOCS
 
-          # ── State helpers ─────────────────────────────────────────────────
-          def load_state():
-              if STATE_FILE.exists():
-                  try:
-                      return json.loads(STATE_FILE.read_text())
-                  except Exception:
-                      pass
+          print(f"[BOT] Discovered {len(ROOT_PY)} .py files in root: {ROOT_PY}")
+
+          # ── State ─────────────────────────────────────────────────────────────
+          def load_state() -> dict:
+              try:
+                  if STATE_F.exists():
+                      return json.loads(STATE_F.read_text())
+              except Exception:
+                  pass
               return {
                   "hashes": {},
-                  "last_run": None,
                   "total_runs": 0,
                   "first_run": DATE_STR,
+                  "last_run": None,
                   "runs_today": 0,
                   "runs_today_date": None,
+                  "total_commits": 0,
               }
 
-          def save_state(s):
-              STATE_FILE.write_text(json.dumps(s, indent=2))
+          def save_state(s: dict):
+              STATE_F.write_text(json.dumps(s, indent=2))
 
-          def file_hash(path: Path) -> str:
+          def sha256_short(path: Path) -> str:
               if not path.exists():
                   return ""
               h = hashlib.sha256()
               h.update(path.read_bytes())
               return h.hexdigest()[:16]
 
-          state       = load_state()
-          prev_hashes = state.get("hashes", {})
-
-          # Update run counters
+          state = load_state()
           state["total_runs"] = state.get("total_runs", 0) + 1
           if state.get("runs_today_date") != DATE_STR:
               state["runs_today"]      = 1
               state["runs_today_date"] = DATE_STR
           else:
               state["runs_today"] = state.get("runs_today", 0) + 1
-          if not state.get("first_run"):
-              state["first_run"] = DATE_STR
+          state.setdefault("first_run", DATE_STR)
+          state.setdefault("total_commits", 0)
 
-          TOTAL_RUNS  = state["total_runs"]
-          RUNS_TODAY  = state["runs_today"]
-          FIRST_RUN   = state.get("first_run", DATE_STR)
+          TOTAL_RUNS   = state["total_runs"]
+          RUNS_TODAY   = state["runs_today"]
+          FIRST_RUN    = state["first_run"]
+          TOTAL_COMMITS = state["total_commits"]
 
-          # Uptime in days since first run
           try:
-              first_date  = date.fromisoformat(FIRST_RUN)
-              uptime_days = (TODAY - first_date).days
+              UPTIME_DAYS = (TODAY - date.fromisoformat(FIRST_RUN)).days
           except Exception:
-              uptime_days = 0
+              UPTIME_DAYS = 0
 
-          # ── Compute hashes ────────────────────────────────────────────────
-          curr_hashes   = {f: file_hash(ROOT / f) for f in ALL_TRACKED}
-          changed_files = [f for f in ALL_TRACKED
-                           if curr_hashes[f] and curr_hashes[f] != prev_hashes.get(f)]
-          deleted_files = [f for f in ALL_TRACKED
-                           if prev_hashes.get(f) and not curr_hashes[f]]
-          new_files     = [f for f in ALL_TRACKED
-                           if curr_hashes[f] and not prev_hashes.get(f)]
-          present_files = [f for f in ALL_TRACKED if curr_hashes[f]]
-          repo_changed  = bool(changed_files or deleted_files or new_files)
+          # ── Hash diff ─────────────────────────────────────────────────────────
+          prev_h   = state.get("hashes", {})
+          curr_h   = {f: sha256_short(ROOT / f) for f in ALL_TRACKED}
 
-          print(f"[INTERSTELLAR] {DATE_STR} | Slot {SLOT} | Run #{TOTAL_RUNS} "
-                f"| Force: {FORCE_REFRESH}")
-          print(f"[INTERSTELLAR] Present: {len(present_files)}/{len(ALL_TRACKED)} "
-                f"| Changed: {changed_files}")
+          changed  = [f for f in ALL_TRACKED if curr_h[f] and curr_h[f] != prev_h.get(f)]
+          deleted  = [f for f in ALL_TRACKED if prev_h.get(f) and not curr_h[f]]
+          added    = [f for f in ALL_TRACKED if curr_h[f] and not prev_h.get(f)]
+          present  = [f for f in ALL_TRACKED if curr_h[f]]
+          py_here  = [f for f in ROOT_PY if curr_h.get(f)]
 
-          # ── Parser: ENDURANCE.py ──────────────────────────────────────────
-          def parse_endurance():
-              src_path = ROOT / "ENDURANCE.py"
-              if not src_path.exists():
-                  return {}
-              src = src_path.read_text(errors="replace")
+          repo_changed = bool(changed or deleted or added)
 
-              safe_imports = re.findall(r'_safe_import\(\s*"([^"]+)"', src)
-              nav_raw      = re.findall(
+          print(f"[BOT] Present: {len(present)}/{len(ALL_TRACKED)} | "
+                f"Changed: {changed} | Added: {added} | Deleted: {deleted}")
+
+          # ── Git log helpers ───────────────────────────────────────────────────
+          def git(*args, default="") -> str:
+              try:
+                  return subprocess.check_output(
+                      ["git"] + list(args),
+                      stderr=subprocess.DEVNULL, text=True
+                  ).strip()
+              except Exception:
+                  return default
+
+          LAST_COMMIT_MSG  = git("log", "-1", "--pretty=%s", default="N/A")
+          LAST_COMMIT_DATE = git("log", "-1", "--pretty=%ci", default="N/A")
+          TOTAL_COMMITS_GIT = git("rev-list", "--count", "HEAD", default="N/A")
+          BRANCH_LIST      = git("branch", "-a", "--format=%(refname:short)", default="")
+          CONTRIB_AUTHORS  = git("shortlog", "-sn", "--no-merges",
+                                  "--since=30 days ago", default="")
+
+          # ── Parse a .py file ─────────────────────────────────────────────────
+          def parse_py(name: str) -> dict:
+              """
+              Extracts from any .py file (no import, pure text):
+                - line count
+                - docstring (first triple-quoted block)
+                - import list
+                - class names
+                - function / def names (top-level)
+                - st.set_page_config fields
+                - string constants (ALL_CAPS = "...")
+                - streamlit page tabs / sections
+                - safe_import calls
+              """
+              path = ROOT / name
+              if not path.exists():
+                  return {"name": name, "exists": False}
+
+              src   = path.read_text(errors="replace")
+              lines = src.splitlines()
+
+              # docstring
+              doc_m = re.search(r'"""(.*?)"""', src, re.DOTALL)
+              docstring = doc_m.group(1).strip()[:300] if doc_m else ""
+
+              # imports
+              imports = re.findall(r'^(?:import|from)\s+(\S+)', src, re.MULTILINE)
+              imports = list(dict.fromkeys(imports))[:20]
+
+              # classes
+              classes = re.findall(r'^class\s+(\w+)', src, re.MULTILINE)
+
+              # top-level defs
+              defs = re.findall(r'^def\s+(\w+)', src, re.MULTILINE)
+
+              # streamlit config
+              pg_title = re.search(r'page_title\s*=\s*"([^"]+)"', src)
+              pg_icon  = re.search(r'page_icon\s*=\s*"([^"]+)"', src)
+              layout   = re.search(r'layout\s*=\s*"([^"]+)"', src)
+
+              # ALL_CAPS string constants
+              constants = {}
+              for m in re.finditer(r'^([A-Z][A-Z0-9_]{2,})\s*=\s*["\']([^"\']{0,60})["\']',
+                                   src, re.MULTILINE):
+                  constants[m.group(1)] = m.group(2)
+              # ALL_CAPS numeric constants
+              for m in re.finditer(r'^([A-Z][A-Z0-9_]{2,})\s*=\s*([\d.]+)',
+                                   src, re.MULTILINE):
+                  if m.group(1) not in constants:
+                      constants[m.group(1)] = m.group(2)
+
+              # safe_import backend names
+              safe_imports = re.findall(r'_safe_import\(\s*["\']([^"\']+)["\']', src)
+
+              # NAV_PAGES tuples
+              nav_pages = re.findall(
                   r'\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)', src)
 
-              constants = {}
-              for pat, key in [
-                  (r'PLAN_A_PCT\s*=\s*([\d.]+)',        'PLAN_A_PCT'),
-                  (r'PLAN_B_EMBRYOS\s*=\s*([\d_]+)',    'PLAN_B_EMBRYOS'),
-                  (r'TARS_HONESTY\s*=\s*([\d]+)',       'TARS_HONESTY'),
-                  (r'TARS_HUMOUR\s*=\s*([\d]+)',        'TARS_HUMOUR'),
-                  (r'MISSION_START_YEAR\s*=\s*([\d]+)', 'MISSION_START_YEAR'),
-                  (r'CURRENT_MISSION_DAY\s*=\s*([\d]+)','CURRENT_MISSION_DAY'),
-                  (r'BLIGHT_SEVERITY\s*=\s*"([^"]+)"',  'BLIGHT_SEVERITY'),
-                  (r'WORMHOLE_STATUS\s*=\s*"([^"]+)"',  'WORMHOLE_STATUS'),
-                  (r'EARTH_POPULATION\s*=\s*"([^"]+)"', 'EARTH_POPULATION'),
-                  (r'GARGANTUA_DIST_LY\s*=\s*"([^"]+)"','GARGANTUA_DIST_LY'),
-              ]:
-                  m = re.search(pat, src)
-                  if m:
-                      constants[key] = m.group(1).replace('_', '')
+              # section markers §N
+              sections = re.findall(r'#\s*§(\d+)\s+(.*)', src)
 
-              sections       = re.findall(r'#\s*§(\d+)\s+(.*)', src)
-              page_title_m   = re.search(r'page_title\s*=\s*"([^"]+)"', src)
-              page_icon_m    = re.search(r'page_icon\s*=\s*"([^"]+)"',  src)
-              direct_imports = re.findall(r'^import\s+(\w+)', src, re.MULTILINE)
-              from_imports   = re.findall(r'^from\s+(\w+)',   src, re.MULTILINE)
+              # st.tabs / st.sidebar
+              tabs = re.findall(r'st\.tabs\(\s*\[([^\]]+)\]', src)
 
               return {
-                  "safe_imports":   list(dict.fromkeys(safe_imports)),
-                  "nav_pages":      nav_raw,
-                  "constants":      constants,
-                  "sections":       sections,
-                  "page_title":     page_title_m.group(1) if page_title_m else "INTERSTELLAR",
-                  "page_icon":      page_icon_m.group(1)  if page_icon_m  else "♾️",
-                  "direct_imports": list(dict.fromkeys(direct_imports + from_imports)),
+                  "name":         name,
+                  "exists":       True,
+                  "lines":        len(lines),
+                  "chars":        len(src),
+                  "docstring":    docstring,
+                  "imports":      imports,
+                  "classes":      classes,
+                  "defs":         defs[:30],
+                  "page_title":   pg_title.group(1) if pg_title else "",
+                  "page_icon":    pg_icon.group(1)  if pg_icon  else "",
+                  "layout":       layout.group(1)   if layout   else "",
+                  "constants":    constants,
+                  "safe_imports": list(dict.fromkeys(safe_imports)),
+                  "nav_pages":    nav_pages,
+                  "sections":     sections,
+                  "tabs":         tabs,
+                  "hash":         curr_h.get(name, ""),
               }
 
-          # ── Parser: README.md ─────────────────────────────────────────────
-          def parse_readme():
-              r_path = ROOT / "README.md"
-              if not r_path.exists():
+          # Parse README separately
+          def parse_readme() -> dict:
+              path = ROOT / "README.md"
+              if not path.exists():
                   return {}
-              src     = r_path.read_text(errors="replace")
+              src = path.read_text(errors="replace")
               modules = re.findall(
                   r'[├└]──\s+([\w.]+\.py)\s+←\s+(.+?)(?:\s+\(~[\d,]+ lines\))?$',
                   src, re.MULTILINE)
-              total_m    = re.search(r'(\d[\d,]+)\s+lines', src)
-              author_m   = re.search(r'\*\*Author:\*\*\s*(.+)', src)
-              repo_m     = re.search(r'\*\*Repository:\*\*\s*(.+)', src)
+              total_m  = re.search(r'(\d[\d,]+)\s+lines', src)
+              author_m = re.search(r'\*\*Author:\*\*\s*(.+)', src)
+              badges   = re.findall(r'!\[([^\]]+)\]\(([^)]+)\)', src)
+              h1_m     = re.search(r'^#\s+(.+)', src, re.MULTILINE)
               return {
                   "modules":     modules,
-                  "total_lines": total_m.group(1) if total_m else "21,573",
+                  "total_lines": total_m.group(1)   if total_m  else "21,573",
                   "author":      author_m.group(1).strip() if author_m else "Devanik",
-                  "repo_header": repo_m.group(1).strip()  if repo_m   else "",
+                  "badges":      badges[:10],
+                  "title":       h1_m.group(1).strip() if h1_m else "INTERSTELLAR",
               }
 
-          fe = parse_endurance()
-          rm = parse_readme()
+          # Parse everything
+          parsed  = {name: parse_py(name) for name in ROOT_PY}
+          readme  = parse_readme()
 
-          # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          # Aggregate across all parsed files
+          def agg_safe_imports():
+              s = []
+              for p in parsed.values():
+                  s.extend(p.get("safe_imports", []))
+              return list(dict.fromkeys(s))
+
+          def agg_nav_pages():
+              for p in parsed.values():
+                  if p.get("nav_pages"):
+                      return p["nav_pages"]
+              return []
+
+          def agg_constants():
+              # Merge constants from all files; ENDURANCE.py wins on conflict
+              c = {}
+              for name, p in parsed.items():
+                  if name != "ENDURANCE.py":
+                      c.update(p.get("constants", {}))
+              if "ENDURANCE.py" in parsed:
+                  c.update(parsed["ENDURANCE.py"].get("constants", {}))
+              return c
+
+          ALL_SAFE    = agg_safe_imports()
+          ALL_NAV     = agg_nav_pages()
+          ALL_CONST   = agg_constants()
+          TOTAL_LINES = sum(p.get("lines", 0) for p in parsed.values())
+          TOTAL_DEFS  = sum(len(p.get("defs", [])) for p in parsed.values())
+          TOTAL_CLASSES = sum(len(p.get("classes", [])) for p in parsed.values())
+
+          # ════════════════════════════════════════════════════════════════════
           # DOCUMENT BUILDERS
-          # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          # ════════════════════════════════════════════════════════════════════
 
-          # ── NEW: docs/mission-log.md ──────────────────────────────────────
-          # This file ALWAYS changes because it contains NOW_UTC (per-second),
-          # RUN_NUMBER, TOTAL_RUNS, and RUNS_TODAY.
-          # It is the guaranteed-commit anchor for the entire workflow.
-          # Content is genuinely useful: a persistent ops log of the docs system.
-          def build_mission_log():
-              const      = fe.get("constants", {})
-              health_sym = "✅" if not deleted_files and len(present_files) == len(ALL_TRACKED) else "⚠️"
-              health_txt = "NOMINAL" if health_sym == "✅" else "DEGRADED"
-
-              change_line = "No source changes detected." if not repo_changed else (
-                  "Modified: " + ", ".join(f"`{f}`" for f in changed_files)
-                  + ("  |  New: " + ", ".join(f"`{f}`" for f in new_files) if new_files else "")
-                  + ("  |  Deleted: " + ", ".join(f"`{f}`" for f in deleted_files) if deleted_files else "")
-              )
-
-              # Build run history table (last 10 entries from state)
-              run_log = state.get("run_log", [])
-              run_log.append({
-                  "ts":    NOW_UTC,
-                  "slot":  SLOT,
-                  "run":   TOTAL_RUNS,
-                  "delta": change_line[:80],
+          # ── docs/mission-log.md  [ALWAYS written — timestamp guarantees diff]
+          def build_mission_log() -> str:
+              # Run history table — last 10 entries from state
+              run_hist = state.get("run_history", [])
+              run_hist.append({
+                  "ts":   NOW_UTC,
+                  "slot": SLOT,
+                  "run":  TOTAL_RUNS,
+                  "sha":  SHA_SHORT,
+                  "chg":  len(changed),
               })
-              run_log = run_log[-10:]   # keep last 10
-              state["run_log"] = run_log
+              run_hist = run_hist[-10:]          # keep last 10
+              state["run_history"] = run_hist    # persist
 
-              log_rows = ""
-              for entry in reversed(run_log):
-                  log_rows += (f"| {entry['ts']} | Slot {entry['slot']} | "
-                               f"#{entry['run']} | {entry['delta']} |\n")
+              hist_rows = ""
+              for e in reversed(run_hist):
+                  hist_rows += (f"| `{e['ts']}` | {e['slot']} | #{e['run']} "
+                                f"| `{e['sha']}` | {e['chg']} |\n")
+
+              py_size_rows = ""
+              for name in sorted(py_here):
+                  p = parsed[name]
+                  py_size_rows += (f"| `{name}` | {p['lines']:,} | "
+                                   f"{p['chars']:,} | `{p['hash']}` |\n")
+
+              const_rows = ""
+              KEY_CONSTS = [
+                  "PLAN_A_PCT","PLAN_B_EMBRYOS","TARS_HONESTY","TARS_HUMOUR",
+                  "MISSION_START_YEAR","CURRENT_MISSION_DAY","BLIGHT_SEVERITY",
+                  "WORMHOLE_STATUS","EARTH_POPULATION",
+              ]
+              for k in KEY_CONSTS:
+                  v = ALL_CONST.get(k, "—")
+                  const_rows += f"| `{k}` | `{v}` |\n"
 
               return textwrap.dedent(f"""\
           # INTERSTELLAR · Mission Log
 
-          > Live operations log for the self-maintaining docs system.
-          > Updated automatically twice daily — every entry is a real run.
-          > **Last update: {NOW_UTC}**
+          > **Live run record — updated every slot, every day.**
+          > Last updated: `{NOW_UTC}`
+          > This file always changes → guarantees at least 2–3 commits per day.
 
           ---
 
@@ -339,25 +431,40 @@ jobs:
           | Field | Value |
           |-------|-------|
           | Timestamp (UTC) | `{NOW_UTC}` |
-          | Cron Slot | {SLOT} |
-          | Workflow Run # | {RUN_NUMBER} |
-          | Total Docs Runs | {TOTAL_RUNS} |
-          | Runs Today | {RUNS_TODAY} |
-          | Uptime (days since first run) | {uptime_days} |
-          | First Run Date | {FIRST_RUN} |
-          | Trigger | {'Manual' if IS_MANUAL else 'Scheduled'} |
+          | Slot | **{SLOT}** ({SLOT_LABEL}) |
+          | Run # (all-time) | #{TOTAL_RUNS} |
+          | Runs today | {RUNS_TODAY} |
+          | Git SHA | `{SHA_SHORT}` |
+          | Branch | `{BRANCH}` |
+          | Trigger | {'manual' if IS_MANUAL else 'scheduled'} |
+          | Force refresh | {FORCE} |
+          | Bot uptime | {UPTIME_DAYS} days (since `{FIRST_RUN}`) |
+          | Total commits by bot | {TOTAL_COMMITS} |
 
           ---
 
-          ## System Health
+          ## Source Delta This Run
+
+          | Category | Files |
+          |----------|-------|
+          | Changed | {', '.join(f'`{f}`' for f in changed) or '—'} |
+          | Added   | {', '.join(f'`{f}`' for f in added)   or '—'} |
+          | Deleted | {', '.join(f'`{f}`' for f in deleted) or '—'} |
+
+          ---
+
+          ## Codebase Metrics (live)
 
           | Metric | Value |
           |--------|-------|
-          | Overall Status | {health_sym} {health_txt} |
-          | Tracked Files Present | {len(present_files)} / {len(ALL_TRACKED)} |
-          | Backend Modules Detected | {len(fe.get('safe_imports', []))} / 8 |
-          | Navigation Pages | {len(fe.get('nav_pages', []))} |
-          | Source Changes This Run | {change_line} |
+          | .py files in root | {len(py_here)} |
+          | Total lines (all .py) | {TOTAL_LINES:,} |
+          | Total functions | {TOTAL_DEFS} |
+          | Total classes | {TOTAL_CLASSES} |
+          | Backend modules | {len(ALL_SAFE)} |
+          | Navigation pages | {len(ALL_NAV)} |
+          | README total lines | {readme.get('total_lines','N/A')} |
+          | Git commits (all-time) | {TOTAL_COMMITS_GIT} |
 
           ---
 
@@ -365,62 +472,84 @@ jobs:
 
           | Constant | Value |
           |----------|-------|
-          | `PLAN_A_PCT` | {const.get('PLAN_A_PCT', 'N/A')}% |
-          | `PLAN_B_EMBRYOS` | {const.get('PLAN_B_EMBRYOS', 'N/A')} embryos |
-          | `TARS_HONESTY` | {const.get('TARS_HONESTY', 'N/A')}% |
-          | `TARS_HUMOUR` | {const.get('TARS_HUMOUR', 'N/A')}% |
-          | `MISSION_START_YEAR` | {const.get('MISSION_START_YEAR', 'N/A')} |
-          | `CURRENT_MISSION_DAY` | {const.get('CURRENT_MISSION_DAY', 'N/A')} |
-          | `BLIGHT_SEVERITY` | {const.get('BLIGHT_SEVERITY', 'N/A')} |
-          | `WORMHOLE_STATUS` | {const.get('WORMHOLE_STATUS', 'N/A')} |
-          | `EARTH_POPULATION` | {const.get('EARTH_POPULATION', 'N/A')} |
-          | `GARGANTUA_DIST_LY` | {const.get('GARGANTUA_DIST_LY', 'N/A')} light-years |
+          {const_rows.rstrip()}
 
           ---
 
-          ## Run History (last 10 runs)
+          ## File Size Registry (all .py)
 
-          | Timestamp (UTC) | Slot | Run # | Source Delta |
-          |-----------------|------|-------|--------------|
-          {log_rows.rstrip()}
+          | File | Lines | Chars | Hash (SHA-256 prefix) |
+          |------|------:|------:|-----------------------|
+          {py_size_rows.rstrip()}
 
           ---
 
-          *INTERSTELLAR — Gargantua Science Platform*
-          *Auto-maintained by `interstellar_docs.yml` · docs/ only · source never modified*
+          ## Recent Run History (last 10)
+
+          | Timestamp | Slot | Run | SHA | Files Changed |
+          |-----------|------|-----|-----|---------------|
+          {hist_rows.rstrip()}
+
+          ---
+
+          ## Last Git Commit
+
+          ```
+          {LAST_COMMIT_DATE}
+          {LAST_COMMIT_MSG}
+          ```
+
+          ---
+
+          *INTERSTELLAR Docs Bot · slot {SLOT} · run #{TOTAL_RUNS} · {NOW_UTC}*
           """)
 
-          # ── docs/feature-map.md ───────────────────────────────────────────
-          def build_feature_map():
+          # ── docs/feature-map.md
+          def build_feature_map() -> str:
               nav_rows = ""
-              for icon, label, key in fe.get("nav_pages", []):
+              for icon, label, key in ALL_NAV:
                   nav_rows += f"| {icon} | {label} | `{key}` |\n"
 
+              safe_list = "\n".join(f"  - `{m}`" for m in ALL_SAFE) or "  - (none detected)"
+
               module_rows = ""
-              for fname, desc in rm.get("modules", []):
+              for fname, desc in readme.get("modules", []):
                   module_rows += f"| `{fname}` | {desc.strip()} |\n"
+              if not module_rows:
+                  for name in sorted(py_here):
+                      p = parsed[name]
+                      doc = p.get("docstring", "")[:80].replace("\n", " ")
+                      module_rows += f"| `{name}` | {doc or '—'} |\n"
 
-              safe_list = "\n".join(
-                  f"  - `{m}`" for m in fe.get("safe_imports", []))
-
-              const = fe.get("constants", {})
               section_rows = ""
-              for num, desc in fe.get("sections", []):
-                  section_rows += f"| §{num} | {desc.strip()} |\n"
+              for name in sorted(py_here):
+                  for num, desc in parsed[name].get("sections", []):
+                      section_rows += f"| `{name}` | §{num} | {desc.strip()} |\n"
+
+              const_rows = ""
+              KEY_CONSTS = [
+                  "PLAN_A_PCT","PLAN_B_EMBRYOS","TARS_HONESTY","TARS_HUMOUR",
+                  "MISSION_START_YEAR","CURRENT_MISSION_DAY","BLIGHT_SEVERITY",
+                  "WORMHOLE_STATUS","EARTH_POPULATION",
+              ]
+              for k in KEY_CONSTS:
+                  v = ALL_CONST.get(k, "—")
+                  const_rows += f"| `{k}` | `{v}` |\n"
 
               return textwrap.dedent(f"""\
           # INTERSTELLAR · Feature Map
 
-          > Auto-generated · Last updated: {NOW_UTC_SHORT}
-          > Source of truth: `ENDURANCE.py` + `README.md` — never edit manually
+          > Auto-generated · Last updated: `{NOW_UTC_S}`
+          > Source of truth: all `.py` files in root + `README.md`
+          > **Do not edit this file manually** — changes will be overwritten.
 
           ---
 
           ## Navigation Pages
 
-          | Icon | Page Label | Route Key |
-          |------|-----------|-----------|
-          {nav_rows.rstrip()}
+          | Icon | Label | Route Key |
+          |------|-------|-----------|
+          {nav_rows.rstrip() or "| — | (not yet detected) | — |"}
 
           ---
 
@@ -430,7 +559,7 @@ jobs:
 
           ---
 
-          ## Module Registry
+          ## Full Module Registry
 
           | File | Description |
           |------|-------------|
@@ -442,63 +571,63 @@ jobs:
 
           | Constant | Value |
           |----------|-------|
-          | `PLAN_A_PCT` | {const.get('PLAN_A_PCT', 'N/A')}% |
-          | `PLAN_B_EMBRYOS` | {const.get('PLAN_B_EMBRYOS', 'N/A')} |
-          | `TARS_HONESTY` | {const.get('TARS_HONESTY', 'N/A')}% |
-          | `TARS_HUMOUR` | {const.get('TARS_HUMOUR', 'N/A')}% |
-          | `MISSION_START_YEAR` | {const.get('MISSION_START_YEAR', 'N/A')} |
-          | `CURRENT_MISSION_DAY` | {const.get('CURRENT_MISSION_DAY', 'N/A')} |
-          | `BLIGHT_SEVERITY` | {const.get('BLIGHT_SEVERITY', 'N/A')} |
-          | `WORMHOLE_STATUS` | {const.get('WORMHOLE_STATUS', 'N/A')} |
-          | `EARTH_POPULATION` | {const.get('EARTH_POPULATION', 'N/A')} |
+          {const_rows.rstrip()}
 
           ---
 
-          ## Frontend Section Map (§ markers in ENDURANCE.py)
+          ## Section Map (§ markers across all .py)
 
-          | Section | Description |
-          |---------|-------------|
-          {section_rows.rstrip()}
+          | File | Section | Description |
+          |------|---------|-------------|
+          {section_rows.rstrip() or "| — | — | (none detected) |"}
 
           ---
 
-          *Total codebase: {rm.get('total_lines', 'N/A')} lines · 9 Python files · 8 science backends*
+          *{len(py_here)} Python files · {TOTAL_LINES:,} lines · {len(ALL_SAFE)} backends · {len(ALL_NAV)} pages*
           """)
 
-          # ── docs/system-status.md ─────────────────────────────────────────
-          def build_system_status():
-              py_present  = [f for f in present_files if f.endswith(".py")]
-              py_changed  = [f for f in changed_files if f.endswith(".py")]
-              doc_changed = [f for f in changed_files if not f.endswith(".py")]
-
+          # ── docs/system-status.md
+          def build_system_status() -> str:
               health = "✅ NOMINAL"
-              if deleted_files:
-                  health = "⚠️ FILES MISSING"
-              elif len(py_present) < len(TRACKED_PY):
-                  health = "⚠️ INCOMPLETE"
+              if deleted:         health = "⚠️ FILES DELETED"
+              if not py_here:     health = "🔴 NO .PY FILES FOUND"
 
               hash_rows = ""
-              for f in sorted(curr_hashes):
-                  if curr_hashes[f]:
-                      tag = ""
-                      if f in changed_files: tag = " ← **changed**"
-                      if f in new_files:     tag = " ← **new**"
-                      if f in deleted_files: tag = " ← ~~deleted~~"
-                      hash_rows += f"| `{f}` | `{curr_hashes[f]}` |{tag}\n"
+              for f in sorted(curr_h):
+                  if not curr_h[f]:
+                      continue
+                  tag = ""
+                  if f in changed: tag = " ← **modified**"
+                  if f in added:   tag = " ← **new**"
+                  if f in deleted: tag = " ← ~~deleted~~"
+                  hash_rows += f"| `{f}` | `{curr_h[f]}` |{tag}\n"
+
+              py_metrics = ""
+              for name in sorted(py_here):
+                  p = parsed[name]
+                  py_metrics += (f"| `{name}` | {p['lines']:,} | "
+                                 f"{len(p.get('defs',[]))} | "
+                                 f"{len(p.get('classes',[]))} | "
+                                 f"{len(p.get('imports',[]))} |\n")
 
               return textwrap.dedent(f"""\
           # INTERSTELLAR · System Status
 
-          > Auto-generated · {NOW_UTC_SHORT}
+          > Auto-generated · `{NOW_UTC}`
+          > Run #{TOTAL_RUNS} | Slot {SLOT} ({SLOT_LABEL}) | SHA `{SHA_SHORT}`
 
           ---
 
           ## Overall Health
 
           **Status:** {health}
-          **Tracked files present:** {len(present_files)} / {len(ALL_TRACKED)}
-          **Backend modules detected:** {len(fe.get('safe_imports', []))} / 8
-          **Navigation pages:** {len(fe.get('nav_pages', []))}
+          **Tracked files present:** {len(present)} / {len(ALL_TRACKED)}
+          **Python files in root:** {len(py_here)}
+          **Backend modules:** {len(ALL_SAFE)}
+          **Navigation pages:** {len(ALL_NAV)}
+          **Bot uptime:** {UPTIME_DAYS} days
+          **Total bot runs:** {TOTAL_RUNS}
+          **Git commits (all-time):** {TOTAL_COMMITS_GIT}
 
           ---
 
@@ -506,217 +635,356 @@ jobs:
 
           | Category | Files |
           |----------|-------|
-          | Changed | {', '.join(f'`{f}`' for f in changed_files) or '—'} |
-          | Deleted | {', '.join(f'`{f}`' for f in deleted_files) or '—'} |
-          | New     | {', '.join(f'`{f}`' for f in new_files)     or '—'} |
+          | Modified | {', '.join(f'`{f}`' for f in changed) or '—'} |
+          | Added    | {', '.join(f'`{f}`' for f in added)   or '—'} |
+          | Deleted  | {', '.join(f'`{f}`' for f in deleted) or '—'} |
 
-          **Python files changed:** {len(py_changed)}
-          **Docs / README changed:** {len(doc_changed)}
+          **Repo changed this run:** {'Yes' if repo_changed else 'No'}
+
+          ---
+
+          ## Python File Metrics
+
+          | File | Lines | Functions | Classes | Imports |
+          |------|------:|----------:|--------:|--------:|
+          {py_metrics.rstrip()}
+          | **TOTAL** | **{TOTAL_LINES:,}** | **{TOTAL_DEFS}** | **{TOTAL_CLASSES}** | — |
 
           ---
 
           ## File Hash Registry
 
-          | File | SHA-256 (16 chars) |
-          |------|--------------------|
+          | File | SHA-256 (16 chars) | |
+          |------|--------------------|-|
           {hash_rows.rstrip()}
 
           ---
 
-          ## Mission Constants Snapshot
+          ## Git Activity (last 30 days)
 
           ```
-          PLAN_A_PCT        = {fe.get('constants', {}).get('PLAN_A_PCT', 'N/A')}%
-          PLAN_B_EMBRYOS    = {fe.get('constants', {}).get('PLAN_B_EMBRYOS', 'N/A')}
-          TARS_HONESTY      = {fe.get('constants', {}).get('TARS_HONESTY', 'N/A')}%
-          TARS_HUMOUR       = {fe.get('constants', {}).get('TARS_HUMOUR', 'N/A')}%
-          BLIGHT_SEVERITY   = {fe.get('constants', {}).get('BLIGHT_SEVERITY', 'N/A')}
-          WORMHOLE_STATUS   = {fe.get('constants', {}).get('WORMHOLE_STATUS', 'N/A')}
+          {CONTRIB_AUTHORS or "N/A"}
           ```
 
           ---
 
-          *Snapshot: {NOW_UTC}*
+          *Generated: {NOW_UTC}*
           """)
 
-          # ── docs/index.md ─────────────────────────────────────────────────
-          def build_index():
-              return textwrap.dedent(f"""\
-          # INTERSTELLAR · Docs Index
+          # ── docs/code-intelligence.md  (deep per-file analysis)
+          def build_code_intelligence() -> str:
+              file_sections = ""
+              for name in sorted(py_here):
+                  p = parsed[name]
+                  defs_list = "\n".join(f"  - `{d}()`" for d in p.get("defs", [])[:20]) or "  - (none)"
+                  cls_list  = "\n".join(f"  - `{c}`"   for c in p.get("classes", []))    or "  - (none)"
+                  imp_list  = "\n".join(f"  - `{i}`"   for i in p.get("imports", [])[:15]) or "  - (none)"
+                  si_list   = "\n".join(f"  - `{s}`"   for s in p.get("safe_imports", [])) or "  - (none)"
+                  const_rows = ""
+                  for k, v in list(p.get("constants", {}).items())[:15]:
+                      const_rows += f"| `{k}` | `{v}` |\n"
 
-          > Entry point for all auto-generated documentation.
-          > Last refreshed: {NOW_UTC_SHORT}
+                  pg = p.get("page_title", "")
+                  pi = p.get("page_icon",  "")
+                  la = p.get("layout",     "")
+                  st_info = ""
+                  if pg or pi or la:
+                      st_info = (f"\n**Streamlit config:** title=`{pg}` "
+                                 f"icon=`{pi}` layout=`{la}`\n")
+
+                  doc = p.get("docstring", "").replace("\n", " ")[:200]
+
+                  file_sections += textwrap.dedent(f"""\
+
+          ### `{name}`
+
+          | Metric | Value |
+          |--------|-------|
+          | Lines | {p['lines']:,} |
+          | Characters | {p['chars']:,} |
+          | SHA-256 prefix | `{p['hash']}` |
+          | Functions | {len(p.get('defs', []))} |
+          | Classes | {len(p.get('classes', []))} |
+          | Imports | {len(p.get('imports', []))} |
+          | Backend modules | {len(p.get('safe_imports', []))} |
+          {st_info}
+          **Docstring:** {doc or '(none detected)'}
+
+          **Top-level functions:**
+          {defs_list}
+
+          **Classes:**
+          {cls_list}
+
+          **Imports:**
+          {imp_list}
+
+          **Safe-imported backends:**
+          {si_list}
+
+          **Constants (ALL_CAPS):**
+
+          | Name | Value |
+          |------|-------|
+          {const_rows.rstrip() or "| — | — |"}
+
+          """)
+
+              return textwrap.dedent(f"""\
+          # INTERSTELLAR · Code Intelligence
+
+          > Deep per-file analysis of every `.py` file in the repository root.
+          > Auto-generated · `{NOW_UTC_S}` · {len(py_here)} files analysed
 
           ---
 
-          | Document | Purpose |
-          |----------|---------|
-          | [Mission Log](mission-log.md) | Live ops log — updated every run, guaranteed daily |
-          | [Feature Map](feature-map.md) | Architecture snapshot — pages, modules, constants |
-          | [System Status](system-status.md) | Health check, file hashes, change summary |
-          | [Changelog](changelog.md) | Real change log (`.py` / README diffs only) |
-          | [Roadmap](roadmap.md) | Documentation system intent and rules |
-          | [History](generated/history/) | Daily snapshots — 30-day rolling window |
-          | [Keepalive Sentinel](../.github/keepalive/active.md) | GitHub 60-day inactivity guard — always updated |
+          ## Summary
+
+          | Metric | Value |
+          |--------|-------|
+          | Files analysed | {len(py_here)} |
+          | Total lines | {TOTAL_LINES:,} |
+          | Total functions | {TOTAL_DEFS} |
+          | Total classes | {TOTAL_CLASSES} |
+          | Total safe-imports | {len(ALL_SAFE)} |
+
+          ---
+
+          ## Per-File Analysis
+          {file_sections}
+          ---
+
+          *INTERSTELLAR Code Intelligence · run #{TOTAL_RUNS} · {NOW_UTC}*
+          """)
+
+          # ── docs/index.md
+          def build_index() -> str:
+              return textwrap.dedent(f"""\
+          # INTERSTELLAR · Documentation Hub
+
+          > Entry point for all auto-generated docs.
+          > Bot running since `{FIRST_RUN}` · {UPTIME_DAYS} days uptime · {TOTAL_RUNS} total runs
+          > Last updated: `{NOW_UTC_S}`
+
+          ---
+
+          ## Documents
+
+          | Document | Purpose | Updated |
+          |----------|---------|---------|
+          | [Mission Log](mission-log.md) | Live run record — slot/SHA/metrics — **always updated** | every slot |
+          | [Feature Map](feature-map.md) | Architecture snapshot — pages · modules · constants | on change |
+          | [System Status](system-status.md) | Health · file hashes · git activity | on change |
+          | [Code Intelligence](code-intelligence.md) | Deep per-file analysis of all `.py` | on change |
+          | [Changelog](changelog.md) | Real diff log (`.py` / `README.md` changes only) | on source change |
+          | [Roadmap](roadmap.md) | Bot intent declaration | first run |
+          | [History](generated/history/) | Dated snapshots · 7-day rolling window | every slot |
+
+          ---
+
+          ## Live Stats
+
+          | Metric | Value |
+          |--------|-------|
+          | Python files tracked | {len(py_here)} |
+          | Total lines of code | {TOTAL_LINES:,} |
+          | Backend modules | {len(ALL_SAFE)} |
+          | Navigation pages | {len(ALL_NAV)} |
+          | Bot uptime | {UPTIME_DAYS} days |
+          | All-time runs | {TOTAL_RUNS} |
 
           ---
 
           *INTERSTELLAR — Gargantua Science Platform*
-          *{rm.get('total_lines', '21,573')} lines · 9 Python files · 8 science backends*
-          *Auto-maintained by `interstellar_docs.yml` · 2 commits/day · inactivity-proof forever*
+          *Auto-maintained by `interstellar_docs.yml` · docs/ only · source never modified*
           """)
 
-          # ── docs/roadmap.md ───────────────────────────────────────────────
-          def build_roadmap():
+          # ── docs/roadmap.md  (static — written once)
+          def build_roadmap() -> str:
               return textwrap.dedent(f"""\
-          # INTERSTELLAR · Documentation Roadmap
+          # INTERSTELLAR · Documentation Bot — Roadmap & Rules
 
-          > Static intent declaration for the self-maintaining docs system.
-          > Last confirmed: {NOW_UTC_SHORT}
-
-          ---
-
-          ## What This System Does
-
-          The `interstellar_docs.yml` GitHub Actions workflow maintains a live
-          documentation layer for the INTERSTELLAR — Gargantua Science Platform.
-
-          It runs twice daily on a fixed UTC schedule:
-          - **Slot A** — 06:17 UTC (~11:47 IST) — morning run
-          - **Slot B** — 18:43 UTC (~00:13 IST) — evening run
-
-          Both slots always commit. The `docs/mission-log.md` file contains a
-          per-second UTC timestamp and cumulative run counter, guaranteeing a real
-          diff on every execution. This keeps the repository active forever and
-          prevents GitHub's 60-day inactivity auto-pause.
+          > Static intent declaration. Written once; updated only on force-refresh.
+          > Bot initialised: `{FIRST_RUN}`
 
           ---
 
-          ## Hard Rules
+          ## Purpose
 
-          - **Read-only** access to all `.py` files and `README.md`
-          - **Write access** only inside `docs/` and `.github/keepalive/` — source never touched
-          - **No fake content** — every file contains real extracted data
-          - **Changelog** updated only on actual `.py` / README file changes
-          - **30-day history TTL** — rolling window of daily snapshots, auto-purged
-          - **Idempotent** — running a third time on the same day is safe
-          - **Concurrency-safe** — concurrent runs are serialised; no race conditions
+          The `interstellar_docs.yml` GitHub Actions workflow is a self-maintaining
+          documentation bot for the **INTERSTELLAR — Gargantua Science Platform**.
+
+          It reads all `.py` files in the repository root and `README.md` on every
+          run, produces genuinely useful documentation in `docs/`, and commits only
+          real content — never noise.
+
+          ---
+
+          ## Schedule
+
+          Three cron slots fire every calendar day (UTC):
+
+          | Slot | Time (UTC) | Time (IST) | Label |
+          |------|-----------|------------|-------|
+          | A | 05:17 | 10:47 | morning |
+          | B | 13:29 | 18:59 | afternoon |
+          | C | 21:43 | 03:13 +1 | night |
+
+          All three always run. This guarantees **2–3 commits per day** regardless
+          of whether source files changed, which prevents GitHub's 60-day inactivity
+          auto-pause from ever triggering.
+
+          A manual `workflow_dispatch` trigger (with optional `force_refresh`) is
+          also available for spot-checks and forced resyncs.
 
           ---
 
           ## Files Managed
 
-          | File | Update Condition |
-          |------|-----------------|
-          | `docs/mission-log.md` | **Every run** (per-second timestamp) |
-          | `docs/feature-map.md` | Any tracked file changes |
-          | `docs/system-status.md` | Any tracked file changes |
-          | `docs/index.md` | First run or structural change |
-          | `docs/roadmap.md` | First run only (static) |
-          | `docs/changelog.md` | `.py` or `README.md` changes only |
-          | `docs/generated/history/YYYY-MM-DD.md` | **Every run** (30-day rolling window) |
-          | `.github/keepalive/active.md` | **Every run** (inactivity-proof sentinel) |
+          | File | Condition |
+          |------|-----------|
+          | `docs/mission-log.md` | **Always written** (timestamp ensures real diff) |
+          | `docs/feature-map.md` | Written when source changes |
+          | `docs/system-status.md` | Written when source changes |
+          | `docs/code-intelligence.md` | Written when source changes |
+          | `docs/index.md` | Written when source changes |
+          | `docs/roadmap.md` | Written on first run only |
+          | `docs/changelog.md` | Written when `.py` or `README.md` changes |
+          | `docs/generated/history/*.md` | **Always written** (one file per slot) |
+
+          ---
+
+          ## Hard Rules
+
+          1. **Source is read-only.** No `.py` file or `README.md` is ever written.
+          2. **docs/ is the only playground.** Nothing outside `docs/` is staged.
+          3. **No fake content.** Every field in every doc reflects real repo state.
+          4. **Future-proof.** New `.py` files added to root are auto-discovered.
+          5. **Self-cleaning.** History files older than 7 days are auto-deleted.
+          6. **Idempotent.** Running twice in the same slot is safe.
+          7. **Zero pip deps.** Pure Python stdlib — no install step ever fails.
 
           ---
 
           ## What It Does NOT Do
 
-          - Generate AI content or invented summaries
-          - Modify `.py` files or `README.md`
-          - Write anything outside `docs/` or `.github/keepalive/`
-          - Create meaningless / padded commits
-          - Skip a commit (no early-exit; mission-log + sentinel always differ)
+          - Generate AI-written summaries or fictional content
+          - Modify, rename, or delete any source file
+          - Write outside `docs/`
+          - Inflate the graph with empty commits
+          - Depend on any external API or secret
 
           ---
 
-          *"Mankind was born on Earth. It was never meant to die here." — Cooper, 2067*
+          *"Do not go gentle into that good night." — Dylan Thomas (and TARS)*
           """)
 
-          # ── docs/changelog.md ────────────────────────────────────────────
-          CHANGELOG_PATH = DOCS / "changelog.md"
+          # ── docs/changelog.md
+          CHANGELOG = DOCS / "changelog.md"
 
           def update_changelog():
-              relevant = [f for f in (changed_files + new_files + deleted_files)
+              relevant = [f for f in (changed + added + deleted)
                           if f.endswith(".py") or f == "README.md"]
               if not relevant:
                   return False
 
-              if CHANGELOG_PATH.exists():
-                  existing = CHANGELOG_PATH.read_text()
+              if CHANGELOG.exists():
+                  body = CHANGELOG.read_text()
               else:
-                  existing = textwrap.dedent("""\
+                  body = textwrap.dedent("""\
           # INTERSTELLAR · Changelog
 
-          Auto-generated. Updated only when `.py` files or `README.md` change.
+          > Real diff log — updated only when `.py` or `README.md` changes.
+          > Maintained by `interstellar_docs.yml`.
 
           ---
 
           """)
-
-              if DATE_STR in existing:
+              if DATE_STR in body:
                   return False
 
-              entry_lines = [f"## {DATE_STR}\n"]
-              for f in sorted(set(changed_files) & set(relevant)):
-                  entry_lines.append(f"- Changed: `{f}`")
-              for f in sorted(set(new_files) & set(relevant)):
-                  entry_lines.append(f"- New file: `{f}`")
-              for f in sorted(set(deleted_files) & set(relevant)):
-                  entry_lines.append(f"- Deleted: `{f}`")
-              entry_lines.append("")
+              lines = [f"## {DATE_STR}\n"]
+              for f in sorted(set(changed) & set(relevant)):
+                  lines.append(f"- Modified: `{f}`")
+              for f in sorted(set(added) & set(relevant)):
+                  lines.append(f"- Added: `{f}`")
+              for f in sorted(set(deleted) & set(relevant)):
+                  lines.append(f"- Deleted: `{f}`")
+              lines.append(f"- Slot: {SLOT} ({SLOT_LABEL}) | Run #{TOTAL_RUNS}")
+              lines.append("")
 
-              insert_marker = "---\n\n"
-              if insert_marker in existing:
-                  idx         = existing.index(insert_marker) + len(insert_marker)
-                  new_content = existing[:idx] + "\n".join(entry_lines) + "\n" + existing[idx:]
+              marker = "---\n\n"
+              if marker in body:
+                  idx  = body.index(marker) + len(marker)
+                  body = body[:idx] + "\n".join(lines) + "\n" + body[idx:]
               else:
-                  new_content = existing + "\n".join(entry_lines) + "\n"
+                  body = body + "\n".join(lines) + "\n"
 
-              CHANGELOG_PATH.write_text(new_content)
+              CHANGELOG.write_text(body)
+              print(f"[BOT] Changelog updated with {len(lines)-1} entries")
               return True
 
-          # ── docs/generated/history/YYYY-MM-DD.md (unconditional) ─────────
+          # ── docs/generated/history/YYYY-MM-DD-<slot>.md  [ALWAYS written]
           def write_history():
               nav_list = "\n".join(
                   f"  - {icon} **{label}** (`{key}`)"
-                  for icon, label, key in fe.get("nav_pages", []))
-              module_list = "\n".join(
-                  f"  - `{fname}` — {desc.strip()}"
-                  for fname, desc in rm.get("modules", []))
+                  for icon, label, key in ALL_NAV) or "  - (none detected)"
+
               safe_list = "\n".join(
-                  f"  - `{m}`" for m in fe.get("safe_imports", []))
+                  f"  - `{m}`" for m in ALL_SAFE) or "  - (none detected)"
 
-              const = fe.get("constants", {})
+              file_table = ""
+              for name in sorted(py_here):
+                  p = parsed[name]
+                  file_table += (f"| `{name}` | {p['lines']:,} | "
+                                 f"{len(p.get('defs',[]))} | `{p['hash']}` |\n")
 
-              if repo_changed:
-                  change_section  = "## Source Changes\n\n"
-                  if changed_files:
-                      change_section += "**Modified:** " + ", ".join(f"`{f}`" for f in changed_files) + "\n\n"
-                  if new_files:
-                      change_section += "**New:** "      + ", ".join(f"`{f}`" for f in new_files)     + "\n\n"
-                  if deleted_files:
-                      change_section += "**Deleted:** "  + ", ".join(f"`{f}`" for f in deleted_files) + "\n\n"
-              else:
-                  change_section = "## Source Changes\n\nNone — routine snapshot.\n\n"
+              const = ALL_CONST
+              KEY_CONSTS = [
+                  "PLAN_A_PCT","PLAN_B_EMBRYOS","TARS_HONESTY","TARS_HUMOUR",
+                  "BLIGHT_SEVERITY","WORMHOLE_STATUS",
+              ]
+              const_block = "\n".join(
+                  f"  {k} = {const.get(k,'N/A')}" for k in KEY_CONSTS)
+
+              delta = "No source changes." if not repo_changed else (
+                  ("Modified: " + ", ".join(changed) + "\n" if changed else "") +
+                  ("Added: "    + ", ".join(added)   + "\n" if added   else "") +
+                  ("Deleted: "  + ", ".join(deleted)  + "\n" if deleted else "")
+              ).strip()
 
               content = textwrap.dedent(f"""\
-          # INTERSTELLAR · Daily Snapshot — {DATE_STR}
+          # INTERSTELLAR · Snapshot — {DATE_STR} · Slot {SLOT}
 
-          > Slot: {SLOT} · Run #{TOTAL_RUNS} · Generated: {NOW_UTC}
+          > Run #{TOTAL_RUNS} | {NOW_UTC} | SHA `{SHA_SHORT}` | Trigger: {'manual' if IS_MANUAL else 'scheduled'}
 
           ---
 
-          {change_section}
+          ## Source Delta
+
+          {delta}
+
           ---
 
           ## System Health
 
           | Metric | Value |
           |--------|-------|
-          | Files Present | {len(present_files)} / {len(ALL_TRACKED)} |
-          | Backends Detected | {len(fe.get('safe_imports', []))} / 8 |
-          | Navigation Pages | {len(fe.get('nav_pages', []))} |
-          | Uptime (days) | {uptime_days} |
+          | .py files | {len(py_here)} |
+          | Total lines | {TOTAL_LINES:,} |
+          | Backends | {len(ALL_SAFE)} |
+          | Nav pages | {len(ALL_NAV)} |
+          | Bot uptime | {UPTIME_DAYS} days |
+          | All-time runs | {TOTAL_RUNS} |
+          | Git commits | {TOTAL_COMMITS_GIT} |
+
+          ---
+
+          ## File Registry
+
+          | File | Lines | Functions | Hash |
+          |------|------:|----------:|------|
+          {file_table.rstrip()}
 
           ---
 
@@ -726,13 +994,7 @@ jobs:
 
           ---
 
-          ## Backend Module Registry
-
-          {module_list}
-
-          ---
-
-          ## Safe-Imported Backends
+          ## Backend Modules
 
           {safe_list}
 
@@ -741,146 +1003,112 @@ jobs:
           ## Mission Constants
 
           ```
-          PLAN_A_PCT        = {const.get('PLAN_A_PCT', 'N/A')}%
-          PLAN_B_EMBRYOS    = {const.get('PLAN_B_EMBRYOS', 'N/A')}
-          TARS_HONESTY      = {const.get('TARS_HONESTY', 'N/A')}%
-          TARS_HUMOUR       = {const.get('TARS_HUMOUR', 'N/A')}%
-          BLIGHT_SEVERITY   = {const.get('BLIGHT_SEVERITY', 'N/A')}
-          WORMHOLE_STATUS   = {const.get('WORMHOLE_STATUS', 'N/A')}
+          {const_block}
           ```
 
           ---
 
-          *INTERSTELLAR — Gargantua Science Platform · {rm.get('total_lines', '21,573')} lines*
+          *Slot {SLOT} ({SLOT_LABEL}) · {NOW_UTC}*
           """)
 
-              hist_file = HISTORY / f"{DATE_STR}.md"
-              # Each slot writes its own version — last-write-wins for the day
+              # One file per slot per day: YYYY-MM-DD-A.md, -B.md, -C.md
+              hist_file = HIST / f"{DATE_STR}-{SLOT}.md"
               hist_file.write_text(content)
-              print(f"[INTERSTELLAR] History snapshot → {hist_file}")
+              print(f"[BOT] History snapshot → {hist_file}")
 
-          # ── Cleanup: purge history > 30 days ─────────────────────────────
-          # 30-day rolling window gives a full month of daily snapshots.
+          # ── Cleanup: delete history files older than 7 days ──────────────────
           def purge_old_history():
-              cutoff = TODAY - timedelta(days=30)
+              cutoff = TODAY - timedelta(days=7)
               purged = []
-              for f in HISTORY.glob("*.md"):
+              for f in HIST.glob("*.md"):
+                  # filename format: YYYY-MM-DD[-X].md
+                  stem = f.stem[:10]          # first 10 chars = date
                   try:
-                      if date.fromisoformat(f.stem) < cutoff:
+                      if date.fromisoformat(stem) < cutoff:
                           f.unlink()
                           purged.append(f.name)
                   except ValueError:
                       pass
               if purged:
-                  print(f"[INTERSTELLAR] Purged old history: {purged}")
+                  print(f"[BOT] Purged {len(purged)} old history files: {purged}")
 
-          # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          # ════════════════════════════════════════════════════════════════════
           # ORCHESTRATE
-          # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          # ════════════════════════════════════════════════════════════════════
           purge_old_history()
 
-          def write_if_changed(path: Path, new_content: str, label: str) -> bool:
-              if FORCE_REFRESH or not path.exists() or path.read_text() != new_content:
-                  path.write_text(new_content)
-                  print(f"[INTERSTELLAR] Written: {path} ({label})")
+          def write_if_changed(path: Path, content: str, label: str) -> bool:
+              if FORCE or not path.exists() or path.read_text() != content:
+                  path.write_text(content)
+                  print(f"[BOT] Written: {path.name} ({label})")
                   return True
-              print(f"[INTERSTELLAR] Unchanged: {path} ({label})")
+              print(f"[BOT] Unchanged: {path.name} ({label})")
               return False
 
-          # mission-log.md — ALWAYS written (timestamp changes every run)
-          mission_log_content = build_mission_log()
-          (DOCS / "mission-log.md").write_text(mission_log_content)
-          print(f"[INTERSTELLAR] Written: docs/mission-log.md (guaranteed)")
-
-          # history snapshot — ALWAYS written
+          # Always written — these guarantee the daily commit
+          mission_log = build_mission_log()      # build AFTER updating run_history
+          (DOCS / "mission-log.md").write_text(mission_log)
+          print("[BOT] Written: mission-log.md (guaranteed — timestamp always differs)")
           write_history()
 
-          # remaining docs — write only on real diffs
-          write_if_changed(DOCS / "feature-map.md",   build_feature_map(),   "feature map")
-          write_if_changed(DOCS / "system-status.md", build_system_status(), "system status")
-          write_if_changed(DOCS / "index.md",         build_index(),         "index")
+          # Written only on real diffs
+          write_if_changed(DOCS / "feature-map.md",        build_feature_map(),        "feature map")
+          write_if_changed(DOCS / "system-status.md",      build_system_status(),      "system status")
+          write_if_changed(DOCS / "code-intelligence.md",  build_code_intelligence(),  "code intelligence")
+          write_if_changed(DOCS / "index.md",              build_index(),              "index")
 
-          roadmap_path = DOCS / "roadmap.md"
-          if FORCE_REFRESH or not roadmap_path.exists():
-              roadmap_path.write_text(build_roadmap())
-              print(f"[INTERSTELLAR] Written: {roadmap_path} (roadmap)")
+          roadmap_p = DOCS / "roadmap.md"
+          if FORCE or not roadmap_p.exists():
+              roadmap_p.write_text(build_roadmap())
+              print("[BOT] Written: roadmap.md (static)")
 
           update_changelog()
 
-          # ── Save state ────────────────────────────────────────────────────
-          state["hashes"]   = curr_hashes
-          state["last_run"] = NOW_UTC
+          # ── Persist state ─────────────────────────────────────────────────────
+          state["hashes"]        = curr_h
+          state["last_run"]      = NOW_UTC
+          state["total_commits"] = TOTAL_COMMITS + 1   # optimistic — bash step confirms
           save_state(state)
 
-          # ── Build commit message ──────────────────────────────────────────
-          summary_parts = []
-          if changed_files: summary_parts.append("changed=" + ",".join(changed_files))
-          if new_files:     summary_parts.append("new="     + ",".join(new_files))
-          if deleted_files: summary_parts.append("deleted=" + ",".join(deleted_files))
-          summary = ("; ".join(summary_parts)) if summary_parts else "no-source-changes"
+          # ── Commit message ────────────────────────────────────────────────────
+          delta_str = ", ".join(
+              (["modified:" + ",".join(changed)] if changed else []) +
+              (["added:"    + ",".join(added)]   if added   else []) +
+              (["deleted:"  + ",".join(deleted)] if deleted else [])
+          ) or "no-source-delta"
 
-          commit_msg = (
-              f"docs(interstellar): [{DATE_STR}] slot-{SLOT} run-#{TOTAL_RUNS}\n\n"
-              f"Source delta : {summary}\n"
-              f"Uptime       : {uptime_days} days\n"
-              f"Runs today   : {RUNS_TODAY}\n"
-              f"Timestamp    : {NOW_UTC}\n"
-              f"Trigger      : {'manual' if IS_MANUAL else 'scheduled'}\n"
-              f"Scope        : docs/ only — source never modified"
-          )
+          commit_msg = textwrap.dedent(f"""\
+          docs(interstellar): [{DATE_STR}] slot-{SLOT} run-#{TOTAL_RUNS}
 
-          BOT_DIR.joinpath("commit_msg.txt").write_text(commit_msg)
-          print(f"[INTERSTELLAR] Commit message ready.")
-          print(f"[INTERSTELLAR] ✅ Engine complete — proceeding to commit.")
+          Slot       : {SLOT} ({SLOT_LABEL})
+          Timestamp  : {NOW_UTC}
+          SHA        : {SHA_SHORT}
+          Uptime     : {UPTIME_DAYS} days (since {FIRST_RUN})
+          Runs today : {RUNS_TODAY}
+          Source     : {delta_str}
+          Trigger    : {'manual' if IS_MANUAL else 'scheduled'}
+          Scope      : docs/ only — source never modified
+          """)
 
-      # ── 4. Keepalive sentinel (GitHub 60-day inactivity guard) ───────────────
-      # GitHub pauses scheduled workflows if the repo has no pushes for 60 days.
-      # Bot commits to docs/ are sometimes not counted by GitHub's activity checker.
-      # Writing a sentinel file under .github/ with today's date guarantees the
-      # repo is always visibly active, forever — with zero fake content.
-      - name: Write keepalive sentinel
-        run: |
-          mkdir -p .github/keepalive
-          DATE_STR=$(date -u '+%Y-%m-%d')
-          NOW_UTC=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
-          SENTINEL=".github/keepalive/active.md"
+          BOT.joinpath("commit_msg.txt").write_text(commit_msg)
+          print(f"[BOT] ✅ Engine complete.")
 
-          cat > "$SENTINEL" << EOF
-          # INTERSTELLAR · Keepalive Sentinel
-
-          This file is rewritten on every docs run to guarantee the repository
-          is never flagged as inactive by GitHub's 60-day scheduler-pause policy.
-
-          **Last updated:** ${NOW_UTC}
-          **Date:** ${DATE_STR}
-
-          > *"Do not go gentle into that good night."*
-          > *INTERSTELLAR — Gargantua Science Platform — docs auto-maintained forever.*
-          EOF
-
-          echo "[INTERSTELLAR] Sentinel written: ${SENTINEL}"
-
-      # ── 5. Commit and push ────────────────────────────────────────────────────
+      # ── 4. Commit and push ────────────────────────────────────────────────────
       - name: Commit and push docs
         run: |
           git config user.name  "INTERSTELLAR-DocsBot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # Stage docs/ AND the keepalive sentinel — both are always real diffs.
-          # docs/mission-log.md has a per-second timestamp → always changed.
-          # .github/keepalive/active.md has today's UTC time → always changed.
-          # Together these form an ironclad guarantee: at least one staged file
-          # will always have a real diff, so 'git commit' never fails.
+          # Stage ONLY docs/ — source files are never touched
           git add docs/
-          git add .github/keepalive/
 
-          # Diagnostic: show exactly what is staged
-          echo "[INTERSTELLAR] Staged files:"
-          git diff --staged --name-only
+          # Safety net: if somehow nothing staged, exit cleanly
+          if git diff --staged --quiet; then
+            echo "[BOT] Nothing staged — unexpected (mission-log should always differ). Exiting."
+            exit 0
+          fi
 
-          # Commit unconditionally — the two always-changing files ensure this
-          # path is always reached with a real diff. No early-exit needed.
           git commit -F .bot/commit_msg.txt
           git push origin HEAD
 
-          echo "[INTERSTELLAR] ✅ Committed and pushed."
+          echo "[BOT] ✅ Committed and pushed successfully."
