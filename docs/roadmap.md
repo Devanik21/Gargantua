@@ -1,61 +1,75 @@
-# INTERSTELLAR · Documentation Roadmap
+# INTERSTELLAR · Documentation Bot — Roadmap & Rules
 
-> Static intent declaration for the self-maintaining docs system.
-> Last confirmed: 2026-06-13 14:40 UTC
-
----
-
-## What This System Does
-
-The `interstellar_docs.yml` GitHub Actions workflow maintains a live
-documentation layer for the INTERSTELLAR — Gargantua Science Platform.
-
-It runs twice daily on a fixed UTC schedule:
-- **Slot A** — 06:17 UTC (~11:47 IST) — morning run
-- **Slot B** — 18:43 UTC (~00:13 IST) — evening run
-
-Both slots always commit. The `docs/mission-log.md` file contains a
-per-second UTC timestamp and cumulative run counter, guaranteeing a real
-diff on every execution. This keeps the repository active forever and
-prevents GitHub's 60-day inactivity auto-pause.
+> Static intent declaration. Written once; updated only on force-refresh.
+> Bot initialised: `2026-06-14`
 
 ---
 
-## Hard Rules
+## Purpose
 
-- **Read-only** access to all `.py` files and `README.md`
-- **Write access** only inside `docs/` and `.github/keepalive/` — source never touched
-- **No fake content** — every file contains real extracted data
-- **Changelog** updated only on actual `.py` / README file changes
-- **30-day history TTL** — rolling window of daily snapshots, auto-purged
-- **Idempotent** — running a third time on the same day is safe
-- **Concurrency-safe** — concurrent runs are serialised; no race conditions
+The `interstellar_docs.yml` GitHub Actions workflow is a self-maintaining
+documentation bot for the **INTERSTELLAR — Gargantua Science Platform**.
+
+It reads all `.py` files in the repository root and `README.md` on every
+run, produces genuinely useful documentation in `docs/`, and commits only
+real content — never noise.
+
+---
+
+## Schedule
+
+Three cron slots fire every calendar day (UTC):
+
+| Slot | Time (UTC) | Time (IST) | Label |
+|------|-----------|------------|-------|
+| A | 05:17 | 10:47 | morning |
+| B | 13:29 | 18:59 | afternoon |
+| C | 21:43 | 03:13 +1 | night |
+
+All three always run. This guarantees **2–3 commits per day** regardless
+of whether source files changed, which prevents GitHub's 60-day inactivity
+auto-pause from ever triggering.
+
+A manual `workflow_dispatch` trigger (with optional `force_refresh`) is
+also available for spot-checks and forced resyncs.
 
 ---
 
 ## Files Managed
 
-| File | Update Condition |
-|------|-----------------|
-| `docs/mission-log.md` | **Every run** (per-second timestamp) |
-| `docs/feature-map.md` | Any tracked file changes |
-| `docs/system-status.md` | Any tracked file changes |
-| `docs/index.md` | First run or structural change |
-| `docs/roadmap.md` | First run only (static) |
-| `docs/changelog.md` | `.py` or `README.md` changes only |
-| `docs/generated/history/YYYY-MM-DD.md` | **Every run** (30-day rolling window) |
-| `.github/keepalive/active.md` | **Every run** (inactivity-proof sentinel) |
+| File | Condition |
+|------|-----------|
+| `docs/mission-log.md` | **Always written** (timestamp ensures real diff) |
+| `docs/feature-map.md` | Written when source changes |
+| `docs/system-status.md` | Written when source changes |
+| `docs/code-intelligence.md` | Written when source changes |
+| `docs/index.md` | Written when source changes |
+| `docs/roadmap.md` | Written on first run only |
+| `docs/changelog.md` | Written when `.py` or `README.md` changes |
+| `docs/generated/history/*.md` | **Always written** (one file per slot) |
+
+---
+
+## Hard Rules
+
+1. **Source is read-only.** No `.py` file or `README.md` is ever written.
+2. **docs/ is the only playground.** Nothing outside `docs/` is staged.
+3. **No fake content.** Every field in every doc reflects real repo state.
+4. **Future-proof.** New `.py` files added to root are auto-discovered.
+5. **Self-cleaning.** History files older than 7 days are auto-deleted.
+6. **Idempotent.** Running twice in the same slot is safe.
+7. **Zero pip deps.** Pure Python stdlib — no install step ever fails.
 
 ---
 
 ## What It Does NOT Do
 
-- Generate AI content or invented summaries
-- Modify `.py` files or `README.md`
-- Write anything outside `docs/` or `.github/keepalive/`
-- Create meaningless / padded commits
-- Skip a commit (no early-exit; mission-log + sentinel always differ)
+- Generate AI-written summaries or fictional content
+- Modify, rename, or delete any source file
+- Write outside `docs/`
+- Inflate the graph with empty commits
+- Depend on any external API or secret
 
 ---
 
-*"Mankind was born on Earth. It was never meant to die here." — Cooper, 2067*
+*"Do not go gentle into that good night." — Dylan Thomas (and TARS)*
