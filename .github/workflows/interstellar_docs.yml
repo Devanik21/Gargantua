@@ -1096,8 +1096,8 @@ jobs:
       # ── 4. Commit and push ────────────────────────────────────────────────────
       - name: Commit and push docs
         run: |
-          git config user.name  "INTERSTELLAR-DocsBot"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name  "Devanik21"
+          git config user.email "devanik2005@gmail.com"
 
           # Stage ONLY docs/ — source files are never touched
           git add docs/
