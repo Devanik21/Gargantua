@@ -1,4 +1,5 @@
-
+<div align="center">
+  
 #  INTERSTELLAR 
   
 
@@ -1138,8 +1139,11 @@ This project is released under the **MIT License**. You are welcome to use, modi
 
 </div>
 
+<div align="center">
+
   **Author: Devanik**
   **May 2026**
+
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-4FC3F7?style=flat-square&logo=python&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.30%2B-E8C46A?style=flat-square&logo=streamlit&logoColor=white)
