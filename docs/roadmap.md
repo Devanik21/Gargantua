@@ -1,7 +1,7 @@
 # INTERSTELLAR · Documentation Bot — Roadmap & Rules
 
 > Static intent declaration. Written once; updated only on force-refresh.
-> Bot initialised: `2026-06-14`
+> Bot initialised: `2026-07-05`
 
 ---
 
