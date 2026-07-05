@@ -105,7 +105,7 @@ jobs:
           # ════════════════════════════════════════════════════════════════════
           # INTERSTELLAR Documentation Engine  ·  Pure stdlib · zero pip deps
           # ════════════════════════════════════════════════════════════════════
-          import os, sys, json, hashlib, re, textwrap, subprocess
+          import os, sys, json, hashlib, re, textwrap, subprocess, random
           from datetime import date, datetime, timedelta
           from pathlib import Path
 
@@ -201,6 +201,20 @@ jobs:
           RUNS_TODAY   = state["runs_today"]
           FIRST_RUN    = state["first_run"]
           TOTAL_COMMITS = state["total_commits"]
+
+          # Pick one random daily quota: 1, 2, or 3 commits for the whole day.
+          # This is stored in state so every run on the same date uses the same target.
+          if state.get("target_commits_date") != DATE_STR:
+              state["target_commits_date"] = DATE_STR
+              state["target_commits_today"] = random.randint(1, 3)
+              save_state(state)
+
+          TARGET_COMMITS_TODAY = state["target_commits_today"]
+
+          # Stop once today's random quota is reached.
+          if RUNS_TODAY > TARGET_COMMITS_TODAY:
+              print(f"[BOT] Daily random quota reached ({RUNS_TODAY}/{TARGET_COMMITS_TODAY}); skipping.")
+              sys.exit(0)
 
           try:
               UPTIME_DAYS = (TODAY - date.fromisoformat(FIRST_RUN)).days
