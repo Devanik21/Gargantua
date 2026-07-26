@@ -4,7 +4,7 @@ name: INTERSTELLAR · Self-Maintaining Docs
 # INTERSTELLAR — Gargantua Science Platform  ·  Documentation Bot
 # ══════════════════════════════════════════════════════════════════════════════
 #
-# GUARANTEE: 1–4 genuine, content-rich commits every calendar day (random daily quota), forever.
+# GUARANTEE: a random 1–4 genuine, content-rich commits every calendar day, forever.
 # GitHub auto-pauses scheduled workflows after 60 days of repo inactivity.
 # This bot's own commits count as activity → it keeps itself alive indefinitely.
 #
@@ -15,12 +15,13 @@ name: INTERSTELLAR · Self-Maintaining Docs
 #  Both files carry real, meaningful content that differs every run.
 #  Neither is padding — they are the primary audit trail of the project.
 #
-# SCHEDULE  (4 slots per day, all always run — daily quota decides how many commit)
-# ────────────────────────────────────────────
+# SCHEDULE  (4 slots per day; each day draws a random commit quota of 1–4 —
+#            slots beyond that day's quota exit early with no write/commit)
+# ──────────────────────────────────────────────────────────────────────────
 #  Slot A — 05:17 UTC  (~10:47 IST)   morning
 #  Slot B — 13:29 UTC  (~18:59 IST)   afternoon
-#  Slot C — 17:36 UTC  (~23:06 IST)   evening
-#  Slot D — 21:43 UTC  (~03:13 IST+1) night
+#  Slot D — 17:36 UTC  (~23:06 IST)   evening
+#  Slot C — 21:43 UTC  (~03:13 IST+1) night
 #
 # MANUAL TRIGGER
 #  workflow_dispatch with optional force_refresh = true
@@ -43,7 +44,8 @@ name: INTERSTELLAR · Self-Maintaining Docs
 #
 # MAINTENANCE
 #  • History files older than 7 days are auto-deleted
-#  • .bot/state.json stores SHA-256 hashes between runs (never committed)
+#  • .bot/state.json stores hashes + the day's chosen quota between runs,
+#    persisted across runs via GitHub Actions cache (never committed to git)
 #
 # WHAT IT NEVER DOES
 #  ✗ Touch any .py file or README.md
@@ -56,8 +58,8 @@ on:
   schedule:
     - cron: '17  5 * * *'   # Slot A — morning   (~10:47 IST)
     - cron: '29 13 * * *'   # Slot B — afternoon  (~18:59 IST)
-    - cron: '36 17 * * *'   # Slot C — evening    (~23:06 IST)
-    - cron: '43 21 * * *'   # Slot D — night      (~03:13 IST +1)
+    - cron: '36 17 * * *'   # Slot D — evening    (~23:06 IST)
+    - cron: '43 21 * * *'   # Slot C — night      (~03:13 IST +1)
 
   workflow_dispatch:
     inputs:
@@ -85,6 +87,15 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0          # full history — used for git log metrics
+
+      # ── 1b. Restore bot state (cross-run persistence for the daily quota) ─────
+      - name: Restore bot state
+        uses: actions/cache/restore@v4
+        with:
+          path: .bot
+          key: interstellar-bot-state-${{ github.run_id }}
+          restore-keys: |
+            interstellar-bot-state-
 
       # ── 2. Python ────────────────────────────────────────────────────────────
       - name: Set up Python 3.11
@@ -129,12 +140,12 @@ jobs:
           # Slot label
           _h = NOW.hour
           if   _h < 9:   SLOT = "A"
-          elif _h < 15:  SLOT = "B"
-          elif _h < 19:  SLOT = "C"
-          else:          SLOT = "D"
+          elif _h < 17:  SLOT = "B"
+          elif _h < 20:  SLOT = "D"
+          else:          SLOT = "C"
           if IS_MANUAL:  SLOT = "M"
 
-          SLOT_LABELS = {"A": "morning", "B": "afternoon", "C": "evening", "D": "night", "M": "manual"}
+          SLOT_LABELS = {"A": "morning", "B": "afternoon", "D": "evening", "C": "night", "M": "manual"}
           SLOT_LABEL  = SLOT_LABELS[SLOT]
 
           print(f"[BOT] {DATE_STR} | Slot {SLOT} ({SLOT_LABEL}) | Run #{RUN_NUMBER} "
@@ -355,7 +366,7 @@ jobs:
               h1_m     = re.search(r'^#\s+(.+)', src, re.MULTILINE)
               return {
                   "modules":     modules,
-                  "total_lines": total_m.group(1)   if total_m  else "21,573",
+                  "total_lines": total_m.group(1)   if total_m  else "N/A",
                   "author":      author_m.group(1).strip() if author_m else "Devanik",
                   "badges":      badges[:10],
                   "title":       h1_m.group(1).strip() if h1_m else "INTERSTELLAR",
@@ -439,7 +450,7 @@ jobs:
 
           > **Live run record — updated every slot, every day.**
           > Last updated: `{NOW_UTC}`
-          > Today's commit quota: **{RUNS_TODAY} of {TARGET_COMMITS_TODAY}** (randomly set 1–4 at the first run of the day).
+          > This file always changes when written — one part of today's random 1–4 commit quota (target: {TARGET_COMMITS_TODAY}).
 
           ---
 
@@ -845,14 +856,15 @@ jobs:
           |------|-----------|------------|-------|
           | A | 05:17 | 10:47 | morning |
           | B | 13:29 | 18:59 | afternoon |
-          | C | 17:36 | 23:06 | evening |
-          | D | 21:43 | 03:13 +1 | night |
+          | D | 17:36 | 23:06 | evening |
+          | C | 21:43 | 03:13 +1 | night |
 
-          All four always fire. At the first run of each day the bot randomly
-          picks a quota of **1–4** commits and stops once that quota is reached,
-          so the exact daily count varies by design rather than being fixed. This
-          keeps the repository active enough that GitHub's 60-day inactivity
-          auto-pause never triggers.
+          Each day the bot draws a random commit quota of **1–4** and stores it in
+          `.bot/state.json` (persisted across runs via GitHub Actions cache). Slots
+          beyond that day's quota exit before writing or committing anything, so
+          the real commit count varies day to day between 1 and 4. Since at least
+          one commit always lands, this still prevents GitHub's 60-day inactivity
+          auto-pause from ever triggering.
 
           A manual `workflow_dispatch` trigger (with optional `force_refresh`) is
           also available for spot-checks and forced resyncs.
@@ -895,8 +907,6 @@ jobs:
           - Depend on any external API or secret
 
           ---
-
-          *"Do not go gentle into that good night." — Dylan Thomas (and TARS)*
           """)
 
           # ── docs/changelog.md
@@ -1132,3 +1142,11 @@ jobs:
           git push origin HEAD
 
           echo "[BOT] ✅ Committed and pushed successfully."
+
+      # ── 5. Save bot state (always — including quota-skip early exits) ────────
+      - name: Save bot state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .bot
+          key: interstellar-bot-state-${{ github.run_id }}
