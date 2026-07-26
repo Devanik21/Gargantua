@@ -1,7 +1,7 @@
 # INTERSTELLAR · Documentation Bot — Roadmap & Rules
 
 > Static intent declaration. Written once; updated only on force-refresh.
-> Bot initialised: `2026-07-05`
+> Bot initialised: `2026-07-26`
 
 ---
 
@@ -18,16 +18,20 @@ real content — never noise.
 
 ## Schedule
 
-Three cron slots fire every calendar day (UTC):
+Four cron slots fire every calendar day (UTC):
 
 | Slot | Time (UTC) | Time (IST) | Label |
 |------|-----------|------------|-------|
 | A | 05:17 | 10:47 | morning |
 | B | 13:29 | 18:59 | afternoon |
+| D | 17:36 | 23:06 | evening |
 | C | 21:43 | 03:13 +1 | night |
 
-All three always run. This guarantees **2–3 commits per day** regardless
-of whether source files changed, which prevents GitHub's 60-day inactivity
+Each day the bot draws a random commit quota of **1–4** and stores it in
+`.bot/state.json` (persisted across runs via GitHub Actions cache). Slots
+beyond that day's quota exit before writing or committing anything, so
+the real commit count varies day to day between 1 and 4. Since at least
+one commit always lands, this still prevents GitHub's 60-day inactivity
 auto-pause from ever triggering.
 
 A manual `workflow_dispatch` trigger (with optional `force_refresh`) is
@@ -71,5 +75,3 @@ also available for spot-checks and forced resyncs.
 - Depend on any external API or secret
 
 ---
-
-*"Do not go gentle into that good night." — Dylan Thomas (and TARS)*
