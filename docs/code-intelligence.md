@@ -1,7 +1,7 @@
 # INTERSTELLAR · Code Intelligence
 
 > Deep per-file analysis of every `.py` file in the repository root.
-> Auto-generated · `2026-11-21 20:11 UTC` · 9 files analysed
+> Auto-generated · `2026-11-21 22:18 UTC` · 9 files analysed
 
 ---
 
@@ -783,4 +783,4 @@
 
 ---
 
-*INTERSTELLAR Code Intelligence · run #287 · 2026-11-21 20:11:22 UTC*
+*INTERSTELLAR Code Intelligence · run #288 · 2026-11-21 22:18:14 UTC*
